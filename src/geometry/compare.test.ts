@@ -13,7 +13,7 @@ const CANVAS = 1000 // px
 let pass = 0
 let fail = 0
 
-function check(name: string, actual: boolean, expected: boolean) {
+function check<T>(name: string, actual: T, expected: T) {
   if (actual === expected) {
     pass++
     console.log(`  ✅ ${name}`)
@@ -333,6 +333,6 @@ console.log(`\n${'─'.repeat(50)}`)
 console.log(`✅ 통과: ${pass}   ❌ 실패: ${fail}`)
 if (fail > 0) {
   console.log('\n⚠️  판정 엔진에 오류가 있습니다.')
-  process.exit(1)
+  throw new Error(`판정 엔진 테스트 ${fail}건 실패`)
 }
 console.log('✅ 합동 판정 엔진 검증 완료')

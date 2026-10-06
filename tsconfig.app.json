@@ -22,5 +22,7 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src"]
+  "include": ["src"],
+  /* 테스트 파일은 앱 빌드에서 제외 (tsx로 직접 실행) */
+  "exclude": ["src/**/*.test.ts"]
 }

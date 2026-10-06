@@ -1,0 +1,29 @@
+# ---- Node / npm ----
+node_modules/
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ---- 빌드 산출물 ----
+dist/
+build/
+.vite/
+*.tsbuildinfo
+
+# ---- 환경변수 / 시크릿 (절대 커밋 금지) ----
+.env
+.env.local
+.env.*.local
+
+# ---- IDE ----
+.idea/
+.vscode/
+*.iml
+*.swp
+
+# ---- OS ----
+.DS_Store
+Thumbs.db
+
+# ---- 로그 ----
+*.log

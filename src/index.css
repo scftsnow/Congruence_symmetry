@@ -411,3 +411,15 @@ body {
     font-size: 19px;
   }
 }
+/* ── stage 1: find the pair ─────────────────────────────── */
+
+.stage1-hint {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--color-ink-soft);
+  line-height: 1.6;
+}
+
+.stage1-hint strong {
+  color: var(--color-ink);
+}

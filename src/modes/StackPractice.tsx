@@ -19,6 +19,8 @@ import { identity } from '../geometry/transforms'
 interface StackPracticeProps {
   referenceShape: Shape
   movableShape: Shape
+  /** pair handed over from stage 1, so the child keeps context */
+  pairLabel?: string
   onBack: () => void
 }
 
@@ -27,6 +29,7 @@ const CANVAS = 1000
 export function StackPractice({
   referenceShape,
   movableShape,
+  pairLabel,
   onBack,
 }: StackPracticeProps) {
   const [celebrating, setCelebrating] = useState(false)
@@ -46,7 +49,6 @@ export function StackPractice({
     onDragEnd,
     rotateBy,
     flip,
-    scaleBy,
     resetMovable,
   } = useStackPractice(referenceShape, movableShape, CANVAS)
 
@@ -76,7 +78,7 @@ export function StackPractice({
         <button type="button" className="back-btn" onClick={onBack}>
           ← 돌아가기
         </button>
-        <h2 className="mode__title">포개어 보자</h2>
+        <h2 className="mode__title">{pairLabel ? `${pairLabel} 포개어 보자` : '포개어 보자'}</h2>
         <div className="star-counter" aria-label={`맞힌 개수 ${solvedCount}`}>
           ⭐ {solvedCount}
         </div>
@@ -148,7 +150,6 @@ export function StackPractice({
         onToolChange={setTool}
         onRotateBy={rotateBy}
         onFlip={flip}
-        onScaleBy={scaleBy}
         onReset={resetMovable}
       />
     </div>

@@ -45,9 +45,9 @@ describe('home screen renders', () => {
     expect(html.includes(expected.home.title)).toBeTruthy()
   })
 
-  it('asks which shape goes on each side', () => {
-    expect(html.includes(expected.home.step1)).toBeTruthy()
-    expect(html.includes(expected.home.step2)).toBeTruthy()
+  it('presents the two stages in curriculum order', () => {
+    expect(html.includes(expected.home.stage1Title)).toBeTruthy()
+    expect(html.includes(expected.home.stage2Title)).toBeTruthy()
   })
 
   it('renders every basic shape as a polygon', () => {
@@ -101,7 +101,7 @@ describe('stacking mode renders', () => {
     expect(html.includes(expected.stack.overlapHint)).toBeTruthy()
   })
 
-  it('offers all four manipulation tools', () => {
+  it('offers the three manipulation tools, and no size control', () => {
     for (const label of expected.stack.tools) {
       expect(html.includes(label)).toBeTruthy()
     }

@@ -1,28 +1,46 @@
 /**
- * 홈 화면
+ * App shell — one screen at a time, panels inside.
  *
- * ⚠️ 구조 원칙 (SPEC): 단일 화면 + 패널
- *    앱이 복잡해질수록 탭·라우팅 대신 한 화면 안에서 패널만 바꿾�다.
+ * Stage order follows the textbook for 초5 2학기 3단원:
+ *   stage1  find the congruent pair among scattered shapes
+ *   stage2  stack that pair by hand to prove it
+ *   stage3  corresponding points, edges and angles   (not built yet)
  */
 
 import { useState } from 'react'
+import { Stage1 } from './modes/Stage1Find'
 import { StackPractice } from './modes/StackPractice'
 import { BASIC_SHAPES } from './geometry/shapes'
 import type { Shape } from './geometry/types'
 
-type Screen = 'home' | 'stack'
+type Screen = 'home' | 'stage1' | 'stage2'
 
 export default function App() {
   const [screen, setScreen] = useState<Screen>('home')
   const [referenceShape, setReferenceShape] = useState<Shape>(BASIC_SHAPES[1])
   const [movableShape, setMovableShape] = useState<Shape>(BASIC_SHAPES[1])
+  /** the pair handed over from stage 1 for hands-on proof */
+  const [pair, setPair] = useState<{ from: string; to: string } | null>(null)
 
-  if (screen === 'stack') {
+  if (screen === 'stage1') {
+    return (
+      <Stage1
+        onBack={() => setScreen('home')}
+        onVerifyPair={(from, to) => {
+          setPair({ from, to })
+          setScreen('stage2')
+        }}
+      />
+    )
+  }
+
+  if (screen === 'stage2') {
     return (
       <StackPractice
         referenceShape={referenceShape}
         movableShape={movableShape}
-        onBack={() => setScreen('home')}
+        pairLabel={pair ? pair.from + ' · ' + pair.to : undefined}
+        onBack={() => setScreen('stage1')}
       />
     )
   }
@@ -35,36 +53,32 @@ export default function App() {
       </header>
 
       <main className="home__main">
-        {/* 1단계: 기준 도형 고르기 */}
         <section className="panel">
           <h2 className="panel__title">
-            <span className="panel__step">1</span> 왼쪽 도형 고르기
-          </h2>
-          <p className="panel__hint">기준이 되는 도형을 골라줘</p>
-          <ShapePicker
-            selected={referenceShape.id}
-            onSelect={setReferenceShape}
-          />
-        </section>
-
-        {/* 2단계: 맞춰 볼 도형 고르기 */}
-        <section className="panel">
-          <h2 className="panel__title">
-            <span className="panel__step">2</span> 오른쪽 도형 고르기
+            <span className="panel__step">1</span> 합동인 도형 찾기
           </h2>
           <p className="panel__hint">
-            <strong>같은 도형</strong>을 골라보거나, 다른 도형으로 실험해봐
+            흩어져 있는 도형들에서 <strong>합동인 쌍</strong>을 찾아 이어 보세요
+          </p>
+          <ShapePicker selected={referenceShape.id} onSelect={setReferenceShape} />
+        </section>
+
+        <section className="panel">
+          <h2 className="panel__title">
+            <span className="panel__step">2</span> 직접 포개어 보기
+          </h2>
+          <p className="panel__hint">
+            찾은 쌍을 실제로 <strong>겹쳐 보면서</strong> 확인해요
           </p>
           <ShapePicker selected={movableShape.id} onSelect={setMovableShape} />
         </section>
 
-        {/* 시작 */}
         <button
           type="button"
           className="start-btn"
-          onClick={() => setScreen('stack')}
+          onClick={() => setScreen('stage1')}
         >
-          포개어 보기 시작하기 →
+          합동인 도형 찾기 시작하기 →
         </button>
       </main>
     </div>

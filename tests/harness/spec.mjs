@@ -93,6 +93,16 @@ export function expect(actual) {
         throw new Error(`expected > ${format(expected)}, got ${format(actual)}`)
       }
     },
+    toBeGreaterThanOrEqual(expected) {
+      if (!(actual >= expected)) {
+        throw new Error(`expected >= ${format(expected)}, got ${format(actual)}`)
+      }
+    },
+    toBeLessThanOrEqual(expected) {
+      if (!(actual <= expected)) {
+        throw new Error(`expected <= ${format(expected)}, got ${format(actual)}`)
+      }
+    },
     toBeLessThan(expected) {
       if (!(actual < expected)) {
         throw new Error(`expected < ${format(expected)}, got ${format(actual)}`)

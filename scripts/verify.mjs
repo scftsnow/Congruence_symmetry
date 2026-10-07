@@ -123,19 +123,21 @@ section('6. korean strings in source')
 
   const ui = expected.uiStrings
   ok('home title', appSrc.includes(ui.homeTitle), ui.homeTitle)
-  ok('step 1', appSrc.includes(ui.step1))
-  ok('step 2', appSrc.includes(ui.step2))
+  ok('stage 1 title', appSrc.includes(ui.stage1Title), ui.stage1Title)
+  ok('stage 2 title', appSrc.includes(ui.stage2Title), ui.stage2Title)
   ok('start button', appSrc.includes(ui.startBtn))
-  ok('mode title', readSrc('src/modes/StackPractice.tsx').includes(ui.modeTitle))
+  ok('mode title', readSrc('src/modes/StackPractice.tsx').includes(ui.stackTitle))
   ok('success msg', bannerSrc.includes(ui.success))
-  ok('size differs msg', bannerSrc.includes(ui.sizeDiffers), ui.sizeDiffers)
-  ok('overlay hint', bannerSrc.includes(ui.overlayHint))
-  ok('tool move', toolSrc.includes(ui.toolMove), ui.toolMove)
-  ok('tool rotate', toolSrc.includes(ui.toolRotate))
-  ok('tool flip', toolSrc.includes(ui.toolFlip))
-  ok('tool scale', toolSrc.includes(ui.toolScale))
+  ok('overlay hint', bannerSrc.includes(ui.overlapHint))
   ok('reset', toolSrc.includes(ui.reset))
   ok('drag hint', toolSrc.includes(ui.dragHint), ui.dragHint)
+  ok('stage 1 drag hint', readSrc('src/modes/Stage1Find.tsx').includes(ui.dragHint), ui.dragHint)
+  for (const label of expected.toolLabels) {
+    ok('tool label in toolbar', toolSrc.includes(label), label)
+  }
+  // scale was removed: the toolbar must not offer it any more
+  ok('no size tool in toolbar', !toolSrc.includes("label: '크기'"))
+  ok('no size action in hook', !readSrc('src/modes/useStackPractice.ts').includes('scaleBy'))
 }
 
 console.log('\n' + '-'.repeat(52))

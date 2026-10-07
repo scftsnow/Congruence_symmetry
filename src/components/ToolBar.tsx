@@ -14,7 +14,6 @@ interface ToolBarProps {
   onToolChange: (t: DragMode) => void
   onRotateBy: (deg: number) => void
   onFlip: () => void
-  onScaleBy: (f: number) => void
   onReset: () => void
 }
 
@@ -22,7 +21,6 @@ const TOOLS: Array<{ id: DragMode; label: string; icon: string }> = [
   { id: 'move', label: '옮기기', icon: '✋' },
   { id: 'rotate', label: '돌리기', icon: '🔄' },
   { id: 'flip', label: '뒤집기', icon: '🪞' },
-  { id: 'scale', label: '크기', icon: '🔍' },
 ]
 
 export function ToolBar({
@@ -30,7 +28,6 @@ export function ToolBar({
   onToolChange,
   onRotateBy,
   onFlip,
-  onScaleBy,
   onReset,
 }: ToolBarProps) {
   return (
@@ -71,16 +68,6 @@ export function ToolBar({
           <button type="button" className="mini-btn" onClick={onFlip}>
             🪞 뒤집기
           </button>
-        )}
-        {tool === 'scale' && (
-          <>
-            <button type="button" className="mini-btn" onClick={() => onScaleBy(0.8)}>
-              🔽 작게
-            </button>
-            <button type="button" className="mini-btn" onClick={() => onScaleBy(1.25)}>
-              🔼 크게
-            </button>
-          </>
         )}
         {tool === 'move' && (
           <span className="toolbar__hint">

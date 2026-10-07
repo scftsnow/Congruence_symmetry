@@ -1,20 +1,4 @@
 {
-    "uiStrings":  {
-                      "sizeDiffers":  "크기가 조금 달라",
-                      "toolMove":  "옮기기",
-                      "dragHint":  "끌어서",
-                      "reset":  "처음부터",
-                      "toolFlip":  "뒤집기",
-                      "step2":  "오른쪽 도형 고르기",
-                      "success":  "같은 모양이야!",
-                      "startBtn":  "포개어 보기 시작하기",
-                      "homeTitle":  "합동과 대칭",
-                      "modeTitle":  "포개어 보자",
-                      "overlayHint":  "왼쪽 도형에",
-                      "toolScale":  "크기",
-                      "toolRotate":  "돌리기",
-                      "step1":  "왼쪽 도형 고르기"
-                  },
     "shapeNames":  [
                        "삼각형",
                        "정사각형",
@@ -27,5 +11,21 @@
                        "별",
                        "나비",
                        "꽃"
+                   ],
+    "uiStrings":  {
+                      "reset":  "처음부터",
+                      "stackTitle":  "포개어 보자",
+                      "homeTitle":  "합동과 대칭",
+                      "dragHint":  "끌어서",
+                      "success":  "같은 모양이야!",
+                      "overlapHint":  "왼쪽 도형에",
+                      "stage2Title":  "직접 포개어 보기",
+                      "stage1Title":  "합동인 도형 찾기",
+                      "startBtn":  "합동인 도형 찾기 시작하기"
+                  },
+    "toolLabels":  [
+                       "옮기기",
+                       "돌리기",
+                       "뒤집기"
                    ]
 }

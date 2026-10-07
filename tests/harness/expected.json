@@ -1,10 +1,8 @@
 {
-    "home":  {
-                 "title":  "합동과 대칭",
-                 "step2":  "오른쪽 도형 고르기",
-                 "step1":  "왼쪽 도형 고르기",
-                 "startBtn":  "포개어 보기 시작하기"
-             },
+    "stage1":  {
+                   "dragHint":  "끌어서 이어 보세요",
+                   "title":  "합동인 도형 찾기"
+               },
     "stack":  {
                   "overlapHint":  "겹쳐 보게",
                   "dragHint":  "끌어서",
@@ -12,11 +10,16 @@
                   "tools":  [
                                 "옮기기",
                                 "돌리기",
-                                "뒤집기",
-                                "크기"
+                                "뒤집기"
                             ],
                   "starZero":  "맞힌 개수 0",
                   "title":  "포개어 보자",
                   "sizeDiffers":  "크기가 조금 달라"
-              }
+              },
+    "home":  {
+                 "title":  "합동과 대칭",
+                 "stage1Title":  "합동인 도형 찾기",
+                 "stage2Title":  "직접 포개어 보기",
+                 "startBtn":  "합동인 도형 찾기 시작하기"
+             }
 }

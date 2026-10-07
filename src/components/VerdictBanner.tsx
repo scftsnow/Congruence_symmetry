@@ -1,11 +1,20 @@
 /**
- * The banner strip above the board.
+ * What the system says, once the shape has stopped moving.
  *
- * Pure presentation. It is handed what to say and how loudly to say it, and it
- * decides nothing: the stage works out the verdict and this file only draws it.
- * That split matters because the wrong banner is the most expensive mistake in
- * this unit — claiming two shapes are congruent when the child has merely
- * picked one up teaches the opposite of the lesson.
+ * Pure presentation. It is handed what to say and how loudly, and it decides
+ * nothing: the hook works out the verdict and this file only draws it. That
+ * split matters because the wrong banner is the most expensive mistake in this
+ * unit — claiming two shapes are congruent when the child has merely picked one
+ * up teaches the opposite of the lesson.
+ *
+ * NO NUMBERS
+ * ----------
+ * The counter is the only figure on screen, and it is the goal rather than a
+ * measurement. A percentage reading how much two shapes overlap was removed, and
+ * agreement was removed with it: agreement is a real quantity, but printing it
+ * invited a comparison the child has no way to make. Two arrows stacked dead
+ * centre and plainly on top of each other agree 58%, and a child told their
+ * perfect stack was barely half right learns something false.
  */
 
 export type BannerTone = 'success' | 'hint' | 'neutral'

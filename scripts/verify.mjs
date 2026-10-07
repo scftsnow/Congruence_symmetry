@@ -113,16 +113,27 @@ section('6. source checks')
 const expected = JSON.parse(read('scripts/expected.json'))
 const appSrc = read('src/App.tsx')
 const stageSrc = read('src/modes/CongruenceStage.tsx')
+// The sentences live apart from the screen that draws them, so the wording is
+// checked where it is written. Reading it from the stage used to work until the
+// file was split, and then failed for the wrong reason.
+const wordsSrc = read('src/components/verdictText.ts')
 const ui = expected.uiStrings
 
 ok('home title', appSrc.includes(ui.homeTitle), ui.homeTitle)
 ok('unit title', appSrc.includes(ui.unitTitle), ui.unitTitle)
 ok('start button', appSrc.includes(ui.startBtn))
 ok('stage title', stageSrc.includes(ui.unitTitle))
-ok('verdict wording', stageSrc.includes(ui.congruentMsg), ui.congruentMsg)
-ok('direction lesson', stageSrc.includes(ui.directionMsg), ui.directionMsg)
+ok('verdict wording', wordsSrc.includes(ui.congruentMsg), ui.congruentMsg)
+ok('direction lesson', wordsSrc.includes(ui.directionMsg), ui.directionMsg)
 ok('drag hint', stageSrc.includes(ui.dragHint), ui.dragHint)
 for (const label of expected.toolLabels) ok('tool label', stageSrc.includes(label), label)
+
+// No angle is ever named. "돌려서 겹쳤어" reports that the system turned the
+// shape; saying 90 or 270 would hand over the answer to the next question.
+ok('no angle is named anywhere', !/[0-9]+\s*°/.test(wordsSrc) && !/[0-9]+\s*도/.test(wordsSrc))
+// No percentage. A number comparing two shapes invited a comparison the child
+// has no way to make: two arrows stacked dead centre agree 58%.
+ok('no percentage on screen', !/%\s*[)}]/.test(stageSrc) && !/겹친 부분/.test(wordsSrc))
 
 // one board, not two screens
 ok('no shape picker', !appSrc.includes('ShapePicker'))

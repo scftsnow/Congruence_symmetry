@@ -18,9 +18,8 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useBoard } from './useBoard'
 import type { BoardShape } from './useBoard'
 import { BoardShapeView, Grid, PairMark, StackedOverlay } from '../components/BoardParts'
-import { Celebration, VerdictBanner, type BannerTone } from '../components/VerdictBanner'
-import { isMatch } from '../geometry/verdict'
-import type { VerdictResult } from '../geometry/verdict'
+import { Celebration, VerdictBanner } from '../components/VerdictBanner'
+import { bannerFor } from '../components/verdictText'
 
 interface CongruenceStageProps {
   onBack: () => void
@@ -32,6 +31,16 @@ export function CongruenceStage({ onBack }: CongruenceStageProps) {
   const [justFound, setJustFound] = useState(false)
   /** true only after the child lets go, so a mere touch never turns a shape */
   const [released, setReleased] = useState(false)
+  /**
+   * True while a finger is actually moving a shape.
+   *
+   * The turn is animated, which means the position is animated too, and an
+   * animated position under a moving finger lags behind it — the shape would
+   * trail the child by most of a second. So the transition is switched off for
+   * the duration of the drag and back on the moment it is released, which is
+   * also exactly when the turn starts.
+   */
+  const [dragging, setDragging] = useState(false)
   /**
    * Whether the shape was turned rather than simply dropped in place.
    *
@@ -68,6 +77,7 @@ export function CongruenceStage({ onBack }: CongruenceStageProps) {
     // Each pickup is a fresh judgement, so a shape moved away and brought back
     // is checked again rather than dismissed by a stale key.
     appliedRef.current = ''
+    setDragging(true)
     const p = toCanvas(e.clientX, e.clientY)
     drag.current = { id: item.id, startX: p.x, startY: p.y, ox: item.x, oy: item.y }
     ;(e.target as Element).setPointerCapture?.(e.pointerId)
@@ -83,6 +93,9 @@ export function CongruenceStage({ onBack }: CongruenceStageProps) {
   const onPointerUp = () => {
     if (drag.current) setReleased(true)
     drag.current = null
+    // Hand the position back to the animation, so the turn that follows is
+    // something the child watches rather than something that already happened.
+    setDragging(false)
   }
 
   /**
@@ -150,6 +163,7 @@ export function CongruenceStage({ onBack }: CongruenceStageProps) {
               key={item.id}
               item={item}
               held={board.held === item.id}
+              dragging={dragging && board.held === item.id}
               onPointerDown={onPointerDown}
             />
           ))}
@@ -174,83 +188,4 @@ export function CongruenceStage({ onBack }: CongruenceStageProps) {
       </div>
     </div>
   )
-}
-
-/**
- * What the system reports.
- *
- * It speaks only about a real stack. A shape that has not been laid over
- * anything gets the neutral prompt and nothing else, because "합동이야" on a
- * shape floating in mid-air is the one answer this stage must never give.
- * On a match it states the fact. On a near miss it names the difference, and
- * for a shape still on its own it stays silent, because naming "turn it" would
- * hand over the answer.
- */
-function bannerFor(
-  verdict: VerdictResult | null,
-  turned: boolean,
-  count: number,
-  target: number,
-): { tone: BannerTone; icon: string; parts: Array<{ text: string; strong?: boolean }> } {
-  if (count >= target) {
-    return {
-      tone: 'success',
-      icon: '⭐',
-      parts: [
-        { text: '모두 찾았어! ' },
-        { text: '방향이 달라도', strong: true },
-        { text: ' 겹치면 합동이야' },
-      ],
-    }
-  }
-
-  if (verdict && isMatch(verdict)) {
-    // `turned` outlives the turn itself: landing the shape on its partner
-    // changes the verdict to match-direct, and the child should still be told
-    // that it had to be turned to get there.
-    const didTurn = turned || verdict.verdict !== 'match-direct'
-    return {
-      tone: 'success',
-      icon: '⭐',
-      parts: [
-        { text: didTurn ? '돌려서 겹쳤어! ' : '겹쳤어! ' },
-        { text: '합동이야', strong: true },
-      ],
-    }
-  }
-
-  if (verdict?.verdict === 'same-shape-different-size') {
-    return {
-      tone: 'hint',
-      icon: '🔍',
-      parts: [
-        { text: '모양은 같지만 ' },
-        { text: '크기가 달라', strong: true },
-        { text: '서 합동이 아니야' },
-      ],
-    }
-  }
-
-  if (verdict?.verdict === 'different-shape') {
-    return {
-      tone: 'hint',
-      icon: '🔍',
-      parts: [
-        { text: '이건 ' },
-        { text: '모양이 달라', strong: true },
-        { text: ' — 합동이 아니야' },
-      ],
-    }
-  }
-
-  return {
-    tone: 'neutral',
-    icon: '👆',
-    parts: [
-      { text: '도형을 ' },
-      { text: '겹쳐 보세요', strong: true },
-      { text: ' — 같은 모양이면 알아서 맞춰집니다 · ' },
-      { text: `${count} / ${target}`, strong: true },
-    ],
-  }
 }

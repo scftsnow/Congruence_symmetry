@@ -271,9 +271,10 @@ describe('the shared region is real geometry', () => {
     expect(problems.length === 0 ? 'ok' : problems.join(', ')).toBe('ok')
   })
 
-  it('the drawn area matches the measured agreement', () => {
-    // The number on the bar and the shaded region are the same fact. If they
-    // disagree the child is being told two things at once.
+  it('the drawn area matches the sampled agreement', () => {
+    // The shaded region is the only evidence on screen now that the percentage
+    // is gone, so it has to be the same fact the geometry computes. The number
+    // is not printed, but it is still the thing being checked.
     for (const [aId, bId] of PAIR_IDS) {
       const { a, b } = at2(aId, bId)
       const drawn = intersectionArea(intersectPolygons(a, b))
@@ -282,6 +283,21 @@ describe('the shared region is real geometry', () => {
       const ok = Math.abs(drawn - sampled) / Math.max(sampled, 1) < 0.12
       expect(ok ? 'ok' : `${aId}+${bId} drawn ${drawn.toFixed(0)} vs ${sampled.toFixed(0)}`).toBe('ok')
     }
+  })
+
+  it('is still drawn for a pair that only partly agrees', () => {
+    // The arrow pair shares about 58% when stacked dead centre, which is why
+    // the percentage had to go. The region is drawn anyway: the child stacked
+    // them, and hiding the evidence because it is not a full match would be
+    // telling them their attempt did not count.
+    const a = at('arrow-right')
+    const held = droppedOnto(a, at('arrow-up'))
+    const info = measureOverlap(shapePoints(a), shapePoints(held))
+
+    expect(info.agreement).toBeLessThan(0.7)
+    expect(info.contained).toBeFalsy()
+    expect(info.intersection).toBeTruthy()
+    expect(intersectionArea(info.intersection) > 0).toBeTruthy()
   })
 })
 

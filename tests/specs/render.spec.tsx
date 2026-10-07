@@ -118,18 +118,43 @@ describe('the board shows overlap rather than asserting it', () => {
     expect(source('src/geometry/pairs.ts').includes('heldOverlap')).toBeTruthy()
   })
 
-  it('reads out agreement, not the held shape own coverage', () => {
-    // A small shape inside a large one covers all of itself, so its own
-    // coverage reads 100% and the bar would congratulate the child for a stack
-    // that proves nothing. Agreement is the worse of the two directions.
+  it('shows no percentage anywhere on the layer', () => {
+    // The bar read "겹친 부분 58%" and had to go. For the arrow pair, stacked
+    // dead centre and plainly on top of each other, the honest figure was 58%,
+    // so the child was told their perfect stack was barely half right. The
+    // number was true and still worth removing: it invited a comparison against
+    // something the child has no way to name.
     const layer = source('src/components/OverlapLayer.tsx')
-    expect(layer.includes('agreement')).toBeTruthy()
 
-    // Checked outside the comments: the file explains why coverage is wrong, so
-    // the word has to appear there.
+    // Checked outside the comments, since the file explains why it went.
     const code = layer.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '')
+    expect(code.includes('%')).toBeFalsy()
+    expect(code.includes('AgreementBar')).toBeFalsy()
+    expect(code.includes('agreement')).toBeFalsy()
     expect(code.includes('coverage')).toBeFalsy()
-    expect(code.includes('agreement')).toBeTruthy()
+  })
+
+  it('does not print a percentage anywhere on the board', () => {
+    // Checked in code rather than in the whole file, because the files explain
+    // what was removed and the words have to be there for that.
+    const strip = (p: string) => source(p).replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '')
+
+    for (const path of [
+      'src/modes/CongruenceStage.tsx',
+      'src/components/VerdictBanner.tsx',
+      'src/components/verdictText.ts',
+      'src/components/BoardParts.tsx',
+    ]) {
+      expect(strip(path).includes('%')).toBeFalsy()
+    }
+  })
+
+  it('still says plainly whether they coincide', () => {
+    // Removing the number must not leave the child without an answer. The region
+    // carries it: solid when they coincide, dashed while they do not.
+    const layer = source('src/components/OverlapLayer.tsx')
+    expect(layer.includes('coincident')).toBeTruthy()
+    expect(layer.includes('strokeDasharray')).toBeTruthy()
   })
 
   it('distinguishes full from partial overlap', () => {
@@ -158,17 +183,31 @@ describe('the board shows overlap rather than asserting it', () => {
 })
 
 describe('the wording matches the teaching', () => {
+  // The sentences live in verdictText.ts, which decides what is said. The screen
+  // draws what it is handed and must not restate the verdict in its own markup.
+  const words = source('src/components/verdictText.ts')
+
   it('states the verdict', () => {
-    expect(source('src/modes/CongruenceStage.tsx').includes(expected.board.congruentMsg)).toBeTruthy()
+    expect(words.includes(expected.board.congruentMsg)).toBeTruthy()
   })
 
   it('teaches that direction does not matter', () => {
-    expect(source('src/modes/CongruenceStage.tsx').includes(expected.board.directionMsg)).toBeTruthy()
+    expect(words.includes(expected.board.directionMsg)).toBeTruthy()
   })
 
   it('names the size trap without giving the answer away', () => {
-    const stage = source('src/modes/CongruenceStage.tsx')
-    expect(stage.includes(expected.board.sizeTrap)).toBeTruthy()
+    expect(words.includes(expected.board.sizeTrap)).toBeTruthy()
+  })
+
+  it('says a turn happened, not which way to turn', () => {
+    // "돌려서 겹쳤어" reports that the system turned it. It must not say 90 or
+    // 270, because then the child is being told the answer to the next question.
+    expect(words.includes('돌려서 겹쳤어')).toBeTruthy()
+    expect(/[0-9]+\s*도/.test(words)).toBeFalsy()
+  })
+
+  it('the wording lives in one place, not in the screen markup', () => {
+    expect(source('src/modes/CongruenceStage.tsx').includes(expected.board.congruentMsg)).toBeFalsy()
   })
 })
 

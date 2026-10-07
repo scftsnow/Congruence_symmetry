@@ -353,6 +353,42 @@ body {
   color: var(--color-ink-soft);
 }
 
+/* ── 도형이 돌아가는 모션 ────────────────────────────── */
+
+/*
+ * A quarter turn takes 600ms.
+ *
+ * Long enough that a child can follow the shape round with a finger and see
+ * that it is turning, short enough that they are not waiting. Below 300ms it
+ * reads as a jump rather than a turn, which is the failure this exists to fix.
+ *
+ * The whole transform is transitioned, not just the rotation, because a turn
+ * that also carries the shape onto its partner is one motion and two moves of
+ * it. Splitting them would show the shape teleport and then spin.
+ */
+.board-shape {
+  transition:
+    transform 600ms cubic-bezier(0.34, 0.9, 0.3, 1),
+    opacity 200ms ease;
+}
+
+/*
+ * While a finger is down the shape must track it exactly.
+ *
+ * An animated position under a moving finger lags behind by most of the
+ * transition, which would leave the child dragging something that was not under
+ * their thumb. The turn starts on release, which is precisely when this comes
+ * off.
+ */
+.board-shape--dragging {
+  transition: opacity 200ms ease;
+}
+
+/* A shape being turned lifts very slightly, so the movement reads as deliberate. */
+.board-shape--held {
+  filter: drop-shadow(0 3px 6px rgba(2, 48, 71, 0.28));
+}
+
 /* ── 애니메이션 ──────────────────────────────────────── */
 
 

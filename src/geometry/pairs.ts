@@ -85,7 +85,7 @@ export function findMatches<T extends Matchable>(
 export function heldOverlap<T extends Matchable>(
   held: T,
   items: T[],
-): { intersection: Point[][]; agreement: number; contained: boolean } | null {
+): { intersection: Point[][]; contained: boolean } | null {
   const heldPoints = shapePoints(held)
   const heldAt = polygonCentroid(heldPoints)
 
@@ -106,5 +106,5 @@ export function heldOverlap<T extends Matchable>(
 
   const info = measureOverlap(heldPoints, best.points)
   if (!info.intersection) return null
-  return { intersection: info.intersection, agreement: info.agreement, contained: info.contained }
+  return { intersection: info.intersection, contained: info.contained }
 }

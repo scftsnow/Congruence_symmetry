@@ -22,6 +22,14 @@
  * sees the coincidence rather than being told about it. On failure the problem
  * is named without a recipe for fixing it.
  *
+ * A STACK MUST HAPPEN BEFORE ANYTHING IS TURNED
+ * ---------------------------------------------
+ * The shapes have to be lying on each other first. The turn search used to run
+ * whenever two outlines matched, wherever they happened to be on the board, so
+ * a child could pick a shape up, drag it two pixels and let go, and watch it
+ * spin in mid-air hundreds of pixels from its partner. Congruent outlines are
+ * not a reason to move anything; meeting another shape is.
+ *
  * ROTATION HAPPENS ABOUT THE SHAPE, NOT THE ORIGIN
  * -------------------------------------------------
  * The points arriving here are already in screen coordinates, so their
@@ -34,6 +42,7 @@
 import type { Point } from './types'
 import { measureOverlap, polygonCentroid } from './overlap'
 import { checkCongruence, compareShape, EPSILON_STACK, perimeter } from './compare'
+import { shapePoints, type Matchable } from './pairs'
 
 export type Verdict =
   | 'match-direct'
@@ -48,7 +57,33 @@ export interface Turn {
   degrees: number
   /** whether the mirror is applied */
   flipped: boolean
+  /**
+   * Where the shape lands, so the turn ends in a real coincidence.
+   *
+   * Turning alone leaves the shape wherever the child dropped it. A shape
+   * dropped a little off-centre would rotate and still miss, so the pair would
+   * never actually register. This is the partner's centroid.
+   */
+  center: Point
 }
+
+/**
+ * How much of the smaller shape's box must lie over the larger's before the
+ * two count as having met.
+ *
+ * A quarter is chosen from measurements on the board, which sit well clear of
+ * it in both directions:
+ *
+ *   - the worst-centred genuine stack (the arrow pair) shares 0.52, so even a
+ *     poor drop keeps nearly twice the margin
+ *   - a shape dropped clear of its partner shares 0.00
+ *   - a shape dragged past on its way somewhere shares 0.16 to 0.21
+ *   - a deliberately sloppy drop, 30px off, shares 0.32 or more
+ *
+ * Expressed against the *smaller* box, so a distractor dropped inside a pair
+ * member is not quietly excused.
+ */
+export const MIN_STACK = 0.25
 
 export interface VerdictResult {
   verdict: Verdict
@@ -113,6 +148,64 @@ function coincide(a: Point[], b: Point[]): boolean {
   return measureOverlap(a, b).contained
 }
 
+/**
+ * How much of the smaller shape's bounding box lies over the larger's, 0..1.
+ *
+ * Bounding boxes, not area. Measured on the board, a rightward arrow centred
+ * exactly on an upright one shares 0.52 of its box but 0.00 of its area, because
+ * the arrow's tail and the other's shaft miss each other across the notch and
+ * the polygon clipper mishandles that reflex corner. Asking about area would
+ * report the best-placed arrow on the board as never having touched anything.
+ */
+export function stackShare(a: Point[], b: Point[]): number {
+  const ba = bounds(a)
+  const bb = bounds(b)
+
+  const width = Math.min(ba.maxX, bb.maxX) - Math.max(ba.minX, bb.minX)
+  const height = Math.min(ba.maxY, bb.maxY) - Math.max(ba.minY, bb.minY)
+  if (width <= 0 || height <= 0) return 0
+
+  const smaller = Math.min(area(ba), area(bb))
+  if (smaller === 0) return 0
+  return (width * height) / smaller
+}
+
+interface Box {
+  minX: number
+  maxX: number
+  minY: number
+  maxY: number
+}
+
+function bounds(points: Point[]): Box {
+  return {
+    minX: Math.min(...points.map((p) => p.x)),
+    maxX: Math.max(...points.map((p) => p.x)),
+    minY: Math.min(...points.map((p) => p.y)),
+    maxY: Math.max(...points.map((p) => p.y)),
+  }
+}
+
+function area(b: Box): number {
+  return (b.maxX - b.minX) * (b.maxY - b.minY)
+}
+
+/**
+ * Have these two shapes actually been stacked on each other?
+ *
+ * This is the gate on everything else. Matching outlines alone is not enough
+ * and must never be enough: the child has to put one on the other before the
+ * system decides anything.
+ */
+export function meets(a: Point[], b: Point[]): boolean {
+  return stackShare(a, b) >= MIN_STACK
+}
+
+/** A shape that has met nothing: the neutral prompt, never a match. */
+export function APART(): VerdictResult {
+  return { verdict: 'apart', solution: null, coverage: 0, coincident: false }
+}
+
 
 /**
  * Do the outlines match, ignoring size?
@@ -144,9 +237,17 @@ export function judge(reference: Point[], held: Point[], canvasSize: number): Ve
     coincident: current.contained,
   }
 
+  // Nothing has been stacked yet. Congruent outlines do not license a turn,
+  // so a shape sitting alone on the board is simply not under discussion.
+  // This check comes first: without it, a shape judged against itself would
+  // report itself fully contained and announce a match with nothing.
+  if (!meets(reference, held)) {
+    return base
+  }
+
   // Two different outlines. No turn can rescue these.
   if (!sameOutline(reference, held)) {
-    return { ...base, verdict: current.coverage > 0 ? 'different-shape' : 'apart' }
+    return { ...base, verdict: 'different-shape' }
   }
 
   // Same outline, but the sizes differ. Congruence fails on size alone, so it
@@ -167,7 +268,7 @@ export function judge(reference: Point[], held: Point[], canvasSize: number): Ve
 
   for (const degrees of QUARTER_TURNS) {
     if (coincide(reference, seat(held, degrees, false, target))) {
-      return { ...base, verdict: 'match-by-turn', solution: { degrees, flipped: false } }
+      return { ...base, verdict: 'match-by-turn', solution: { degrees, flipped: false, center: target } }
     }
   }
 
@@ -176,7 +277,7 @@ export function judge(reference: Point[], held: Point[], canvasSize: number): Ve
       return {
         ...base,
         verdict: 'match-by-turn-and-flip',
-        solution: { degrees, flipped: true },
+        solution: { degrees, flipped: true, center: target },
       }
     }
   }
@@ -193,4 +294,31 @@ export function isMatch(v: VerdictResult): boolean {
     v.verdict === 'match-by-turn' ||
     v.verdict === 'match-by-turn-and-flip'
   )
+}
+
+/**
+ * A shape after the system has turned it and seated it on its partner.
+ *
+ * Turning alone is not enough. The child dropped the shape wherever their hand
+ * stopped, which is rarely more than exact, so a shape that merely rotated
+ * would still miss and the pair would never register. Re-centring afterwards
+ * is what turns the reported match into a real one.
+ *
+ * The nudge is measured after the turn rather than computed from the shape's
+ * own geometry, because how a centroid sits inside its vertices differs
+ * between a rectangle, whose centroid is its middle, and a trapezoid, whose
+ * is nowhere near it.
+ */
+export function turnedItem<T extends Matchable>(item: T, turn: Turn): T {
+  const turned: T = {
+    ...item,
+    rotation: item.rotation + turn.degrees,
+    flipped: item.flipped !== turn.flipped,
+  }
+  const landed = polygonCentroid(shapePoints(turned))
+  return {
+    ...turned,
+    x: turned.x + (turn.center.x - landed.x),
+    y: turned.y + (turn.center.y - landed.y),
+  }
 }

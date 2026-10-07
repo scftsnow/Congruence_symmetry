@@ -7,8 +7,9 @@
 
 import { OverlapLayer } from './OverlapLayer'
 import { pointsToPath } from './svgPath'
-import { shapePoints, sameCongruence } from '../geometry/pairs'
+import { shapePoints } from '../geometry/pairs'
 import { measureOverlap } from '../geometry/overlap'
+import { MIN_STACK, stackShare } from '../geometry/verdict'
 import type { BoardShape } from '../modes/useBoard'
 import type { Point } from '../geometry/types'
 
@@ -123,11 +124,15 @@ export function Grid({ width, height }: { width: number; height: number }) {
   return <g>{lines}</g>
 }
 /**
- * Draws the region the held shape shares with a matching shape.
+ * Draws the region the held shape shares with the shape it is lying on.
  *
  * Pure presentation: the geometry is computed in the hook and handed over. A
  * solid region with a solid outline means complete coincidence; a dashed one
  * means partial, so the child can see there is still work to do.
+ *
+ * The partner is the shape actually covered, not merely the first one with a
+ * matching outline. A region drawn against a shape on the far side of the
+ * board would show the child an overlap that is not there.
  */
 export function StackedOverlay({
   held,
@@ -138,11 +143,17 @@ export function StackedOverlay({
 }) {
   const heldPoints = shapePoints(held)
 
-  // only same-outline shapes can overlap usefully
-  const partner = items.find((other) => other.id !== held.id && sameCongruence(heldPoints, shapePoints(other), 1000))
-  if (!partner) return null
+  let best: { points: Point[]; share: number } | null = null
+  for (const other of items) {
+    if (other.id === held.id) continue
+    const otherPoints = shapePoints(other)
+    const share = stackShare(heldPoints, otherPoints)
+    if (share < MIN_STACK) continue
+    if (!best || share > best.share) best = { points: otherPoints, share }
+  }
+  if (!best) return null
 
-  const info = measureOverlap(heldPoints, shapePoints(partner))
+  const info = measureOverlap(heldPoints, best.points)
   if (!info.intersection) return null
 
   return (

@@ -144,6 +144,12 @@ ok('verdict engine exists', verdictSrc.includes('judge'))
 ok('verdict seats the turned shape', verdictSrc.includes('seat('))
 ok('verdict pivots on the centroid', verdictSrc.includes('polygonCentroid'))
 ok('shape and size reported apart', verdictSrc.includes('sameOutline'))
+// A congruent outline alone must not license a turn: the shapes have to be
+// stacked first. This shipped once as a mid-air rotation, so it is checked in
+// the bundle as well as the specs.
+ok('a turn requires a real stack', verdictSrc.includes('MIN_STACK') && verdictSrc.includes('meets('))
+ok('the turned shape lands on its partner', verdictSrc.includes('turnedItem'))
+ok('the banner decides nothing', (boardSrc.match(/judge\(/g) ?? []).length === 0)
 
 // shape catalogue
 const shapeSrc = read('src/geometry/shapes.ts')

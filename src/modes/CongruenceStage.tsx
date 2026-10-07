@@ -18,6 +18,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useBoard } from './useBoard'
 import type { BoardShape } from './useBoard'
 import { BoardShapeView, Grid, PairMark, StackedOverlay } from '../components/BoardParts'
+import { Celebration, VerdictBanner, type BannerTone } from '../components/VerdictBanner'
 import { isMatch } from '../geometry/verdict'
 import type { VerdictResult } from '../geometry/verdict'
 
@@ -31,10 +32,20 @@ export function CongruenceStage({ onBack }: CongruenceStageProps) {
   const [justFound, setJustFound] = useState(false)
   /** true only after the child lets go, so a mere touch never turns a shape */
   const [released, setReleased] = useState(false)
+  /**
+   * Whether the shape was turned rather than simply dropped in place.
+   *
+   * The turn lands the shape exactly on its partner, so the verdict a moment
+   * later reads match-direct and the "돌려서 겹쳤어" message would vanish at
+   * the same instant the star appears. Held until the child picks up the next
+   * shape, so the fact that it had to be turned is actually reported.
+   */
+  const [turned, setTurned] = useState(false)
   const foundTimer = useRef<number | null>(null)
   const drag = useRef<{ id: string; startX: number; startY: number; ox: number; oy: number } | null>(
     null,
   )
+  const appliedRef = useRef<string>('')
 
   const toCanvas = useCallback((clientX: number, clientY: number) => {
     const svg = svgRef.current
@@ -53,6 +64,10 @@ export function CongruenceStage({ onBack }: CongruenceStageProps) {
     // Judging on press would turn a shape the moment it is touched, which is
     // the opposite of what was asked for. The verdict waits for release.
     setReleased(false)
+    setTurned(false)
+    // Each pickup is a fresh judgement, so a shape moved away and brought back
+    // is checked again rather than dismissed by a stale key.
+    appliedRef.current = ''
     const p = toCanvas(e.clientX, e.clientY)
     drag.current = { id: item.id, startX: p.x, startY: p.y, ox: item.x, oy: item.y }
     ;(e.target as Element).setPointerCapture?.(e.pointerId)
@@ -71,13 +86,13 @@ export function CongruenceStage({ onBack }: CongruenceStageProps) {
   }
 
   /**
-   * The system performs the turn.
+   * The system performs the turn, and only once a stack actually exists.
    *
-   * Applied on release, not continuously, so the child lets go and then
-   * watches the shape swing round onto the other one.
+   * judge() returns a solution only when the held shape has been laid over
+   * another one, so a shape lifted and set back down in its own place, or one
+   * moved near its partner but not onto it, leaves everything alone.
    */
   const verdict = board.verdict
-  const appliedRef = useRef<string>('')
 
   useEffect(() => {
     if (!released) return
@@ -86,6 +101,7 @@ export function CongruenceStage({ onBack }: CongruenceStageProps) {
     const key = board.held + ':' + verdict.solution.degrees + ':' + verdict.solution.flipped
     if (appliedRef.current === key) return
     appliedRef.current = key
+    setTurned(true)
     board.applyTurn(board.held, verdict.solution)
   }, [released, verdict, board])
 
@@ -97,7 +113,6 @@ export function CongruenceStage({ onBack }: CongruenceStageProps) {
     foundTimer.current = window.setTimeout(() => setJustFound(false), 1500)
   }, [count])
 
-  const complete = count >= board.target
   const held = board.heldItem
 
   return (
@@ -112,7 +127,7 @@ export function CongruenceStage({ onBack }: CongruenceStageProps) {
         </div>
       </header>
 
-      <Banner verdict={verdict} count={count} target={board.target} complete={complete} />
+      <VerdictBanner {...bannerFor(verdict, turned, count, board.target)} />
 
       <div className="canvas-wrap">
         <svg
@@ -164,96 +179,78 @@ export function CongruenceStage({ onBack }: CongruenceStageProps) {
 /**
  * What the system reports.
  *
- * On a match it states the fact. On a near miss it states what is wrong, and
- * for the last case it stays silent, because naming "turn it" would give the
- * answer away.
+ * It speaks only about a real stack. A shape that has not been laid over
+ * anything gets the neutral prompt and nothing else, because "합동이야" on a
+ * shape floating in mid-air is the one answer this stage must never give.
+ * On a match it states the fact. On a near miss it names the difference, and
+ * for a shape still on its own it stays silent, because naming "turn it" would
+ * hand over the answer.
  */
-function Banner({
-  verdict,
-  count,
-  target,
-  complete,
-}: {
-  verdict: VerdictResult | null
-  count: number
-  target: number
-  complete: boolean
-}) {
-  if (complete) {
-    return (
-      <div className="banner banner--success" role="status">
-        <span className="banner__icon">⭐</span>
-        <span className="banner__text">
-          모두 찾았어! <strong>방향이 달라도</strong> 겹치면 합동이야
-        </span>
-      </div>
-    )
+function bannerFor(
+  verdict: VerdictResult | null,
+  turned: boolean,
+  count: number,
+  target: number,
+): { tone: BannerTone; icon: string; parts: Array<{ text: string; strong?: boolean }> } {
+  if (count >= target) {
+    return {
+      tone: 'success',
+      icon: '⭐',
+      parts: [
+        { text: '모두 찾았어! ' },
+        { text: '방향이 달라도', strong: true },
+        { text: ' 겹치면 합동이야' },
+      ],
+    }
   }
 
   if (verdict && isMatch(verdict)) {
-    const turned = verdict.verdict !== 'match-direct'
-    return (
-      <div className="banner banner--success" role="status">
-        <span className="banner__icon">⭐</span>
-        <span className="banner__text">
-          {turned ? '돌려서 겹쳤어! ' : '겹쳤어! '}합동이야
-        </span>
-      </div>
-    )
+    // `turned` outlives the turn itself: landing the shape on its partner
+    // changes the verdict to match-direct, and the child should still be told
+    // that it had to be turned to get there.
+    const didTurn = turned || verdict.verdict !== 'match-direct'
+    return {
+      tone: 'success',
+      icon: '⭐',
+      parts: [
+        { text: didTurn ? '돌려서 겹쳤어! ' : '겹쳤어! ' },
+        { text: '합동이야', strong: true },
+      ],
+    }
   }
 
   if (verdict?.verdict === 'same-shape-different-size') {
-    return (
-      <div className="banner banner--hint" role="status">
-        <span className="banner__icon">🔍</span>
-        <span className="banner__text">
-          모양은 같지만 <strong>크기가 달라</strong>서 합동이 아니야
-        </span>
-      </div>
-    )
+    return {
+      tone: 'hint',
+      icon: '🔍',
+      parts: [
+        { text: '모양은 같지만 ' },
+        { text: '크기가 달라', strong: true },
+        { text: '서 합동이 아니야' },
+      ],
+    }
   }
 
   if (verdict?.verdict === 'different-shape') {
-    return (
-      <div className="banner banner--hint" role="status">
-        <span className="banner__icon">🔍</span>
-        <span className="banner__text">이건 <strong>모양이 달라</strong> — 합동이 아니야</span>
-      </div>
-    )
+    return {
+      tone: 'hint',
+      icon: '🔍',
+      parts: [
+        { text: '이건 ' },
+        { text: '모양이 달라', strong: true },
+        { text: ' — 합동이 아니야' },
+      ],
+    }
   }
 
-  return (
-    <div className="banner banner--neutral" role="status">
-      <span className="banner__icon">👆</span>
-      <span className="banner__text">
-        도형을 <strong>겹쳐 보세요</strong> — 같은 모양이면 알아서 맞춰집니다 ·{' '}
-        <strong>
-          {count} / {target}
-        </strong>
-      </span>
-    </div>
-  )
-}
-
-function Celebration({ x, y }: { x: number; y: number }) {
-  return (
-    <g className="celebrate" pointerEvents="none">
-      {Array.from({ length: 8 }).map((_, i) => {
-        const angle = (i * Math.PI) / 4
-        return (
-          <text
-            key={i}
-            x={x + Math.cos(angle) * 120}
-            y={y + Math.sin(angle) * 120}
-            fontSize="42"
-            textAnchor="middle"
-            className="celebrate__star"
-            style={{ animationDelay: `${i * 0.08}s` }}
-          >
-            ⭐
-          </text>
-        )
-      })}
-    </g>
-  )
+  return {
+    tone: 'neutral',
+    icon: '👆',
+    parts: [
+      { text: '도형을 ' },
+      { text: '겹쳐 보세요', strong: true },
+      { text: ' — 같은 모양이면 알아서 맞춰집니다 · ' },
+      { text: `${count} / ${target}`, strong: true },
+    ],
+  }
 }

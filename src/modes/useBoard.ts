@@ -13,15 +13,18 @@
  */
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { findMatches, pairKey, shapePoints, transformOf } from '../geometry/pairs'
 import {
-  findMatches,
-  pairKey,
-  sameCongruence,
-  shapePoints,
-  transformOf,
-} from '../geometry/pairs'
-import { judge, type Turn, type VerdictResult } from '../geometry/verdict'
+  APART,
+  judge,
+  MIN_STACK,
+  stackShare,
+  turnedItem,
+  type Turn,
+  type VerdictResult,
+} from '../geometry/verdict'
 import { buildBoard, CANVAS_H, CANVAS_W, TARGET_PAIRS, type BoardShape } from '../geometry/board'
+import type { Point } from '../geometry/types'
 
 export { buildBoard, CANVAS_H, CANVAS_W, TARGET_PAIRS, transformOf, shapePoints, pairKey }
 export type { BoardShape }
@@ -35,19 +38,15 @@ export function useBoard() {
     setItems((prev) => prev.map((i) => (i.id === id ? { ...i, x, y } : i)))
   }, [])
 
-  /** The system performs the turn, so the child watches the coincidence. */
+  /**
+   * The system performs the turn, and the shape lands on its partner.
+   *
+   * The work lives in geometry/turnedItem so the whole loop can be tested
+   * without React: drop a shape slightly off, judge the stack, apply the turn,
+   * and the pair has to come back registered.
+   */
   const applyTurn = useCallback((id: string, turn: Turn) => {
-    setItems((prev) =>
-      prev.map((i) =>
-        i.id === id
-          ? {
-              ...i,
-              rotation: i.rotation + turn.degrees,
-              flipped: i.flipped !== turn.flipped,
-            }
-          : i,
-      ),
-    )
+    setItems((prev) => prev.map((i) => (i.id === id ? turnedItem(i, turn) : i)))
   }, [])
 
   const pairs = useMemo(() => findMatches(items, CANVAS_W), [items])
@@ -77,25 +76,32 @@ export function useBoard() {
   /**
    * Judge the current stack.
    *
-   * A child may drop a shape near several others, so the nearest
-   * same-outline neighbour is the one under discussion. Shapes with a
-   * different outline are ignored here and reported by the shape check
-   * instead, which is what lets "크기가 달라" be named as its own case.
+   * Only a shape the child has actually laid on top of another is under
+   * discussion. The partner used to be chosen by outline alone, which put
+   * every pair's partner on the board whether or not the two were anywhere
+   * near each other, so picking a shape up and letting go again turned it in
+   * mid-air. It also meant a shape with no partner at all was judged against
+   * itself, and a shape stacked on nothing reported itself fully contained
+   * and claimed a match.
+   *
+   * Where several shapes are touched at once, the one covered most is the one
+   * the child meant.
    */
   const verdict: VerdictResult | null = useMemo(() => {
     if (!heldItem) return null
     const heldPoints = shapePoints(heldItem)
-    const partner = items.find(
-      (other) =>
-        other.id !== heldItem.id &&
-        sameCongruence(heldPoints, shapePoints(other), CANVAS_W),
-    )
-    if (!partner) {
-      // Nothing beneath with a matching outline. Still report the overlap, so
-      // the child sees how far apart they are.
-      return judge(heldPoints, heldPoints, CANVAS_W)
+
+    let best: { points: Point[]; share: number } | null = null
+    for (const other of items) {
+      if (other.id === heldItem.id) continue
+      const otherPoints = shapePoints(other)
+      const share = stackShare(heldPoints, otherPoints)
+      if (share < MIN_STACK) continue
+      if (!best || share > best.share) best = { points: otherPoints, share }
     }
-    return judge(shapePoints(partner), heldPoints, CANVAS_W)
+
+    if (!best) return APART()
+    return judge(best.points, heldPoints, CANVAS_W)
   }, [heldItem, items])
 
   return {

@@ -151,31 +151,29 @@ export function buildBoard(): BoardShape[] {
   const fishRight = fish('#b8b8ff', 'fish-right')
   const fishLeft = fish('#9d9dff', 'fish-left')
 
+  // The layout is deliberately shuffled.
+  //
+  // An earlier version walked the pairs in order down a grid, which put every
+  // pair side by side: 가 sat beside 사, 라 beside 마. The child could then
+  // read the answer off the board instead of searching for it, which is the
+  // one thing this stage must not allow.
+  //
+  // Here each pair is split across the canvas, so the nearest two shapes are
+  // almost always from different pairs. Measured on this layout: the closest
+  // pair members sit 503px apart, while the closest neighbours are 184px apart
+  // and belong to different pairs.
   return [
-    // pair 1: wide and tall rectangles. A quarter turn lines them up.
-    { id: 'ga', label: '\uAC00', shape: wide, x: 150, y: 130, rotation: 0, flipped: false },
-    { id: 'sa', label: '\uC0AC', shape: tall, x: 420, y: 140, rotation: 0, flipped: false },
-
-    // pair 2: the same trapezoid, lying and on its side.
-    { id: 'na', label: '\uB098', shape: trap, x: 730, y: 140, rotation: 0, flipped: false },
-    { id: 'da', label: '\uB2E4', shape: trapSide, x: 950, y: 160, rotation: 90, flipped: false },
-
-    // pair 3: the same scalene triangle, mirrored.
-    { id: 'ra', label: '\uB77C', shape: tri, x: 160, y: 350, rotation: 0, flipped: false },
-    { id: 'ma', label: '\uB9C8', shape: triMirror, x: 450, y: 360, rotation: 0, flipped: true },
-
-    // pair 4: arrows pointing different ways.
-    { id: 'ba', label: '\uBC14', shape: arrowRight, x: 740, y: 360, rotation: 0, flipped: false },
-    { id: 'aj', label: '\uC544', shape: arrowUp, x: 940, y: 370, rotation: 90, flipped: false },
-
-    // pair 5: two fish, one mirrored.
-    { id: 'ca', label: '\uCC28', shape: fishRight, x: 170, y: 590, rotation: 0, flipped: false },
-    { id: 'ka', label: '\uCE74', shape: fishLeft, x: 440, y: 600, rotation: 0, flipped: true },
-
-    // distractor 1: a small rectangle. Same outline as 가, smaller.
-    { id: 'ta', label: '\uD0C0', shape: resized(wide, 0.62, 'rect-small'), x: 720, y: 590, rotation: 0, flipped: false },
-
-    // distractor 2: a pentagon. A different outline entirely.
-    { id: 'pa', label: '\uD310', shape: pentagon, x: 950, y: 620, rotation: 0, flipped: false },
+    { id: 'ga', label: '\uAC00', shape: wide, x: 120, y: 130, rotation: 0, flipped: false },
+    { id: 'na', label: '\uB098', shape: trap, x: 560, y: 120, rotation: 0, flipped: false },
+    { id: 'ra', label: '\uB77C', shape: tri, x: 990, y: 140, rotation: 0, flipped: false },
+    { id: 'ka', label: '\uCE74', shape: fishLeft, x: 320, y: 210, rotation: 0, flipped: true },
+    { id: 'ba', label: '\uBC14', shape: arrowRight, x: 320, y: 410, rotation: 0, flipped: false },
+    { id: 'ca', label: '\uCC28', shape: fishRight, x: 790, y: 380, rotation: 0, flipped: false },
+    { id: 'aj', label: '\uC544', shape: arrowUp, x: 1010, y: 420, rotation: 90, flipped: false },
+    { id: 'ta', label: '\uD0C0', shape: resized(wide, 0.62, 'rect-small'), x: 700, y: 540, rotation: 0, flipped: false },
+    { id: 'da', label: '\uB2E4', shape: trapSide, x: 150, y: 640, rotation: 90, flipped: false },
+    { id: 'sa', label: '\uC0AC', shape: tall, x: 940, y: 660, rotation: 0, flipped: false },
+    { id: 'ma', label: '\uB9C8', shape: triMirror, x: 560, y: 690, rotation: 0, flipped: true },
+    { id: 'pa', label: '\uD310', shape: pentagon, x: 120, y: 400, rotation: 0, flipped: false },
   ]
 }

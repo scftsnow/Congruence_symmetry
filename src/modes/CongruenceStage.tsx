@@ -29,6 +29,8 @@ export function CongruenceStage({ onBack }: CongruenceStageProps) {
   const board = useBoard()
   const svgRef = useRef<SVGSVGElement | null>(null)
   const [justFound, setJustFound] = useState(false)
+  /** true only after the child lets go, so a mere touch never turns a shape */
+  const [released, setReleased] = useState(false)
   const foundTimer = useRef<number | null>(null)
   const drag = useRef<{ id: string; startX: number; startY: number; ox: number; oy: number } | null>(
     null,
@@ -48,6 +50,9 @@ export function CongruenceStage({ onBack }: CongruenceStageProps) {
   const onPointerDown = (item: BoardShape, e: React.PointerEvent) => {
     e.preventDefault()
     board.setHeld(item.id)
+    // Judging on press would turn a shape the moment it is touched, which is
+    // the opposite of what was asked for. The verdict waits for release.
+    setReleased(false)
     const p = toCanvas(e.clientX, e.clientY)
     drag.current = { id: item.id, startX: p.x, startY: p.y, ox: item.x, oy: item.y }
     ;(e.target as Element).setPointerCapture?.(e.pointerId)
@@ -61,6 +66,7 @@ export function CongruenceStage({ onBack }: CongruenceStageProps) {
   }
 
   const onPointerUp = () => {
+    if (drag.current) setReleased(true)
     drag.current = null
   }
 
@@ -74,13 +80,14 @@ export function CongruenceStage({ onBack }: CongruenceStageProps) {
   const appliedRef = useRef<string>('')
 
   useEffect(() => {
+    if (!released) return
     if (!verdict || !verdict.solution || !board.held) return
     // Apply once per distinct solution, so holding still does not keep turning.
     const key = board.held + ':' + verdict.solution.degrees + ':' + verdict.solution.flipped
     if (appliedRef.current === key) return
     appliedRef.current = key
     board.applyTurn(board.held, verdict.solution)
-  }, [verdict, board])
+  }, [released, verdict, board])
 
   const count = board.foundCount
   useEffect(() => {

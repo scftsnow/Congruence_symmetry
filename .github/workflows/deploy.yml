@@ -1,7 +1,9 @@
-name: Deploy to GitHub Pages
+name: Verify and Deploy
 
 on:
   push:
+    branches: [main]
+  pull_request:
     branches: [main]
   workflow_dispatch:
 
@@ -24,19 +26,29 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npm run lint
-      # Build + artifact verification gate.
-      # NOTE: geometry unit tests are not run in CI on purpose.
-      # This project cannot execute tsx reliably (it exhausts a 4GB heap),
-      # and that failure is environmental rather than a code defect.
-      # `npm run verify` covers the build output and all UI strings instead.
-      - run: npm run verify
+
+      # Gate 1: static analysis
+      - name: lint
+        run: npm run lint
+
+      # Gate 2: convention + geometry + render specs.
+      # Each spec runs in an isolated process with a 128MB heap cap, so an
+      # unbounded loop fails in ~1s instead of hanging the job.
+      # `flower()` shipped to production once because no gate executed code.
+      - name: test
+        run: npm test
+
+      # Gate 3: production build + artifact inspection
+      - name: verify build output
+        run: npm run verify
+
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
 
   deploy:
     needs: verify
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     environment:
       name: github-pages

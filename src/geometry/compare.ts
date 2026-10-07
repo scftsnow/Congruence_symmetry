@@ -230,7 +230,11 @@ export function compareSize(
   epsilon: number,
 ): { matches: boolean; deviation: number } {
   if (a.length === 0 || b.length === 0) {
-    return { matches: false, deviation: Infinity }
+    // An empty shape has no measurable size.
+    // Two empty shapes are trivially the same; an empty vs non-empty
+    // pair is a size mismatch, not an equality.
+    const bothEmpty = a.length === 0 && b.length === 0
+    return { matches: bothEmpty, deviation: bothEmpty ? 0 : Infinity }
   }
 
   const pa = perimeter(a)

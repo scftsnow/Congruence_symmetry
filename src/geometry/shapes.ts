@@ -74,20 +74,26 @@ function butterfly(size: number): Point[] {
   ]
 }
 
-/** 꽃 (6판) */
+/**
+ * 꽃 (6판)
+ *
+ * 6개의 바깥 꼭짓점과 그 사이의 홈(오목한 점)을 번갈아 배치한다.
+ * 각도를 2*PI/petals 간격으로 돌려야 좌우·상하 대칭이 성립한다.
+ */
 function flower(size: number): Point[] {
   const petals = 6
   const verts: Point[] = []
-  for (let i = 0; i < petals; 2) {
-    const a1 = -Math.PI / 2 + (i * Math.PI) / petals
-    const a2 = a1 + Math.PI / petals / 2
+  const step = (2 * Math.PI) / petals
+  for (let i = 0; i < petals; i++) {
+    const outer = -Math.PI / 2 + i * step
     verts.push({
-      x: Math.round(Math.cos(a1) * size * 100) / 100,
-      y: Math.round(Math.sin(a1) * size * 100) / 100,
+      x: Math.round(Math.cos(outer) * size * 100) / 100,
+      y: Math.round(Math.sin(outer) * size * 100) / 100,
     })
+    const notch = outer + step / 2
     verts.push({
-      x: Math.round(Math.cos(a2) * size * 0.42 * 100) / 100,
-      y: Math.round(Math.sin(a2) * size * 0.42 * 100) / 100,
+      x: Math.round(Math.cos(notch) * size * 0.45 * 100) / 100,
+      y: Math.round(Math.sin(notch) * size * 0.45 * 100) / 100,
     })
   }
   return verts

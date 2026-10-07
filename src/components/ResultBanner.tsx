@@ -1,34 +1,37 @@
 /**
- * 판정 결과 배너
+ * Result banner for the stacking screen.
  *
- * ⚠️ 톤 설계 원칙:
- * - 정답일 때: 칭찬 + 별
- * - 틀렸을 때: 정답을 알려주지 않는다. 대신 무엇을 더 살펴볼지 안내한다.
- * - "모양은 같은데 크기가 달라"는 이 앱의 핵심 발견이므로 특별히 강조한다.
+ * The verdict is always stated. The child has already made a claim by
+ * choosing this pair in stage 1, so withholding "합동 / 합동 아님" would be
+ * unhelpful here. What stays hidden is WHY: the banner points at the next
+ * action rather than naming the fix.
+ *
+ * shape-only ("same shape, different size") cannot occur on this screen
+ * because the scale tool was removed from the curriculum order. The branch
+ * is kept because the engine still produces the value and the corresponding
+ * points stage reuses it.
  */
 
 import type { CongruenceResult } from '../geometry/types'
+import type { OverlapInfo } from '../geometry/overlap'
 
 interface ResultBannerProps {
   result: CongruenceResult
   justSolved: boolean
+  overlap?: OverlapInfo
 }
 
-export function ResultBanner({ result, justSolved }: ResultBannerProps) {
+export function ResultBanner({ result, justSolved, overlap }: ResultBannerProps) {
   const { verdict } = result
 
   if (verdict === 'congruent') {
     return (
-      <div
-        className="banner banner--success"
-        role="status"
-        aria-live="polite"
-      >
+      <div className="banner banner--success" role="status" aria-live="polite">
         <span className="banner__icon" aria-hidden="true">
           ⭐
         </span>
         <span className="banner__text">
-          {justSolved ? '같은 모양이야! 대단해!' : '같은 모양이야!'}
+          {justSolved ? '완전히 겹쳤어! 합동이야!' : '합동이야!'}
         </span>
       </div>
     )
@@ -41,20 +44,24 @@ export function ResultBanner({ result, justSolved }: ResultBannerProps) {
           🔍
         </span>
         <span className="banner__text">
-          모양은 똑같아! 그런데 <strong>크기가 조금 달라</strong>
+          모양은 똑같아! 그런데 <strong>크기가 조금 달라</strong>서 합동이 아니야
         </span>
       </div>
     )
   }
 
-  // 전혀 다름 — 정답을 알려주지 않고 다음 행동을 안내
+  // The child has moved the shape but it does not coincide.
+  // State the verdict, then point at the next move without naming it.
+  const pct = overlap ? Math.round(overlap.coverage * 100) : 0
+
   return (
     <div className="banner banner--neutral" role="status" aria-live="polite">
       <span className="banner__icon" aria-hidden="true">
         👆
       </span>
       <span className="banner__text">
-        왼쪽 도형에 <strong>겹쳐 보게</strong> 해 보자
+        아직 <strong>합동이 아니야</strong>
+        {pct > 0 ? ` — 겹친 부분이 ${pct}%야` : ' — 겹치는 곳이 없어'}
       </span>
     </div>
   )

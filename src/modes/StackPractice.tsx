@@ -1,30 +1,40 @@
 /**
- * 모드 1. 포개기 연습
+ * Stage 2 — prove congruence by stacking.
  *
- * 🎯 이 화면의 목표:
- *    아이가 직접 도형을 끌어다 포개고, 돌리고, 뒤집고, 크기를 바꾸면서
- *    "모양은 같아도 크기가 다르면 합동이 아니구나"를 스스로 발견한다.
+ * The child drags one shape onto the other. Congruence is defined by complete
+ * overlap, so the screen has to make the overlap visible:
  *
- * ⚠️ 정답 버튼이 없다. 시스템은 결과를 알려줄 뿐 유도하지 않는다.
+ *   - both shapes are semi transparent, so the one behind stays visible
+ *   - the real intersection is drawn on top as a solid region
+ *   - a coverage bar shows how much is shared, in percent
+ *   - rotating and flipping are offered, because "direction does not matter"
+ *     is only believable if the child sees a rotated pair close up
+ *
+ * Tools are move, rotate and flip. Scale is deliberately absent: the
+ * curriculum places "same shape, different size" later, so this screen never
+ * produces that situation.
  */
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { ShapeSvg } from '../components/ShapeSvg'
 import { ResultBanner } from '../components/ResultBanner'
 import { ToolBar } from '../components/ToolBar'
+import { OverlapLayer } from '../components/OverlapLayer'
 import { useStackPractice } from './useStackPractice'
 import type { Shape } from '../geometry/types'
 import { identity } from '../geometry/transforms'
+import { measureOverlap } from '../geometry/overlap'
 
 interface StackPracticeProps {
   referenceShape: Shape
   movableShape: Shape
-  /** pair handed over from stage 1, so the child keeps context */
+  /** the pair handed over from stage 1, so the child keeps context */
   pairLabel?: string
   onBack: () => void
 }
 
 const CANVAS = 1000
+const CANVAS_H = 620
 
 export function StackPractice({
   referenceShape,
@@ -52,7 +62,10 @@ export function StackPractice({
     resetMovable,
   } = useStackPractice(referenceShape, movableShape, CANVAS)
 
-  // 축하 애니메이션 트리거
+  // The visible proof: how much of the two shapes actually coincide.
+  const overlap = useMemo(() => measureOverlap(refPoints, movPoints), [refPoints, movPoints])
+  const coincident = result.verdict === 'congruent'
+
   useEffect(() => {
     if (justSolved) {
       setCelebrating(true)
@@ -64,72 +77,66 @@ export function StackPractice({
     }
   }, [justSolved])
 
-  const highlight =
-    result.verdict === 'congruent'
-      ? '#95d5b2'
-      : result.verdict === 'shape-only'
-        ? '#ffd166'
-        : undefined
-
   return (
     <div className="mode">
-      {/* 헤더 */}
       <header className="mode__header">
         <button type="button" className="back-btn" onClick={onBack}>
           ← 돌아가기
         </button>
-        <h2 className="mode__title">{pairLabel ? `${pairLabel} 포개어 보자` : '포개어 보자'}</h2>
+        <h2 className="mode__title">
+          {pairLabel ? `${pairLabel} 포개어 보자` : '포개어 보자'}
+        </h2>
         <div className="star-counter" aria-label={`맞힌 개수 ${solvedCount}`}>
           ⭐ {solvedCount}
         </div>
       </header>
 
-      {/* 판정 결과 */}
-      <ResultBanner result={result} justSolved={justSolved} />
+      <ResultBanner result={result} justSolved={justSolved} overlap={overlap} />
 
-      {/* 캔버스 */}
       <div className="canvas-wrap">
         <svg
           className="canvas"
-          viewBox={`0 0 ${CANVAS} ${CANVAS * 0.62}`}
+          viewBox={`0 0 ${CANVAS} ${CANVAS_H}`}
           onPointerMove={onDragMove}
           onPointerUp={onDragEnd}
           onPointerCancel={onDragEnd}
         >
-          {/* 은은한 격자 (스냅은 하지 않지만 시각적 기준 제공) */}
-          <Grid width={CANVAS} height={CANVAS * 0.62} />
+          <Grid width={CANVAS} height={CANVAS_H} />
 
-          {/* 기준 도형 (고정) */}
+          {/* reference: translucent so the moving shape shows through it */}
           <ShapeSvg
             shape={referenceShape}
-            transform={identity(CANVAS * 0.28, CANVAS * 0.31)}
-            opacity={0.95}
+            transform={identity(CANVAS * 0.28, CANVAS * 0.3)}
+            fillOpacity={0.45}
+            stroke="#023047"
           />
 
-          {/* 움직이는 도형 (아이가 조작) */}
+          {/* the child controls this one */}
           <ShapeSvg
             shape={movableShape}
             transform={transform}
-            selected
-            highlight={highlight}
+            fillOpacity={0.45}
+            stroke="#023047"
+            showVertices
             onPointerDown={onDragStart}
           />
 
-          {/* 겹쳤을 때의 시각적 연결 */}
-          {result.shapeMatches && result.verdict !== 'different' && (
-            <OverlapGlow a={refPoints} b={movPoints} color={highlight ?? '#95d5b2'} />
-          )}
+          {/* the shared region, drawn last so it sits on top */}
+          <OverlapLayer
+            intersection={overlap.intersection}
+            coverage={overlap.coverage}
+            coincident={coincident}
+          />
 
-          {/* 축하 이펙트 */}
           {celebrating && (
-            <g className="celebrate">
+            <g className="celebrate" pointerEvents="none">
               {Array.from({ length: 8 }).map((_, i) => {
                 const angle = (i * Math.PI) / 4
                 return (
                   <text
                     key={i}
                     x={CANVAS * 0.5 + Math.cos(angle) * 130}
-                    y={CANVAS * 0.31 + Math.sin(angle) * 130}
+                    y={CANVAS * 0.3 + Math.sin(angle) * 130}
                     fontSize="44"
                     textAnchor="middle"
                     className="celebrate__star"
@@ -144,7 +151,6 @@ export function StackPractice({
         </svg>
       </div>
 
-      {/* 도구 바 */}
       <ToolBar
         tool={tool}
         onToolChange={setTool}
@@ -152,69 +158,70 @@ export function StackPractice({
         onFlip={flip}
         onReset={resetMovable}
       />
+
+      <RotationHint
+        moved={transform.cx !== CANVAS * 0.72 || transform.cy !== CANVAS * 0.42}
+        rotated={transform.rotation !== 0}
+        flipped={transform.flipped}
+        coincident={coincident}
+      />
     </div>
   )
 }
 
-/** 은은한 격자 — 손댈 필요 없고 방향 감각만 준다 */
+/**
+ * Makes "방향이 달라도 합동" explicit.
+ *
+ * A child who has never rotated anything will assume the shapes must already
+ * face the same way. The hint appears only after they have moved the shape,
+ * because before that it is noise.
+ */
+function RotationHint({
+  moved,
+  rotated,
+  flipped,
+  coincident,
+}: {
+  moved: boolean
+  rotated: boolean
+  flipped: boolean
+  coincident: boolean
+}) {
+  if (!moved || coincident) return null
+
+  if (flipped && !rotated) {
+    return (
+      <p className="rotate-hint">
+        뒤집어서 포개면 <strong>같은 모양</strong>이야. 방향이 달라도 괜찮아!
+      </p>
+    )
+  }
+  if (rotated) {
+    return (
+      <p className="rotate-hint">
+        돌려서 포개고 있어! 방향이 달라도 <strong>완전히 겹치면 합동</strong>이야
+      </p>
+    )
+  }
+  return (
+    <p className="rotate-hint">
+      안 맞으면 <strong>돌리거나 뒤집어 보세요</strong> — 방향이 달라도 합동이 됩니다
+    </p>
+  )
+}
+
 function Grid({ width, height }: { width: number; height: number }) {
   const step = 50
   const lines = []
   for (let x = 0; x <= width; x += step) {
     lines.push(
-      <line
-        key={`v${x}`}
-        x1={x}
-        y1={0}
-        x2={x}
-        y2={height}
-        stroke="#dbe4ee"
-        strokeWidth={1}
-      />,
+      <line key={`v${x}`} x1={x} y1={0} x2={x} y2={height} stroke="#dbe4ee" strokeWidth={1} />,
     )
   }
   for (let y = 0; y <= height; y += step) {
     lines.push(
-      <line
-        key={`h${y}`}
-        x1={0}
-        y1={y}
-        x2={width}
-        y2={y}
-        stroke="#dbe4ee"
-        strokeWidth={1}
-      />,
+      <line key={`h${y}`} x1={0} y1={y} x2={width} y2={y} stroke="#dbe4ee" strokeWidth={1} />,
     )
   }
   return <g>{lines}</g>
-}
-
-/** 겹칠 때 부드러운 원형 효과 */
-function OverlapGlow({
-  a,
-  b,
-  color,
-}: {
-  a: Array<{ x: number; y: number }>
-  b: Array<{ x: number; y: number }>
-  color: string
-}) {
-  if (a.length === 0 || b.length === 0) return null
-  const cxA = a.reduce((s, p) => s + p.x, 0) / a.length
-  const cyA = a.reduce((s, p) => s + p.y, 0) / a.length
-  const cxB = b.reduce((s, p) => s + p.x, 0) / b.length
-  const cyB = b.reduce((s, p) => s + p.y, 0) / b.length
-  const cx = (cxA + cxB) / 2
-  const cy = (cyA + cyB) / 2
-
-  return (
-    <circle
-      cx={cx}
-      cy={cy}
-      r={110}
-      fill={color}
-      opacity={0.18}
-      className="overlap-glow"
-    />
-  )
 }

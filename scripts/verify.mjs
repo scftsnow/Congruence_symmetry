@@ -79,7 +79,6 @@ for (const [label, s] of [
   ['toolbar class', 'toolbar'],
   ['shape chip class', 'shape-chip'],
   ['banner class', 'banner'],
-  ['overlap glow', 'overlap-glow'],
   ['celebrate class', 'celebrate'],
   ['setPointerCapture', 'setPointerCapture'],
   ['requestAnimationFrame', 'requestAnimationFrame'],
@@ -99,7 +98,8 @@ for (const [label, s] of [
   ['neutral banner', '.banner--neutral'],
   ['tap token', '--tap'],
   ['pop keyframes', '@keyframes pop'],
-  ['pulse keyframes', '@keyframes pulse'],
+  ['overlap layer style', '.overlap-layer'],
+  ['rotate hint style', '.rotate-hint'],
 ]) {
   ok(label, css.includes(s), s)
 }
@@ -127,8 +127,14 @@ section('6. korean strings in source')
   ok('stage 2 title', appSrc.includes(ui.stage2Title), ui.stage2Title)
   ok('start button', appSrc.includes(ui.startBtn))
   ok('mode title', readSrc('src/modes/StackPractice.tsx').includes(ui.stackTitle))
-  ok('success msg', bannerSrc.includes(ui.success))
-  ok('overlay hint', bannerSrc.includes(ui.overlapHint))
+  ok('success msg', bannerSrc.includes(ui.success), ui.success)
+  ok('not congruent msg', bannerSrc.includes(ui.notCongruent), ui.notCongruent)
+  ok('fully overlapped msg', bannerSrc.includes(ui.fullyOverlapped), ui.fullyOverlapped)
+  const overlapLayer = readFileSync(join(root, 'src/components/OverlapLayer.tsx'), 'utf8')
+  ok('overlap layer exists', overlapLayer.length > 0)
+  const overlapGeo = readFileSync(join(root, 'src/geometry/overlap.ts'), 'utf8')
+  ok('overlap geometry exists', overlapGeo.includes('measureOverlap'))
+  ok('verdict stated', bannerSrc.includes(ui.success) && bannerSrc.includes(ui.notCongruent))
   ok('reset', toolSrc.includes(ui.reset))
   ok('drag hint', toolSrc.includes(ui.dragHint), ui.dragHint)
   ok('stage 1 drag hint', readSrc('src/modes/Stage1Find.tsx').includes(ui.dragHint), ui.dragHint)

@@ -355,20 +355,6 @@ body {
 
 /* ── 애니메이션 ──────────────────────────────────────── */
 
-.overlap-glow {
-  animation: pulse 1.6s ease-in-out infinite;
-  pointer-events: none;
-}
-
-@keyframes pulse {
-  0%,
-  100% {
-    opacity: 0.18;
-  }
-  50% {
-    opacity: 0.32;
-  }
-}
 
 .celebrate__star {
   animation: pop 1.4s ease-out forwards;
@@ -421,5 +407,25 @@ body {
 }
 
 .stage1-hint strong {
+  color: var(--color-ink);
+}
+/* ── stage 2: overlap proof ─────────────────────────────── */
+
+.overlap-layer {
+  pointer-events: none;
+}
+
+.rotate-hint {
+  margin: 0;
+  padding: 12px 18px;
+  border-radius: var(--radius-sm);
+  background: #eef4fa;
+  border: 2px dashed var(--color-line);
+  font-size: 1rem;
+  color: var(--color-ink-soft);
+  line-height: 1.55;
+}
+
+.rotate-hint strong {
   color: var(--color-ink);
 }

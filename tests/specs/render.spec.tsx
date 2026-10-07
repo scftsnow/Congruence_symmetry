@@ -136,6 +136,26 @@ describe('stacking mode renders', () => {
     // The banner text lives in ResultBanner; assert it exists there.
     expect(source('src/components/ResultBanner.tsx').includes(expected.stack.sizeDiffers)).toBeTruthy()
   })
+  it('states the congruence verdict rather than only nudging', () => {
+    // The child already claimed this pair in stage 1, so the banner must say
+    // 합동 / 합동 아님. What stays hidden is the reason.
+    const banner = source('src/components/ResultBanner.tsx')
+    expect(banner.includes(expected.stack.congruentMsg)).toBeTruthy()
+    expect(banner.includes(expected.stack.notCongruentMsg)).toBeTruthy()
+  })
+
+  it('renders shapes translucently so overlap is visible', () => {
+    const stage2 = source('src/modes/StackPractice.tsx')
+    // both shapes must be see-through, otherwise overlap is invisible
+    expect((stage2.match(/fillOpacity=\{0\.45\}/g) ?? []).length).toBeGreaterThanOrEqual(2)
+    expect(stage2.includes('OverlapLayer')).toBeTruthy()
+  })
+
+  it('explains that rotation and flipping do not break congruence', () => {
+    const stage2 = source('src/modes/StackPractice.tsx')
+    expect(stage2.includes('rotate-hint')).toBeTruthy()
+    expect(stage2.includes(expected.stack.rotateHint)).toBeTruthy()
+  })
 })
 
 const { report } = await import('../harness/spec.mjs')

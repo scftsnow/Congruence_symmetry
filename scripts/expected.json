@@ -13,12 +13,14 @@
                        "꽃"
                    ],
     "uiStrings":  {
+                      "notCongruent":  "합동이 아니야",
+                      "fullyOverlapped":  "완전히 겹쳤어",
                       "reset":  "처음부터",
                       "stackTitle":  "포개어 보자",
                       "homeTitle":  "합동과 대칭",
                       "dragHint":  "끌어서",
-                      "success":  "같은 모양이야!",
-                      "overlapHint":  "왼쪽 도형에",
+                      "success":  "합동이야!",
+                      "overlapHint":  "겹쳐 보게",
                       "stage2Title":  "직접 포개어 보기",
                       "stage1Title":  "합동인 도형 찾기",
                       "startBtn":  "합동인 도형 찾기 시작하기"

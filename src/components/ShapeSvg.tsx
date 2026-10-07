@@ -1,10 +1,9 @@
 /**
- * 도형 하나를 SVG로 렌더링
+ * One shape, drawn in SVG.
  *
- * 아이가 보는 화면이므로:
- * - 짙은 테두리 (파스텔 채우기와의 대비 확보)
- * - 선택 시 두께 강조 + 꼭짓점 표시 (대응점 학습에 도움)
- * - 히트 영역을 넉넉히 잡아 태블릿 터치가 편하도록
+ * `fillOpacity` exists for the stacking screen: with both shapes semi
+ * transparent the child can see the one behind, so overlapping is something
+ * they observe rather than something the app tells them.
  */
 
 import type { Shape, Transform } from '../geometry/types'
@@ -14,10 +13,14 @@ import { pointsToPath } from './svgPath'
 interface ShapeSvgProps {
   shape: Shape
   transform: Transform
-  /** 선택된 도형인지 */
-  selected?: boolean
-  /** 판정에 따른 하이라이트 색 (없으면 도형 기본색) */
-  highlight?: string
+  /** outlined but not filled, for the shape being moved */
+  ghost?: boolean
+  /** stroke colour override, used for the selected shape */
+  stroke?: string
+  strokeWidth?: number
+  /** 0..1; below 1 lets the shape behind show through */
+  fillOpacity?: number
+  showVertices?: boolean
   onPointerDown?: (e: React.PointerEvent) => void
   opacity?: number
 }
@@ -25,13 +28,17 @@ interface ShapeSvgProps {
 export function ShapeSvg({
   shape,
   transform,
-  selected = false,
-  highlight,
+  ghost = false,
+  stroke,
+  strokeWidth,
+  fillOpacity = 1,
+  showVertices = false,
   onPointerDown,
   opacity = 1,
 }: ShapeSvgProps) {
   const points = applyTransform(shape.vertices, transform)
   const path = pointsToPath(points)
+  const strokeColor = stroke ?? (ghost ? '#023047' : '#1d3557')
 
   return (
     <g
@@ -42,20 +49,21 @@ export function ShapeSvg({
       }}
       opacity={opacity}
     >
-      {/* 히트 영역 — 투명한 넓은 패스로 터치하기 쉽게 */}
-      <path d={path} fill="transparent" stroke="transparent" strokeWidth={40} />
+      {/* generous transparent hit area so a child's finger lands on it */}
+      <path d={path} fill="transparent" stroke="transparent" strokeWidth={44} />
+
       <path
         d={path}
-        fill={highlight ?? shape.color}
-        stroke={selected ? '#023047' : '#1d3557'}
-        strokeWidth={selected ? 4 : 2.5}
+        fill={ghost ? 'none' : shape.color}
+        fillOpacity={ghost ? 0 : fillOpacity}
+        stroke={strokeColor}
+        strokeWidth={strokeWidth ?? (ghost ? 2.5 : 2.5)}
+        strokeDasharray={ghost ? '8 6' : undefined}
         strokeLinejoin="round"
       />
-      {/* 꼭짓점 표시 — 대칭축·대응점을 찾을 때 힌트가 된다 */}
-      {selected &&
-        points.map((p, i) => (
-          <circle key={i} cx={p.x} cy={p.y} r={5} fill="#023047" />
-        ))}
+
+      {showVertices &&
+        points.map((p, i) => <circle key={i} cx={p.x} cy={p.y} r={5} fill={strokeColor} />)}
     </g>
   )
 }

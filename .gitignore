@@ -8,6 +8,9 @@ pnpm-debug.log*
 dist/
 build/
 .vite/
+.dbg/
+tests/.build/
+tests/.dbg/
 *.tsbuildinfo
 
 # ---- 환경변수 / 시크릿 (절대 커밋 금지) ----

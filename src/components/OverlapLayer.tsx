@@ -54,6 +54,7 @@ export function OverlapLayer({ intersection, coincident }: OverlapLayerProps) {
   if (intersectionArea(intersection) <= 0) return null
 
   const d = intersection.map(pointsToPath).join(' ')
+  const boundary = outlinePath(intersection)
 
   // Coincident: a calm, confident fill. Partial: a warmer one, so the colour
   // itself carries some of the answer without a number having to.
@@ -63,15 +64,75 @@ export function OverlapLayer({ intersection, coincident }: OverlapLayerProps) {
     <g className="overlap-layer" pointerEvents="none">
       <path d={d} fill={fill} fillRule="nonzero" />
 
-      {/* the shared boundary, dashed so partial overlap looks unfinished */}
-      <path
-        d={d}
-        fill="none"
-        stroke={coincident ? '#1b6b4a' : '#8a6d00'}
-        strokeWidth={coincident ? 3 : 2.5}
-        strokeDasharray={coincident ? undefined : '10 7'}
-        strokeLinejoin="round"
-      />
+      {/* the boundary of the shared region, and only the boundary */}
+      {boundary && (
+        <path
+          d={boundary}
+          fill="none"
+          stroke={coincident ? '#1b6b4a' : '#8a6d00'}
+          strokeWidth={coincident ? 3 : 2.5}
+          strokeDasharray={coincident ? undefined : '10 7'}
+          strokeLinejoin="round"
+        />
+      )}
     </g>
   )
+}
+
+/**
+ * The outline of the shared region, with its internal seams removed.
+ *
+ * The region arrives as several pieces because it was cut out of triangles, and
+ * neighbouring pieces share the edge they were cut along. Outlining each piece
+ * therefore draws every one of those shared edges as well, and since the stroke
+ * is dashed, an edge shared by two pieces comes out as a row of dots lying
+ * across the middle of the shaded region.
+ *
+ * It looked like decoration and it was worse than that. For the arrow pair the
+ * region is sixteen pieces carrying sixty-six edges, of which only forty-five are
+ * real boundary: twenty-one lines inside the shaded area were drawn that mean
+ * nothing, and the child sees a shape covered in dashes that has no edge there.
+ *
+ * An edge shared by two pieces is internal and is dropped; anything seen once is
+ * on the boundary and is kept. Compare by sorted endpoints so the two copies
+ * match however they happen to be wound.
+ */
+function outlinePath(pieces: Point[][]): string {
+  const count = new Map<string, number>()
+
+  for (const piece of pieces) {
+    for (let i = 0; i < piece.length; i++) {
+      const a = pointKey(piece[i])
+      const b = pointKey(piece[(i + 1) % piece.length])
+      count.set(a < b ? `${a}|${b}` : `${b}|${a}`, (count.get(a < b ? `${a}|${b}` : `${b}|${a}`) ?? 0) + 1)
+    }
+  }
+
+  const outer: string[] = []
+  for (const piece of pieces) {
+    for (let i = 0; i < piece.length; i++) {
+      const from = piece[i]
+      const to = piece[(i + 1) % piece.length]
+      const a = pointKey(from)
+      const b = pointKey(to)
+      const seen = count.get(a < b ? `${a}|${b}` : `${b}|${a}`) ?? 0
+      if (seen > 1) continue
+
+      outer.push(`M ${from.x} ${from.y} L ${to.x} ${to.y}`)
+    }
+  }
+
+  return outer.join(' ')
+}
+
+/**
+ * A point as a comparable key.
+ *
+ * Rounded, because the clipper computes the same shared corner twice from
+ * opposite directions and the two results can differ in the last decimal place.
+ * Without the rounding an edge appears once instead of twice and its interior
+ * gets outlined.
+ */
+function pointKey(p: Point): string {
+  return `${p.x.toFixed(1)},${p.y.toFixed(1)}`
 }

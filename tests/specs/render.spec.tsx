@@ -25,6 +25,16 @@ function source(path: string): string {
   return readFileSync(join(process.cwd(), path), 'utf8')
 }
 
+/**
+ * A file with its comments removed.
+ *
+ * Several of these files explain at length what was taken out and why, so a
+ * check over the whole text trips on the explanation rather than on the code.
+ */
+function strip(path: string): string {
+  return source(path).replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '')
+}
+
 // ── home ──────────────────────────────────────────────────
 describe('home screen renders', () => {
   const html = renderToStaticMarkup(<App />)
@@ -124,28 +134,27 @@ describe('the board shows overlap rather than asserting it', () => {
     // so the child was told their perfect stack was barely half right. The
     // number was true and still worth removing: it invited a comparison against
     // something the child has no way to name.
-    const layer = source('src/components/OverlapLayer.tsx')
+    const code = strip('src/components/OverlapLayer.tsx')
 
-    // Checked outside the comments, since the file explains why it went.
-    const code = layer.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '')
-    expect(code.includes('%')).toBeFalsy()
     expect(code.includes('AgreementBar')).toBeFalsy()
     expect(code.includes('agreement')).toBeFalsy()
     expect(code.includes('coverage')).toBeFalsy()
+    expect(code.includes('pct')).toBeFalsy()
+    // The sign itself, allowing for the modulo operator that walks an array.
+    expect(code.replace(/\s%\s/g, ' mod ').includes('%')).toBeFalsy()
   })
 
   it('does not print a percentage anywhere on the board', () => {
-    // Checked in code rather than in the whole file, because the files explain
-    // what was removed and the words have to be there for that.
-    const strip = (p: string) => source(p).replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '')
-
+    // ' % ' is the modulo operator walking an array, not a printed percentage.
     for (const path of [
       'src/modes/CongruenceStage.tsx',
       'src/components/VerdictBanner.tsx',
       'src/components/verdictText.ts',
       'src/components/BoardParts.tsx',
     ]) {
-      expect(strip(path).includes('%')).toBeFalsy()
+      const code = strip(path)
+      expect(code.includes('pct')).toBeFalsy()
+      expect(/%[^)\s=]/.test(code)).toBeFalsy()
     }
   })
 

@@ -12,25 +12,24 @@ import { measureOverlap, polygonCentroid, touching } from '../geometry/overlap'
 import type { BoardShape } from '../modes/useBoard'
 import type { Point } from '../geometry/types'
 
-/** A confirmed pair, tied together so the child can see what they found. */
+/**
+ * A confirmed pair, marked where they now lie.
+ *
+ * There is no line between them, because once a pair is confirmed they are
+ * coincident and the line has zero length. It was drawn anyway with a dash
+ * pattern, so a zero-length dashed line rendered as a short run of dots sitting
+ * on the shape — on all five pairs. The tick alone says what happened.
+ */
 export function PairMark({ a, b }: { a: BoardShape; b: BoardShape }) {
-  const cx = (a.x + b.x) / 2
-  const cy = (a.y + b.y) / 2
+  // The centre of where they actually lie, which is the centroid of the region
+  // they share rather than the average of two placements that are now identical.
+  const cx = (polygonCentroid(shapePoints(a)).x + polygonCentroid(shapePoints(b)).x) / 2
+  const cy = (polygonCentroid(shapePoints(a)).y + polygonCentroid(shapePoints(b)).y) / 2
+
   return (
     <g pointerEvents="none">
-      <line
-        x1={a.x}
-        y1={a.y}
-        x2={b.x}
-        y2={b.y}
-        stroke="#2a9d8f"
-        strokeWidth={4}
-        strokeDasharray="14 9"
-        strokeLinecap="round"
-        opacity={0.75}
-      />
-      <circle cx={cx} cy={cy} r={20} fill="#2a9d8f" />
-      <text x={cx} y={cy + 8} fontSize={24} fontWeight={700} fill="#fff" textAnchor="middle">
+      <circle cx={cx} cy={cy} r={22} fill="#2a9d8f" />
+      <text x={cx} y={cy + 9} fontSize={26} fontWeight={700} fill="#fff" textAnchor="middle">
         ✓
       </text>
     </g>

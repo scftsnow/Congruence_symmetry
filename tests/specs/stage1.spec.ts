@@ -24,6 +24,12 @@ describe('the board is solvable', () => {
     expect(board.length >= 5).toBeTruthy()
   })
 
+
+  it('gives every shape a hangul label for the child', () => {
+    for (const item of board) {
+      expect([...item.label].length).toBe(1)
+    }
+  })
   it('gives every id a shape and a position', () => {
     for (const item of board) {
       expect(item.shape.vertices.length >= 3).toBeTruthy()

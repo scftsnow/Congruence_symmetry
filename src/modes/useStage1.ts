@@ -20,7 +20,10 @@ import { findShape } from '../geometry/shapes'
 export type Stage1Kind = 'congruent' | 'different-shape' | 'different-size'
 
 export interface Stage1Shape {
+  /** stable internal id, never shown to the child */
   id: string
+  /** the syllable printed under the shape: \uAC00, \uB098, \uB2E4 ... */
+  label: string
   shape: Shape
   /** position on the canvas */
   x: number
@@ -55,14 +58,14 @@ export function buildStage1Board(seed = 0): Stage1Shape[] {
 
   // positions are hand-placed so nothing overlaps at a glance
   const items: Stage1Shape[] = [
-    { id: 'ga', shape: pick('square'), x: 130, y: 150, rotation: 0, kind: 'congruent', pairId: 'sa' },
-    { id: 'na', shape: pick('triangle'), x: 400, y: 130, rotation: 0, kind: 'congruent', pairId: 'ra' },
-    { id: 'da', shape: pick('rectangle'), x: 690, y: 150, rotation: 90, kind: 'congruent', pairId: 'ba' },
-    { id: 'ra', shape: pick('triangle'), x: 850, y: 380, rotation: 180, kind: 'congruent', pairId: 'na' },
-    { id: 'ma', shape: pick('square'), x: 300, y: 420, rotation: 0, kind: 'different-size', pairId: undefined },
-    { id: 'ba', shape: pick('rectangle'), x: 560, y: 430, rotation: 90, kind: 'congruent', pairId: 'da' },
-    { id: 'sa', shape: pick('square'), x: 730, y: 500, rotation: 0, kind: 'congruent', pairId: 'ga' },
-    { id: 'a', shape: pick('pentagon'), x: 180, y: 330, rotation: 0, kind: 'different-shape', pairId: undefined },
+    { id: 'ga', label: '\uAC00', shape: pick('square'), x: 130, y: 150, rotation: 0, kind: 'congruent', pairId: 'sa' },
+    { id: 'na', label: '\uB098', shape: pick('triangle'), x: 400, y: 130, rotation: 0, kind: 'congruent', pairId: 'ra' },
+    { id: 'da', label: '\uB2E4', shape: pick('rectangle'), x: 690, y: 150, rotation: 90, kind: 'congruent', pairId: 'ba' },
+    { id: 'ra', label: '\uB77C', shape: pick('triangle'), x: 850, y: 380, rotation: 180, kind: 'congruent', pairId: 'na' },
+    { id: 'ma', label: '\uB9C8', shape: pick('square'), x: 300, y: 420, rotation: 0, kind: 'different-size', pairId: undefined },
+    { id: 'ba', label: '\uBC14', shape: pick('rectangle'), x: 560, y: 430, rotation: 90, kind: 'congruent', pairId: 'da' },
+    { id: 'sa', label: '\uC0AC', shape: pick('square'), x: 730, y: 500, rotation: 0, kind: 'congruent', pairId: 'ga' },
+    { id: 'a', label: '\uC544', shape: pick('pentagon'), x: 180, y: 330, rotation: 0, kind: 'different-shape', pairId: undefined },
   ]
 
   // a deliberately larger square, sharing the shape but not the size
@@ -177,4 +180,15 @@ export function stage1Points(item: Stage1Shape): Point[] {
     ...identity(item.x, item.y),
     rotation: item.rotation,
   })
+}
+/**
+ * The syllables shown on the board, joined for the stage 2 header.
+ *
+ * The textbook prints "가와 사", so the header reads "가 · 사".
+ * Internal ids never reach the screen.
+ */
+export function stage1PairLabel(items: Stage1Shape[], from: string, to: string): string {
+  const a = items.find((i) => i.id === from)?.label ?? from
+  const b = items.find((i) => i.id === to)?.label ?? to
+  return `${a} · ${b}`
 }

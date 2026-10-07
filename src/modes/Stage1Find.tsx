@@ -10,13 +10,13 @@
  */
 
 import { useState } from 'react'
-import { stage1Points, useStage1 } from './useStage1'
+import { stage1PairLabel, stage1Points, useStage1 } from './useStage1'
 import type { Stage1Shape } from './useStage1'
 import { pointsToPath } from '../components/svgPath'
 
 interface Stage1Props {
   onBack: () => void
-  onVerifyPair: (fromId: string, toId: string) => void
+  onVerifyPair: (fromId: string, toId: string, pairLabel: string) => void
 }
 
 export function Stage1({ onBack, onVerifyPair }: Stage1Props) {
@@ -33,7 +33,7 @@ export function Stage1({ onBack, onVerifyPair }: Stage1Props) {
     if (dragFrom && target && dragFrom !== target.id) {
       board.addLink(dragFrom, target.id)
       // every pair goes to the stacking screen for proof
-      onVerifyPair(dragFrom, target.id)
+      onVerifyPair(dragFrom, target.id, stage1PairLabel(board.items, dragFrom, target.id))
     }
     setDragFrom(null)
   }
@@ -156,8 +156,16 @@ function BoardShape({
         strokeWidth={selected ? 4 : 2.5}
         strokeLinejoin="round"
       />
-      <text x={item.x} y={item.y + 74} fontSize={22} fontWeight={700} fill="#023047" textAnchor="middle">
-        {item.id}
+      {/* print the syllable, never the internal id */}
+      <text
+        x={item.x}
+        y={item.y + 74}
+        fontSize={26}
+        fontWeight={700}
+        fill="#023047"
+        textAnchor="middle"
+      >
+        {item.label}
       </text>
     </g>
   )

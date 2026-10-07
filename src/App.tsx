@@ -20,14 +20,14 @@ export default function App() {
   const [referenceShape, setReferenceShape] = useState<Shape>(BASIC_SHAPES[1])
   const [movableShape, setMovableShape] = useState<Shape>(BASIC_SHAPES[1])
   /** the pair handed over from stage 1 for hands-on proof */
-  const [pair, setPair] = useState<{ from: string; to: string } | null>(null)
+  const [pair, setPair] = useState<{ from: string; to: string; label: string } | null>(null)
 
   if (screen === 'stage1') {
     return (
       <Stage1
         onBack={() => setScreen('home')}
-        onVerifyPair={(from, to) => {
-          setPair({ from, to })
+        onVerifyPair={(from, to, label) => {
+          setPair({ from, to, label })
           setScreen('stage2')
         }}
       />
@@ -39,7 +39,7 @@ export default function App() {
       <StackPractice
         referenceShape={referenceShape}
         movableShape={movableShape}
-        pairLabel={pair ? pair.from + ' · ' + pair.to : undefined}
+        pairLabel={pair?.label}
         onBack={() => setScreen('stage1')}
       />
     )

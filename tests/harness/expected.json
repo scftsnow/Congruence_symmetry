@@ -1,31 +1,17 @@
 {
-    "stage1":  {
-                   "title":  "합동인 도형 찾기",
-                   "dragHint":  "끌어서 이어 보세요",
-                   "sizeHint":  "크기가 달라"
-               },
-    "stack":  {
-                  "rotateHint":  "방향이 달라도",
-                  "overlapPct":  "겹친 부분",
-                  "reset":  "처음부터",
-                  "fullyOverlapped":  "완전히 겹쳤어",
-                  "starZero":  "맞힌 개수 0",
-                  "sizeDiffers":  "크기가 조금 달라",
-                  "dragHint":  "끌어서",
-                  "overlapHint":  "겹쳐 보게",
-                  "notCongruentMsg":  "합동이 아니야",
-                  "title":  "포개어 보자",
-                  "tools":  [
-                                "옮기기",
-                                "돌리기",
-                                "뒤집기"
-                            ],
-                  "congruentMsg":  "합동이야!"
-              },
     "home":  {
                  "title":  "합동과 대칭",
-                 "stage1Title":  "합동인 도형 찾기",
-                 "stage2Title":  "직접 포개어 보기",
-                 "startBtn":  "합동인 도형 찾기 시작하기"
-             }
+                 "startBtn":  "합동인 도형 찾기 시작하기",
+                 "unitTitle":  "합동인 도형 찾기"
+             },
+    "stack":  {
+                  "tools":  [
+                                "돌리기",
+                                "뒤집기",
+                                "처음부터"
+                            ],
+                  "dragHint":  "누른 뒤 끌어다",
+                  "directionMsg":  "방향이 달라도",
+                  "congruentMsg":  "합동"
+              }
 }

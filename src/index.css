@@ -397,35 +397,71 @@ body {
     font-size: 19px;
   }
 }
-/* ── stage 1: find the pair ─────────────────────────────── */
 
-.stage1-hint {
-  margin: 0;
-  font-size: 1rem;
-  color: var(--color-ink-soft);
-  line-height: 1.6;
+
+/* ── home: unit list ──────────────────────────────────── */
+
+.unit-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
 }
 
-.stage1-hint strong {
-  color: var(--color-ink);
-}
-/* ── stage 2: overlap proof ─────────────────────────────── */
-
-.overlap-layer {
-  pointer-events: none;
-}
-
-.rotate-hint {
-  margin: 0;
-  padding: 12px 18px;
+.unit-list__item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border: 2px solid var(--color-line);
   border-radius: var(--radius-sm);
-  background: #eef4fa;
-  border: 2px dashed var(--color-line);
-  font-size: 1rem;
-  color: var(--color-ink-soft);
-  line-height: 1.55;
+  background: #fff;
 }
 
-.rotate-hint strong {
+.unit-list__item--active {
+  border-color: var(--color-primary);
+  background: #e8f6fa;
+}
+
+.unit-list__item--locked {
+  opacity: 0.55;
+}
+
+.unit-list__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: #fff;
+  font-weight: 700;
+}
+
+.unit-list__item--locked .unit-list__badge {
+  background: #b8c4cf;
+}
+
+.unit-list__item strong {
+  display: block;
+  font-size: 1.05rem;
   color: var(--color-ink);
+}
+
+.unit-list__item em {
+  display: block;
+  font-style: normal;
+  font-size: 0.92rem;
+  color: var(--color-ink-soft);
+}
+
+/* ── hold bar: tools act on the held shape ────────────── */
+
+.mini-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }

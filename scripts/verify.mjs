@@ -1,10 +1,14 @@
 /**
- * App build verification
+ * Build output verification.
  *
- * Reads Korean strings from expected.json (UTF-8) instead of literals here,
- * because literal Korean in this file risks encoding corruption.
+ * Runs the production build, then inspects what came out. Complements the
+ * specs, which test behaviour: this checks that the strings and modules the
+ * child relies on actually reach the bundle.
  *
- * Run: node scripts/verify.mjs
+ * Korean literals live in expected.json. Literal escapes get mangled on the
+ * way to disk in this environment.
+ *
+ * Run: npm run verify
  */
 
 import { execSync } from 'node:child_process'
@@ -28,6 +32,9 @@ function section(t) {
   console.log(`\n== ${t}`)
 }
 
+const root = process.cwd()
+const read = (p) => readFileSync(join(root, p), 'utf8')
+
 // 1. build
 section('1. production build')
 try {
@@ -39,7 +46,6 @@ try {
 
 // 2. artifacts
 section('2. build artifacts')
-const root = process.cwd()
 const distDir = join(root, 'dist')
 const assetsDir = join(distDir, 'assets')
 let bundle = ''
@@ -52,9 +58,7 @@ if (existsSync(distDir) && existsSync(assetsDir)) {
   const cssFile = files.find((f) => f.endsWith('.css'))
   ok('dist/ exists', true)
   ok('dist/index.html exists', existsSync(join(distDir, 'index.html')))
-  if (existsSync(join(distDir, 'index.html'))) {
-    html = readFileSync(join(distDir, 'index.html'), 'utf8')
-  }
+  if (existsSync(join(distDir, 'index.html'))) html = readFileSync(join(distDir, 'index.html'), 'utf8')
   if (jsFile) {
     bundle = readFileSync(join(assetsDir, jsFile), 'utf8')
     ok('JS bundle', bundle.length > 0, (bundle.length / 1024).toFixed(0) + 'KB')
@@ -67,83 +71,77 @@ if (existsSync(distDir) && existsSync(assetsDir)) {
   ok('dist/ exists', false)
 }
 
-// 3. pages base
+// 3. Pages base path
 section('3. GitHub Pages base path')
 ok('base applied', html.includes('/Congruence_symmetry/'))
 ok('JS ref under base', /src="\/Congruence_symmetry\/assets\//.test(html))
 ok('CSS ref under base', /href="\/Congruence_symmetry\/assets\//.test(html))
 
-// 4. modules in bundle (ASCII-safe markers only; minifier keeps class names)
+// 4. modules reached the bundle
 section('4. app modules in bundle')
 for (const [label, s] of [
-  ['toolbar class', 'toolbar'],
-  ['shape chip class', 'shape-chip'],
-  ['banner class', 'banner'],
-  ['celebrate class', 'celebrate'],
-  ['setPointerCapture', 'setPointerCapture'],
-  ['requestAnimationFrame', 'requestAnimationFrame'],
+  ['unit list class', 'unit-list'],
+  ['board shape class', 'canvas'],
+  ['overlap glow removal', 'overlap-layer'],
+  ['pointer capture API', 'setPointerCapture'],
   ['pointerdown handler', 'pointerdown'],
   ['viewBox attr', 'viewBox'],
+  ['getBoundingClientRect', 'getBoundingClientRect'],
 ]) {
   ok(label, bundle.includes(s), s)
 }
 
-// 5. css
+// 5. styles
 section('5. css styles')
 for (const [label, s] of [
+  ['unit list', '.unit-list'],
+  ['unit badge', '.unit-list__badge'],
   ['toolbar', '.toolbar'],
-  ['shape chip', '.shape-chip'],
   ['success banner', '.banner--success'],
   ['hint banner', '.banner--hint'],
   ['neutral banner', '.banner--neutral'],
   ['tap token', '--tap'],
   ['pop keyframes', '@keyframes pop'],
-  ['overlap layer style', '.overlap-layer'],
-  ['rotate hint style', '.rotate-hint'],
+  ['disabled tool button', '.mini-btn:disabled'],
 ]) {
   ok(label, css.includes(s), s)
 }
-// minifier rewrites (min-width: 900px) -> (width>=900px)
 ok('tablet breakpoint', /@media\s*\(width\s*>=\s*900px\)/.test(css), '(width>=900px)')
 
-// 6. Korean strings from source (UTF-8 read, compared via expected.json)
-section('6. korean strings in source')
-{
-  const expected = JSON.parse(readFileSync(join(root, 'scripts/expected.json'), 'utf8'))
-  const readSrc = (p) => readFileSync(join(root, p), 'utf8')
+// 6. source-level checks
+section('6. source checks')
+const expected = JSON.parse(read('scripts/expected.json'))
+const appSrc = read('src/App.tsx')
+const stageSrc = read('src/modes/CongruenceStage.tsx')
+const ui = expected.uiStrings
 
-  const shapeSrc = readSrc('src/geometry/shapes.ts')
-  for (const n of expected.shapeNames) {
-    ok('shape in shapes.ts', shapeSrc.includes("name: '" + n + "'"), n)
-  }
+ok('home title', appSrc.includes(ui.homeTitle), ui.homeTitle)
+ok('unit title', appSrc.includes(ui.unitTitle), ui.unitTitle)
+ok('start button', appSrc.includes(ui.startBtn))
+ok('stage title', stageSrc.includes(ui.unitTitle))
+ok('verdict wording', stageSrc.includes(ui.congruentMsg), ui.congruentMsg)
+ok('direction lesson', stageSrc.includes(ui.directionMsg), ui.directionMsg)
+ok('drag hint', stageSrc.includes(ui.dragHint), ui.dragHint)
+for (const label of expected.toolLabels) ok('tool label', stageSrc.includes(label), label)
 
-  const appSrc = readSrc('src/App.tsx')
-  const bannerSrc = readSrc('src/components/ResultBanner.tsx')
-  const toolSrc = readSrc('src/components/ToolBar.tsx')
+// one board, not two screens
+ok('no shape picker', !appSrc.includes('ShapePicker'))
+ok('no stage1 screen file', !existsSync(join(root, 'src/modes/Stage1Find.tsx')))
+ok('no stage2 screen file', !existsSync(join(root, 'src/modes/StackPractice.tsx')))
 
-  const ui = expected.uiStrings
-  ok('home title', appSrc.includes(ui.homeTitle), ui.homeTitle)
-  ok('stage 1 title', appSrc.includes(ui.stage1Title), ui.stage1Title)
-  ok('stage 2 title', appSrc.includes(ui.stage2Title), ui.stage2Title)
-  ok('start button', appSrc.includes(ui.startBtn))
-  ok('mode title', readSrc('src/modes/StackPractice.tsx').includes(ui.stackTitle))
-  ok('success msg', bannerSrc.includes(ui.success), ui.success)
-  ok('not congruent msg', bannerSrc.includes(ui.notCongruent), ui.notCongruent)
-  ok('fully overlapped msg', bannerSrc.includes(ui.fullyOverlapped), ui.fullyOverlapped)
-  const overlapLayer = readFileSync(join(root, 'src/components/OverlapLayer.tsx'), 'utf8')
-  ok('overlap layer exists', overlapLayer.length > 0)
-  const overlapGeo = readFileSync(join(root, 'src/geometry/overlap.ts'), 'utf8')
-  ok('overlap geometry exists', overlapGeo.includes('measureOverlap'))
-  ok('verdict stated', bannerSrc.includes(ui.success) && bannerSrc.includes(ui.notCongruent))
-  ok('reset', toolSrc.includes(ui.reset))
-  ok('drag hint', toolSrc.includes(ui.dragHint), ui.dragHint)
-  ok('stage 1 drag hint', readSrc('src/modes/Stage1Find.tsx').includes(ui.dragHint), ui.dragHint)
-  for (const label of expected.toolLabels) {
-    ok('tool label in toolbar', toolSrc.includes(label), label)
-  }
-  // scale was removed: the toolbar must not offer it any more
-  ok('no size tool in toolbar', !toolSrc.includes("label: '크기'"))
-  ok('no size action in hook', !readSrc('src/modes/useStackPractice.ts').includes('scaleBy'))
+// geometry stayed in the geometry layer
+const pairsSrc = read('src/geometry/pairs.ts')
+ok('pair detection exists', pairsSrc.includes('findMatches'))
+ok('both match conditions required', pairsSrc.includes('sameCongruence') && pairsSrc.includes('fullyCovered'))
+const overlapSrc = read('src/geometry/overlap.ts')
+ok('overlap geometry exists', overlapSrc.includes('measureOverlap'))
+const boardSrc = read('src/modes/useBoard.ts')
+ok('trapezoid defined on the board', boardSrc.includes('trapezoid'))
+
+// shape catalogue
+const shapeSrc = read('src/geometry/shapes.ts')
+for (const n of expected.shapeNames) {
+  ok('shape in shapes.ts', shapeSrc.includes("name: '" + n + "'"), n)
 }
 
 console.log('\n' + '-'.repeat(52))

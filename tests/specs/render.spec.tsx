@@ -1,19 +1,15 @@
 /**
- * Render spec — the React tree must actually mount.
+ * Render spec — the board must actually mount.
  *
- * WHY THIS SPEC EXISTS
- * --------------------
- * The `flower()` loop bug compiled, deployed, and passed every bundle-level
- * check. The app was a blank screen for every visitor. A build is not a
- * render, and a string sitting in a bundle is not a mounted component.
+ * The `flower()` loop bug compiled, deployed, passed every bundle check, and
+ * still served a blank screen. A build is not a render.
  *
- * This spec renders both screens for real and asserts on the markup. The
- * runner executes it with a 128MB heap cap and a wall-clock timeout, so an
- * unbounded loop inside a component becomes a NON-TERMINATING failure
- * instead of a twelve-second hang.
+ * The runner executes this with a 128MB heap cap and a wall-clock timeout, so
+ * an unbounded loop inside a component is reported as NON-TERMINATING rather
+ * than hanging CI for twelve seconds.
  *
- * Korean literals live in harness/expected.json. Literal escapes get mangled
- * on the way to disk in this environment; a UTF-8 data file does not.
+ * Korean literals live in harness/expected.json; literal escapes get mangled
+ * on the way to disk in this environment.
  */
 
 import { readFileSync } from 'node:fs'
@@ -22,12 +18,8 @@ import { describe, it, expect } from '../harness/api'
 import expected from '../harness/expected.json' with { type: 'json' }
 import { renderToStaticMarkup } from 'react-dom/server'
 import App from '../../src/App'
-import { StackPractice } from '../../src/modes/StackPractice'
+import { CongruenceStage } from '../../src/modes/CongruenceStage'
 import { BASIC_SHAPES, findShape } from '../../src/geometry/shapes'
-import type { Shape } from '../../src/geometry/types'
-
-const SQUARE = findShape('square') as Shape
-const TRIANGLE = findShape('triangle') as Shape
 
 function source(path: string): string {
   return readFileSync(join(process.cwd(), path), 'utf8')
@@ -38,45 +30,32 @@ describe('home screen renders', () => {
   const html = renderToStaticMarkup(<App />)
 
   it('produces markup', () => {
-    expect(html.length > 1000).toBeTruthy()
+    expect(html.length > 500).toBeTruthy()
   })
 
   it('shows the title', () => {
     expect(html.includes(expected.home.title)).toBeTruthy()
   })
 
-  it('presents the two stages in curriculum order', () => {
-    expect(html.includes(expected.home.stage1Title)).toBeTruthy()
-    expect(html.includes(expected.home.stage2Title)).toBeTruthy()
-  })
-
-  it('renders every basic shape as a polygon', () => {
-    const polygons = (html.match(/<polygon/g) ?? []).length
-    expect(polygons >= BASIC_SHAPES.length).toBeTruthy()
-  })
-
-  it('labels every basic shape', () => {
-    for (const s of BASIC_SHAPES) {
-      expect(html.includes('>' + s.name + '<')).toBeTruthy()
-    }
+  it('offers the congruence unit', () => {
+    expect(html.includes(expected.home.unitTitle)).toBeTruthy()
   })
 
   it('has a start button', () => {
     expect(html.includes(expected.home.startBtn)).toBeTruthy()
   })
 
-  it('exposes the picker as a radiogroup for accessibility', () => {
-    expect(html.includes('role="radiogroup"')).toBeTruthy()
-    expect(html.includes('role="radio"')).toBeTruthy()
-    expect(html.includes('aria-checked')).toBeTruthy()
+  it('does not ask the child to pick shapes first', () => {
+    // choosing shapes before playing was the mistake; the board supplies them
+    expect(html.includes('role="radiogroup"')).toBeFalsy()
   })
 })
 
-// ── stack practice ────────────────────────────────────────
-describe('stacking mode renders', () => {
-  const html = renderToStaticMarkup(
-    <StackPractice referenceShape={SQUARE} movableShape={TRIANGLE} onBack={() => {}} />,
-  )
+// ── the board ────────────────────────────────────────────
+describe('congruence board renders', () => {
+  const sq = findShape('square')!
+  const tri = findShape('triangle')!
+  const html = renderToStaticMarkup(<CongruenceStage onBack={() => {}} />)
 
   it('produces markup', () => {
     expect(html.length > 1000).toBeTruthy()
@@ -87,74 +66,87 @@ describe('stacking mode renders', () => {
     expect(html.includes('viewBox')).toBeTruthy()
   })
 
-  it('draws both shapes as paths', () => {
-    expect((html.match(/<path/g) ?? []).length >= 2).toBeTruthy()
-  })
-
   it('draws the background grid', () => {
     expect(html.includes('<line')).toBeTruthy()
   })
 
-  it('nudges without revealing the answer', () => {
-    // A wrong answer must point at what to try next, not give it away.
-    expect(html.includes('banner')).toBeTruthy()
-    expect(html.includes(expected.stack.overlapHint)).toBeTruthy()
+  it('draws every board shape as a path', () => {
+    expect((html.match(/<path/g) ?? []).length >= 8).toBeTruthy()
   })
 
-  it('offers the three manipulation tools, and no size control', () => {
-    for (const label of expected.stack.tools) {
-      expect(html.includes(label)).toBeTruthy()
-    }
+  it('prints a hangul syllable under each shape', () => {
+    const syllables = (html.match(/<text/g) ?? []).length
+    expect(syllables >= 8).toBeTruthy()
   })
 
-  it('offers a reset', () => {
-    expect(html.includes(expected.stack.reset)).toBeTruthy()
+  it('offers rotate and flip', () => {
+    expect(html.includes(expected.stack.tools[1])).toBeTruthy()
+    expect(html.includes(expected.stack.tools[2])).toBeTruthy()
   })
 
-  it('tells the child to drag the shape', () => {
+  it('disables the tools until a shape is held', () => {
+    // an enabled button that does nothing teaches nothing
+    expect(html.includes('disabled')).toBeTruthy()
+  })
+
+  it('counts progress toward the goal', () => {
+    expect(html.includes('0 / 3')).toBeTruthy()
+  })
+
+  it('tells the child to drag a shape', () => {
     expect(html.includes(expected.stack.dragHint)).toBeTruthy()
   })
 
-  it('starts with a zero star count', () => {
-    expect(html.includes(expected.stack.starZero)).toBeTruthy()
-  })
-
-  it('carries the canvas class the stylesheet targets', () => {
-    expect(html.includes('class="canvas"')).toBeTruthy()
-  })
-
   it('disables touch panning so dragging does not scroll a tablet', () => {
-    // renderToStaticMarkup drops style attributes and .canvas is a stylesheet
-    // rule, so the inline declaration is verified at the source level.
-    // Without it, a child dragging a shape scrolls the whole page.
-    const shapeSvg = source('src/components/ShapeSvg.tsx')
-    expect(shapeSvg.includes("touchAction: 'none'")).toBeTruthy()
+    // a tablet must not scroll the page while a child drags a shape;
+    // renderToStaticMarkup drops style attributes, so check the source
+    const parts = source('src/components/BoardParts.tsx')
+    expect(parts.includes('touchAction')).toBeTruthy()
     expect(/touch-action:\s*none/.test(source('src/index.css'))).toBeTruthy()
   })
+})
 
-  it('size difference is the wording we chose for the discovery moment', () => {
-    // The banner text lives in ResultBanner; assert it exists there.
-    expect(source('src/components/ResultBanner.tsx').includes(expected.stack.sizeDiffers)).toBeTruthy()
-  })
-  it('states the congruence verdict rather than only nudging', () => {
-    // The child already claimed this pair in stage 1, so the banner must say
-    // 합동 / 합동 아님. What stays hidden is the reason.
-    const banner = source('src/components/ResultBanner.tsx')
-    expect(banner.includes(expected.stack.congruentMsg)).toBeTruthy()
-    expect(banner.includes(expected.stack.notCongruentMsg)).toBeTruthy()
+describe('the board shows overlap rather than asserting it', () => {
+  it('renders the shared region', () => {
+    expect(source('src/components/OverlapLayer.tsx').includes('intersection')).toBeTruthy()
+    // the geometry behind it lives in the hook, not the component
+    expect(source('src/geometry/pairs.ts').includes('heldOverlap')).toBeTruthy()
   })
 
-  it('renders shapes translucently so overlap is visible', () => {
-    const stage2 = source('src/modes/StackPractice.tsx')
-    // both shapes must be see-through, otherwise overlap is invisible
-    expect((stage2.match(/fillOpacity=\{0\.45\}/g) ?? []).length).toBeGreaterThanOrEqual(2)
-    expect(stage2.includes('OverlapLayer')).toBeTruthy()
+  it('distinguishes full from partial overlap', () => {
+    const layer = source('src/components/OverlapLayer.tsx')
+    expect(layer.includes('coincident')).toBeTruthy()
+    // partial overlap reads as unfinished
+    expect(layer.includes('strokeDasharray')).toBeTruthy()
   })
 
-  it('explains that rotation and flipping do not break congruence', () => {
-    const stage2 = source('src/modes/StackPractice.tsx')
-    expect(stage2.includes('rotate-hint')).toBeTruthy()
-    expect(stage2.includes(expected.stack.rotateHint)).toBeTruthy()
+  it('computes overlap from real geometry', () => {
+    expect(source('src/geometry/overlap.ts').includes('intersectPolygons')).toBeTruthy()
+  })
+
+  it('requires both congruence and coincidence', () => {
+    // overlap alone would accept a small shape resting inside a large one
+    const pairs = source('src/geometry/pairs.ts')
+    expect(pairs.includes('sameCongruence')).toBeTruthy()
+    expect(pairs.includes('fullyCovered')).toBeTruthy()
+  })
+
+  it('components do not decide congruence', () => {
+    // enforced by conventions.spec too; this pins the intent
+    const parts = source('src/components/BoardParts.tsx')
+    expect(parts.includes('checkCongruence')).toBeFalsy()
+    expect(parts.includes('measureOverlap(')).toBeFalsy()
+  })
+})
+
+describe('the wording matches the teaching', () => {
+  it('says 합동 rather than only praising', () => {
+    expect(source('src/modes/CongruenceStage.tsx').includes(expected.stack.congruentMsg)).toBeTruthy()
+  })
+
+  it('teaches that direction does not matter', () => {
+    const stage = source('src/modes/CongruenceStage.tsx')
+    expect(stage.includes(expected.stack.directionMsg)).toBeTruthy()
   })
 })
 

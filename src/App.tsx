@@ -1,48 +1,22 @@
 /**
- * App shell — one screen at a time, panels inside.
+ * App shell.
  *
- * Stage order follows the textbook for 초5 2학기 3단원:
- *   stage1  find the congruent pair among scattered shapes
- *   stage2  stack that pair by hand to prove it
- *   stage3  corresponding points, edges and angles   (not built yet)
+ * The congruence stage is one board: shapes are laid out, the child drags one
+ * onto another, and rotates or flips until they coincide. There is no
+ * shape-picker step and no separate "find" and "stack" screens, because
+ * proving congruence and finding it are the same act.
  */
 
 import { useState } from 'react'
-import { Stage1 } from './modes/Stage1Find'
-import { StackPractice } from './modes/StackPractice'
-import { BASIC_SHAPES } from './geometry/shapes'
-import type { Shape } from './geometry/types'
+import { CongruenceStage } from './modes/CongruenceStage'
 
-type Screen = 'home' | 'stage1' | 'stage2'
+type Screen = 'home' | 'congruence'
 
 export default function App() {
   const [screen, setScreen] = useState<Screen>('home')
-  const [referenceShape, setReferenceShape] = useState<Shape>(BASIC_SHAPES[1])
-  const [movableShape, setMovableShape] = useState<Shape>(BASIC_SHAPES[1])
-  /** the pair handed over from stage 1 for hands-on proof */
-  const [pair, setPair] = useState<{ from: string; to: string; label: string } | null>(null)
 
-  if (screen === 'stage1') {
-    return (
-      <Stage1
-        onBack={() => setScreen('home')}
-        onVerifyPair={(from, to, label) => {
-          setPair({ from, to, label })
-          setScreen('stage2')
-        }}
-      />
-    )
-  }
-
-  if (screen === 'stage2') {
-    return (
-      <StackPractice
-        referenceShape={referenceShape}
-        movableShape={movableShape}
-        pairLabel={pair?.label}
-        onBack={() => setScreen('stage1')}
-      />
-    )
+  if (screen === 'congruence') {
+    return <CongruenceStage onBack={() => setScreen('home')} />
   }
 
   return (
@@ -55,65 +29,44 @@ export default function App() {
       <main className="home__main">
         <section className="panel">
           <h2 className="panel__title">
-            <span className="panel__step">1</span> 합동인 도형 찾기
+            <span className="panel__step">1</span> 합동과 대칭
           </h2>
           <p className="panel__hint">
-            흩어져 있는 도형들에서 <strong>합동인 쌍</strong>을 찾아 이어 보세요
+            도형들을 <strong>겹쳐 보면서</strong> 같은 모양과 크기를 찾아봐요
           </p>
-          <ShapePicker selected={referenceShape.id} onSelect={setReferenceShape} />
-        </section>
-
-        <section className="panel">
-          <h2 className="panel__title">
-            <span className="panel__step">2</span> 직접 포개어 보기
-          </h2>
-          <p className="panel__hint">
-            찾은 쌍을 실제로 <strong>겹쳐 보면서</strong> 확인해요
-          </p>
-          <ShapePicker selected={movableShape.id} onSelect={setMovableShape} />
+          <ul className="unit-list">
+            <li className="unit-list__item unit-list__item--active">
+              <span className="unit-list__badge">1</span>
+              <span>
+                <strong>합동인 도형 찾기</strong>
+                <em>도형을 끌어다 겹치고, 돌리고, 뒤집어 확인</em>
+              </span>
+            </li>
+            <li className="unit-list__item unit-list__item--locked">
+              <span className="unit-list__badge">2</span>
+              <span>
+                <strong>대응점 찾기</strong>
+                <em>겹쳤을 때 만나는 점과 변</em>
+              </span>
+            </li>
+            <li className="unit-list__item unit-list__item--locked">
+              <span className="unit-list__badge">3</span>
+              <span>
+                <strong>선대칭과 점대칭</strong>
+                <em>접거나 돌려서 겹치는 중심</em>
+              </span>
+            </li>
+          </ul>
         </section>
 
         <button
           type="button"
           className="start-btn"
-          onClick={() => setScreen('stage1')}
+          onClick={() => setScreen('congruence')}
         >
           합동인 도형 찾기 시작하기 →
         </button>
       </main>
-    </div>
-  )
-}
-
-function ShapePicker({
-  selected,
-  onSelect,
-}: {
-  selected: string
-  onSelect: (s: Shape) => void
-}) {
-  return (
-    <div className="shape-picker" role="radiogroup">
-      {BASIC_SHAPES.map((shape) => (
-        <button
-          key={shape.id}
-          type="button"
-          role="radio"
-          aria-checked={selected === shape.id}
-          className={`shape-chip ${selected === shape.id ? 'shape-chip--active' : ''}`}
-          onClick={() => onSelect(shape)}
-        >
-          <svg viewBox="-80 -80 160 160" className="shape-chip__icon">
-            <polygon
-              points={shape.vertices.map((v) => `${v.x},${v.y}`).join(' ')}
-              fill={shape.color}
-              stroke="#1d3557"
-              strokeWidth={4}
-            />
-          </svg>
-          <span className="shape-chip__name">{shape.name}</span>
-        </button>
-      ))}
     </div>
   )
 }

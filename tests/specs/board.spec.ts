@@ -1,41 +1,48 @@
 /**
- * Board spec — the single-screen congruence act.
+ * Board spec — twelve shapes: five pairs and two distractors.
  *
- * The child drags a shape onto another and rotates or flips until they
- * coincide. This proves the board is solvable and, more importantly, that
- * the distractors cannot be forced into a match.
+ * The system judges every stack, so the two questions this file answers are:
+ * does the board contain exactly the pairs it claims, and can the system
+ * resolve each one without the child choosing an angle?
  */
 
 import { describe, it, expect } from '../harness/api'
-import { buildBoard, shapePoints, transformOf, TARGET_PAIRS } from '../../src/modes/useBoard'
+import { buildBoard, shapePoints, TARGET_PAIRS } from '../../src/modes/useBoard'
+import { judge, isMatch } from '../../src/geometry/verdict'
 import { checkCongruence, EPSILON_STACK } from '../../src/geometry/compare'
-import { measureOverlap } from '../../src/geometry/overlap'
+import { measureOverlap, polygonArea } from '../../src/geometry/overlap'
+import { applyTransform } from '../../src/geometry/transforms'
 import type { BoardShape } from '../../src/modes/useBoard'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 const board = buildBoard()
+const CANVAS = 1100
 
-const at = (item: BoardShape, patch: Partial<BoardShape>): BoardShape => ({ ...item, ...patch })
+const at = (id: string) => board.find((i) => i.shape.id === id)!
 
-const pts = (item: BoardShape) => shapePoints(item)
-
-/** What the screen requires: congruent in outline AND fully covering. */
-function isMatch(a: BoardShape, b: BoardShape): boolean {
-  const pa = pts(a)
-  const pb = pts(b)
-  return checkCongruence(pa, pb, EPSILON_STACK, 1000, false).isCongruent && measureOverlap(pa, pb).contained
+/** Place `item` on top of `onto`. */
+function stack(onto: BoardShape, item: BoardShape) {
+  return {
+    reference: shapePoints(onto),
+    held: applyTransform(item.shape.vertices, {
+      cx: onto.x,
+      cy: onto.y,
+      rotation: item.rotation,
+      flipped: item.flipped,
+      scale: 1,
+    }),
+  }
 }
 
-/** Congruence alone, ignoring whether they are stacked on each other. */
 function sameOutline(a: BoardShape, b: BoardShape): boolean {
-  return checkCongruence(pts(a), pts(b), EPSILON_STACK, 1000, false).isCongruent
+  return checkCongruence(shapePoints(a), shapePoints(b), EPSILON_STACK, CANVAS, false).isCongruent
 }
 
 // ── layout ───────────────────────────────────────────────
 describe('the board is laid out', () => {
-  it('lays out eight shapes', () => {
-    expect(board.length).toBe(8)
+  it('lays out twelve shapes', () => {
+    expect(board.length).toBe(12)
   })
 
   it('gives every shape a single hangul syllable', () => {
@@ -50,13 +57,12 @@ describe('the board is laid out', () => {
   })
 
   it('keeps every shape fully inside the canvas', () => {
-    // a shape clipped by the edge cannot be judged by eye
     for (const item of board) {
-      for (const p of pts(item)) {
+      for (const p of shapePoints(item)) {
         expect(p.x).toBeGreaterThan(0)
-        expect(p.x).toBeLessThan(1000)
+        expect(p.x).toBeLessThan(CANVAS)
         expect(p.y).toBeGreaterThan(0)
-        expect(p.y).toBeLessThan(680)
+        expect(p.y).toBeLessThan(760)
       }
     }
   })
@@ -64,98 +70,91 @@ describe('the board is laid out', () => {
   it('spreads shapes apart so nothing hides behind anything else', () => {
     for (let i = 0; i < board.length; i++) {
       for (let j = i + 1; j < board.length; j++) {
-        expect(Math.hypot(board[i].x - board[j].x, board[i].y - board[j].y)).toBeGreaterThan(120)
+        expect(Math.hypot(board[i].x - board[j].x, board[i].y - board[j].y)).toBeGreaterThan(130)
       }
     }
   })
 })
 
-// ── the three pairs ──────────────────────────────────────
-describe('the board offers exactly three pairs', () => {
-  it('declares three as the goal', () => {
-    expect(TARGET_PAIRS).toBe(3)
+// ── the five pairs ───────────────────────────────────────
+describe('the board offers five pairs', () => {
+  it('declares five as the goal', () => {
+    expect(TARGET_PAIRS).toBe(5)
   })
 
-  it('contains exactly three congruent pairs as drawn', () => {
-    const matches: Array<[string, string]> = []
+  it('contains exactly five congruent pairs as drawn', () => {
+    let count = 0
     for (let i = 0; i < board.length; i++) {
       for (let j = i + 1; j < board.length; j++) {
-        if (sameOutline(board[i], board[j])) matches.push([board[i].label, board[j].label])
+        if (sameOutline(board[i], board[j])) count++
       }
     }
-    expect(matches.length).toBe(3)
+    expect(count).toBe(5)
   })
 
-  it('the square pair already matches as drawn', () => {
-    const squares = board.filter((i) => i.shape.id === 'square')
-    expect(squares.length).toBe(2)
-    expect(sameOutline(squares[0], squares[1])).toBeTruthy()
+  it('every pair can be brought into coincidence by the system', () => {
+    const problems: string[] = []
+    for (let i = 0; i < board.length; i++) {
+      for (let j = i + 1; j < board.length; j++) {
+        if (!sameOutline(board[i], board[j])) continue
+        const s = stack(board[i], board[j])
+        if (!isMatch(judge(s.reference, s.held, CANVAS))) {
+          problems.push(board[i].label + '+' + board[j].label)
+        }
+      }
+    }
+    expect(problems.length === 0 ? 'ok' : problems.join(', ')).toBe('ok')
   })
 
-  it('the triangle pair already matches as drawn', () => {
-    const tris = board.filter((i) => i.shape.vertices.length === 3)
+  it('none of them coincides before the child does anything', () => {
+    for (let i = 0; i < board.length; i++) {
+      for (let j = i + 1; j < board.length; j++) {
+        if (!sameOutline(board[i], board[j])) continue
+        expect(measureOverlap(shapePoints(board[i]), shapePoints(board[j])).contained).toBeFalsy()
+      }
+    }
+  })
+
+  it('uses rectangles and mixed triangles, not squares and equilateral ones', () => {
+    // squares are too symmetric and an equilateral triangle gives nothing to
+    // judge, so both were replaced
+    expect(board.some((i) => i.shape.kind === 'rectangle')).toBeTruthy()
+    expect(board.filter((i) => i.shape.kind === 'triangle').length).toBe(2)
+    const tris = board.filter((i) => i.shape.kind === 'triangle')
     expect(tris.length).toBe(2)
-    expect(sameOutline(tris[0], tris[1])).toBeTruthy()
-  })
-
-  it('the trapezoid pair is not solved as drawn', () => {
-    const traps = board.filter((i) => i.shape.kind === 'custom')
-    expect(traps.length).toBe(2)
-    const [flat, tipped] = traps
-
-    // Both are congruent in outline; that part is never the challenge.
-    expect(sameOutline(flat, tipped)).toBeTruthy()
-    // But they do not coincide as placed, so there is real work to do.
-    const stacked = at(tipped, { x: flat.x, y: flat.y })
-    expect(measureOverlap(pts(flat), pts(stacked)).contained).toBeFalsy()
-  })
-
-  it('a quarter turn is what makes the trapezoid pair coincide', () => {
-    const traps = board.filter((i) => i.shape.kind === 'custom')
-    const [flat, tipped] = traps
-
-    const turned = at(flat, { x: tipped.x, y: tipped.y, rotation: 90 })
-    expect(isMatch(tipped, turned)).toBeTruthy()
-
-    // 180 degrees is not enough: the parallel sides still disagree
-    const half = at(flat, { x: tipped.x, y: tipped.y, rotation: 180 })
-    expect(measureOverlap(pts(tipped), pts(half)).contained).toBeFalsy()
-  })
-
-  it('the trapezoid pair is worth finding because it needs the turn', () => {
-    const traps = board.filter((i) => i.shape.kind === 'custom')
-    const [lying, tipped] = traps
-
-    // `tipped` sits on the board already turned 90 degrees. Stacking the
-    // lying one on top without turning it does not match; turning it does.
-    const untouched = at(lying, { x: tipped.x, y: tipped.y })
-    expect(isMatch(tipped, untouched)).toBeFalsy()
-
-    const turned = at(lying, { x: tipped.x, y: tipped.y, rotation: 90 })
-    expect(isMatch(tipped, turned)).toBeTruthy()
+    // three unequal sides, so the child must read the shape
+    const v = tris[0].shape.vertices
+    const side = (i: number, j: number) => Math.hypot(v[i].x - v[j].x, v[i].y - v[j].y)
+    const sides = [side(0, 1), side(1, 2), side(2, 0)].sort((a, b) => a - b)
+    // the shortest and longest differ clearly
+    expect(sides[2] - sides[0]).toBeGreaterThan(25)
+    // and so do the middle one
+    expect(sides[1] - sides[0]).toBeGreaterThan(8)
   })
 })
 
 // ── distractors ──────────────────────────────────────────
 describe('distractors are rejected', () => {
-  it('the large square is not congruent to the small one', () => {
-    const small = board.find((i) => i.shape.id === 'square')!
-    const large = board.find((i) => i.label === '\uB9C8')!
-    expect(sameOutline(small, large)).toBeFalsy()
+  it('the small rectangle is not congruent to the wide one', () => {
+    expect(sameOutline(at('rect-wide'), at('rect-small'))).toBeFalsy()
   })
 
-  it('stacking the large square over the small one still fails', () => {
-    // This is the case that makes both checks necessary.
-    // Overlap alone says "contained", because the small square is fully
-    // covered. Congruence alone says "no", because the sizes differ.
-    // Requiring both is what rejects it.
-    const small = board.find((i) => i.shape.id === 'square')!
-    const large = board.find((i) => i.label === '\uB9C8')!
-    const placed = at(large, { x: small.x, y: small.y })
+  it('stacking the small rectangle over the wide one still fails', () => {
+    // Both checks are required. Overlap alone would accept it, because the
+    // small rectangle sits wholly inside the wide one; congruence alone
+    // rejects it. Requiring both is what keeps the answer honest.
+    const wide = at('rect-wide')
+    const s = stack(wide, at('rect-small'))
 
-    expect(measureOverlap(pts(small), pts(placed)).contained).toBeTruthy()
-    expect(checkCongruence(pts(small), pts(placed), EPSILON_STACK, 1000, false).isCongruent).toBeFalsy()
-    expect(isMatch(small, placed)).toBeFalsy()
+    // The small rectangle sits wholly inside the wide one, which is why
+    // overlap alone cannot be trusted: it reports one-sided coverage.
+    expect(measureOverlap(s.reference, s.held).oneInsideOther).toBeTruthy()
+    expect(measureOverlap(s.reference, s.held).contained).toBeFalsy()
+
+    // The system still names the reason, instead of shrugging.
+    const r = judge(s.reference, s.held, CANVAS)
+    expect(r.verdict).toBe('same-shape-different-size')
+    expect(isMatch(r)).toBeFalsy()
   })
 
   it('the pentagon matches nothing', () => {
@@ -165,87 +164,51 @@ describe('distractors are rejected', () => {
       expect(sameOutline(pentagon, other)).toBeFalsy()
     }
   })
-})
 
-// ── every pair is reachable ──────────────────────────────
-describe('each pair can be brought into coincidence', () => {
-  it('all three pairs pass the full match test when placed', () => {
-    const pairs: Array<[BoardShape, BoardShape, Partial<BoardShape>]> = [
-      // squares, as drawn
-      [board.find((i) => i.shape.id === 'square')!, board.find((i) => i.label === '\uC0AC')!, {}],
-      // triangles, as drawn
-      [
-        board.find((i) => i.label === '\uB098')!,
-        board.find((i) => i.label === '\uB77C')!,
-        {},
-      ],
-      // trapezoids, after a quarter turn of the lying one
-      [
-        board.find((i) => i.label === '\uBC14')!,
-        board.find((i) => i.label === '\uB2E4')!,
-        { rotation: 90 },
-      ],
-    ]
-
-    for (const [a, b, patch] of pairs) {
-      const placed = at(b, { x: a.x, y: a.y, ...patch })
-      expect(isMatch(a, placed)).toBeTruthy()
+  it('neither distractor is so close to a pair member that it looks like a pair', () => {
+    // A distractor has to be wrong in a way the child can reason about: no
+    // turn or mirror may turn it into a match against any pair member.
+    for (const distractorId of ['rect-small']) {
+      const distractor = at(distractorId)
+      for (const other of board) {
+        if (other.id === distractor.id) continue
+        const s = stack(other, distractor)
+        expect(isMatch(judge(s.reference, s.held, CANVAS))).toBeFalsy()
+      }
     }
   })
-
-  it('a square turned 45 degrees does not count', () => {
-    // a square is symmetric every 90 degrees, not every 45
-    const [a, b] = [board.find((i) => i.shape.id === 'square')!, board.find((i) => i.label === '\uC0AC')!]
-    const placed = at(b, { x: a.x, y: a.y, rotation: 45 })
-    expect(isMatch(a, placed)).toBeFalsy()
-  })
-
-  it('flipping a triangle does not break the match', () => {
-    const a = board.find((i) => i.label === '\uB098')!
-    const b = board.find((i) => i.label === '\uB77C')!
-    const placed = at(b, { x: a.x, y: a.y, flipped: true })
-    expect(sameOutline(a, placed)).toBeTruthy()
-  })
 })
 
-// ── screen structure ─────────────────────────────────────
-describe('the screen is one act, not two', () => {
+// ── the child chooses nothing ────────────────────────────
+describe('the child is not asked to choose an angle', () => {
   function source(path: string): string {
     return readFileSync(join(process.cwd(), path), 'utf8')
   }
 
-  it('no shape picker stands between the child and the board', () => {
-    expect(source('src/App.tsx').includes('ShapePicker')).toBeFalsy()
-  })
-
-  it('every shape takes a pointer down', () => {
-    expect(source('src/modes/CongruenceStage.tsx').includes('onPointerDown')).toBeTruthy()
-  })
-
-  it('rotate and flip act on the held shape', () => {
+  it('the screen has no rotate or flip control', () => {
     const stage = source('src/modes/CongruenceStage.tsx')
-    expect(stage.includes('board.rotateBy(held.id')).toBeTruthy()
-    expect(stage.includes('board.flip(held.id')).toBeTruthy()
+    expect(stage.includes('onRotate')).toBeFalsy()
+    expect(stage.includes('onFlip')).toBeFalsy()
+    expect(stage.includes('90')).toBeFalsy()
+    expect(stage.includes('45')).toBeFalsy()
   })
 
-  it('the tools stay inert until a shape is held', () => {
-    expect(source('src/modes/CongruenceStage.tsx').includes('disabled={!held}')).toBeTruthy()
+  it('the hook offers only applyTurn, which the system uses', () => {
+    const hook = source('src/modes/useBoard.ts')
+    expect(hook.includes('applyTurn')).toBeTruthy()
+    expect(hook.includes('rotateBy')).toBeFalsy()
   })
 
-  it('a pair is recorded only when both conditions hold', () => {
-    const pairs = source('src/geometry/pairs.ts')
-    expect(pairs.includes('sameCongruence')).toBeTruthy()
-    expect(pairs.includes('fullyCovered')).toBeTruthy()
+  it('the turn search pivots on the polygon centroid', () => {
+    // Rotating about the vertex mean leaves an arrow askew after a half turn,
+    // which made real pairs report as a size mismatch.
+    const verdict = source('src/geometry/verdict.ts')
+    expect(verdict.includes('polygonCentroid')).toBeTruthy()
   })
 
-  it('derived state is updated in an effect, not during render', () => {
-    expect(source('src/modes/useBoard.ts').includes('useEffect')).toBeTruthy()
-  })
-
-  it('the transform carries rotation and flip', () => {
-    const t = transformOf(board[0])
-    expect(typeof t.rotation).toBe('number')
-    expect(typeof t.flipped).toBe('boolean')
+  it('the turn search seats the rotated shape on the target', () => {
+    const verdict = source('src/geometry/verdict.ts')
+    expect(verdict.includes('seat(')).toBeTruthy()
   })
 })
 

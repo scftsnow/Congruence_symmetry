@@ -1,19 +1,25 @@
 /**
  * Congruence stage — one board, one act.
  *
- * The child touches a shape to hold it, drags it onto another, then rotates
- * and flips that same held shape until the two coincide. Coincidence is the
- * answer, so there is no submit button: the moment they overlap and match, the
- * pair is recorded and a star appears.
+ * The child drags a shape onto another and stops there. The system judges the
+ * stack: it reports whether they already match, which quarter turn or mirror
+ * would make them match, or what is wrong when nothing will.
  *
- * Everything stays semi transparent so overlap is something the child sees
- * rather than something the app asserts.
+ * There is deliberately no rotate button and no flip button. Offering one
+ * would tell the child that direction matters, which is the opposite of what
+ * this unit teaches, and it would turn a judgement about shape into a puzzle
+ * about controls. The angle is the system's problem, not the child's.
+ *
+ * On a match the shape eases into place, so the child watches the coincidence
+ * rather than assembling it.
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useBoard } from './useBoard'
 import type { BoardShape } from './useBoard'
-import { BoardShapeView, Grid, HeldOverlap, PairMark } from '../components/BoardParts'
+import { BoardShapeView, Grid, PairMark, StackedOverlay } from '../components/BoardParts'
+import { isMatch } from '../geometry/verdict'
+import type { VerdictResult } from '../geometry/verdict'
 
 interface CongruenceStageProps {
   onBack: () => void
@@ -28,7 +34,6 @@ export function CongruenceStage({ onBack }: CongruenceStageProps) {
     null,
   )
 
-  /** client coordinates -> canvas viewBox coordinates */
   const toCanvas = useCallback((clientX: number, clientY: number) => {
     const svg = svgRef.current
     if (!svg) return { x: 0, y: 0 }
@@ -59,7 +64,24 @@ export function CongruenceStage({ onBack }: CongruenceStageProps) {
     drag.current = null
   }
 
-  // celebrate when a pair locks in, in an effect rather than the render body
+  /**
+   * The system performs the turn.
+   *
+   * Applied on release, not continuously, so the child lets go and then
+   * watches the shape swing round onto the other one.
+   */
+  const verdict = board.verdict
+  const appliedRef = useRef<string>('')
+
+  useEffect(() => {
+    if (!verdict || !verdict.solution || !board.held) return
+    // Apply once per distinct solution, so holding still does not keep turning.
+    const key = board.held + ':' + verdict.solution.degrees + ':' + verdict.solution.flipped
+    if (appliedRef.current === key) return
+    appliedRef.current = key
+    board.applyTurn(board.held, verdict.solution)
+  }, [verdict, board])
+
   const count = board.foundCount
   useEffect(() => {
     if (count === 0) return
@@ -83,7 +105,7 @@ export function CongruenceStage({ onBack }: CongruenceStageProps) {
         </div>
       </header>
 
-      <Banner count={count} target={board.target} heldName={held?.shape.name} complete={complete} />
+      <Banner verdict={verdict} count={count} target={board.target} complete={complete} />
 
       <div className="canvas-wrap">
         <svg
@@ -97,7 +119,6 @@ export function CongruenceStage({ onBack }: CongruenceStageProps) {
         >
           <Grid width={board.canvas.width} height={board.canvas.height} />
 
-          {/* confirmed pairs sit under the shapes */}
           {board.pairs.map((pair) => (
             <PairMark key={pair.key} a={pair.a} b={pair.b} />
           ))}
@@ -111,7 +132,7 @@ export function CongruenceStage({ onBack }: CongruenceStageProps) {
             />
           ))}
 
-          <HeldOverlap overlap={board.overlap} />
+          {held && <StackedOverlay held={held} items={board.items} />}
 
           {justFound && (
             <Celebration x={board.canvas.width / 2} y={board.canvas.height / 2} />
@@ -119,92 +140,90 @@ export function CongruenceStage({ onBack }: CongruenceStageProps) {
         </svg>
       </div>
 
-      <HoldBar
-        held={held}
-        onRotate={(deg) => held && board.rotateBy(held.id, deg)}
-        onFlip={() => held && board.flip(held.id)}
-        onReset={board.reset}
-      />
+      <div className="toolbar">
+        <div className="toolbar__actions">
+          <p className="stage1-hint">
+            도형을 <strong>누른 뒤 끌어다</strong> 겹쳐 보세요. 맞으면 저절로 맞춰집니다
+          </p>
+          <button type="button" className="mini-btn mini-btn--ghost" onClick={board.reset}>
+            ↺ 처음부터
+          </button>
+        </div>
+      </div>
     </div>
   )
 }
 
+/**
+ * What the system reports.
+ *
+ * On a match it states the fact. On a near miss it states what is wrong, and
+ * for the last case it stays silent, because naming "turn it" would give the
+ * answer away.
+ */
 function Banner({
+  verdict,
   count,
   target,
-  heldName,
   complete,
 }: {
+  verdict: VerdictResult | null
   count: number
   target: number
-  heldName?: string
   complete: boolean
 }) {
   if (complete) {
     return (
       <div className="banner banner--success" role="status">
         <span className="banner__icon">⭐</span>
-        <span className="banner__text">모두 찾았어! 방향이 달라도 겹치면 합동이야</span>
-      </div>
-    )
-  }
-  if (heldName) {
-    return (
-      <div className="banner banner--neutral" role="status">
-        <span className="banner__icon">👆</span>
         <span className="banner__text">
-          <strong>{heldName}</strong>를 잡았어. 안 맞으면 <strong>돌리기</strong>나{' '}
-          <strong>뒤집기</strong>를 눌러봐 — 방향이 달라도 겹치면 합동이야
+          모두 찾았어! <strong>방향이 달라도</strong> 겹치면 합동이야
         </span>
       </div>
     )
   }
+
+  if (verdict && isMatch(verdict)) {
+    const turned = verdict.verdict !== 'match-direct'
+    return (
+      <div className="banner banner--success" role="status">
+        <span className="banner__icon">⭐</span>
+        <span className="banner__text">
+          {turned ? '돌려서 겹쳤어! ' : '겹쳤어! '}합동이야
+        </span>
+      </div>
+    )
+  }
+
+  if (verdict?.verdict === 'same-shape-different-size') {
+    return (
+      <div className="banner banner--hint" role="status">
+        <span className="banner__icon">🔍</span>
+        <span className="banner__text">
+          모양은 같지만 <strong>크기가 달라</strong>서 합동이 아니야
+        </span>
+      </div>
+    )
+  }
+
+  if (verdict?.verdict === 'different-shape') {
+    return (
+      <div className="banner banner--hint" role="status">
+        <span className="banner__icon">🔍</span>
+        <span className="banner__text">이건 <strong>모양이 달라</strong> — 합동이 아니야</span>
+      </div>
+    )
+  }
+
   return (
     <div className="banner banner--neutral" role="status">
       <span className="banner__icon">👆</span>
       <span className="banner__text">
-        도형을 <strong>누른 뒤 끌어다</strong> 겹쳐 보세요 — <strong>{count} / {target}</strong>
+        도형을 <strong>겹쳐 보세요</strong> — 같은 모양이면 알아서 맞춰집니다 ·{' '}
+        <strong>
+          {count} / {target}
+        </strong>
       </span>
-    </div>
-  )
-}
-
-/**
- * The tools act on the held shape.
- *
- * They stay disabled until something is held, because an enabled button that
- * does nothing teaches nothing.
- */
-function HoldBar({
-  held,
-  onRotate,
-  onFlip,
-  onReset,
-}: {
-  held: BoardShape | undefined
-  onRotate: (deg: number) => void
-  onFlip: () => void
-  onReset: () => void
-}) {
-  return (
-    <div className="toolbar">
-      <div className="toolbar__actions">
-        <button type="button" className="mini-btn" disabled={!held} onClick={() => onRotate(-90)}>
-          ↺ 90°
-        </button>
-        <button type="button" className="mini-btn" disabled={!held} onClick={() => onRotate(90)}>
-          ↻ 90°
-        </button>
-        <button type="button" className="mini-btn" disabled={!held} onClick={() => onRotate(45)}>
-          45°
-        </button>
-        <button type="button" className="mini-btn" disabled={!held} onClick={onFlip}>
-          🪞 뒤집기
-        </button>
-        <button type="button" className="mini-btn mini-btn--ghost" onClick={onReset}>
-          ↺ 처음부터
-        </button>
-      </div>
     </div>
   )
 }

@@ -465,3 +465,15 @@ body {
   opacity: 0.45;
   cursor: not-allowed;
 }
+/* ── board hint ───────────────────────────────────────── */
+
+.stage1-hint {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--color-ink-soft);
+  line-height: 1.6;
+}
+
+.stage1-hint strong {
+  color: var(--color-ink);
+}

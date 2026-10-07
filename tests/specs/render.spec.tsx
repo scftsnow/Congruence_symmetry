@@ -19,7 +19,7 @@ import expected from '../harness/expected.json' with { type: 'json' }
 import { renderToStaticMarkup } from 'react-dom/server'
 import App from '../../src/App'
 import { CongruenceStage } from '../../src/modes/CongruenceStage'
-import { BASIC_SHAPES, findShape } from '../../src/geometry/shapes'
+import { buildBoard } from '../../src/modes/useBoard'
 
 function source(path: string): string {
   return readFileSync(join(process.cwd(), path), 'utf8')
@@ -46,15 +46,12 @@ describe('home screen renders', () => {
   })
 
   it('does not ask the child to pick shapes first', () => {
-    // choosing shapes before playing was the mistake; the board supplies them
     expect(html.includes('role="radiogroup"')).toBeFalsy()
   })
 })
 
 // ── the board ────────────────────────────────────────────
 describe('congruence board renders', () => {
-  const sq = findShape('square')!
-  const tri = findShape('triangle')!
   const html = renderToStaticMarkup(<CongruenceStage onBack={() => {}} />)
 
   it('produces markup', () => {
@@ -70,36 +67,41 @@ describe('congruence board renders', () => {
     expect(html.includes('<line')).toBeTruthy()
   })
 
-  it('draws every board shape as a path', () => {
-    expect((html.match(/<path/g) ?? []).length >= 8).toBeTruthy()
+  it('draws every shape as a path', () => {
+    // twelve shapes plus hit areas and the grid
+    expect((html.match(/<path/g) ?? []).length >= 12).toBeTruthy()
   })
 
   it('prints a hangul syllable under each shape', () => {
-    const syllables = (html.match(/<text/g) ?? []).length
-    expect(syllables >= 8).toBeTruthy()
-  })
-
-  it('offers rotate and flip', () => {
-    expect(html.includes(expected.stack.tools[1])).toBeTruthy()
-    expect(html.includes(expected.stack.tools[2])).toBeTruthy()
-  })
-
-  it('disables the tools until a shape is held', () => {
-    // an enabled button that does nothing teaches nothing
-    expect(html.includes('disabled')).toBeTruthy()
+    expect((html.match(/<text/g) ?? []).length >= 12).toBeTruthy()
   })
 
   it('counts progress toward the goal', () => {
-    expect(html.includes('0 / 3')).toBeTruthy()
+    expect(html.includes('0 / 5')).toBeTruthy()
   })
 
   it('tells the child to drag a shape', () => {
-    expect(html.includes(expected.stack.dragHint)).toBeTruthy()
+    expect(html.includes(expected.board.dragHint)).toBeTruthy()
+  })
+
+  it('says the shape will be matched automatically', () => {
+    expect(html.includes(expected.board.autoMatch)).toBeTruthy()
+  })
+
+  it('offers a reset and no angle controls', () => {
+    expect(html.includes(expected.board.reset)).toBeTruthy()
+    // No rotate or flip control: the angle is the system's problem.
+    // Checked in the source, since the viewBox also contains digits.
+    const stage = source('src/modes/CongruenceStage.tsx')
+    expect(stage.includes('onRotate')).toBeFalsy()
+    expect(stage.includes('onFlip')).toBeFalsy()
+    expect(stage.includes('rotateBy')).toBeFalsy()
+    // the only circular arrow is on the reset button, which is not a turn
+    const degreeLabels = stage.match(/>[^<]*(90|45)\s*°/g) ?? []
+    expect(degreeLabels.length === 0 ? 'ok' : degreeLabels.join(', ')).toBe('ok')
   })
 
   it('disables touch panning so dragging does not scroll a tablet', () => {
-    // a tablet must not scroll the page while a child drags a shape;
-    // renderToStaticMarkup drops style attributes, so check the source
     const parts = source('src/components/BoardParts.tsx')
     expect(parts.includes('touchAction')).toBeTruthy()
     expect(/touch-action:\s*none/.test(source('src/index.css'))).toBeTruthy()
@@ -109,7 +111,6 @@ describe('congruence board renders', () => {
 describe('the board shows overlap rather than asserting it', () => {
   it('renders the shared region', () => {
     expect(source('src/components/OverlapLayer.tsx').includes('intersection')).toBeTruthy()
-    // the geometry behind it lives in the hook, not the component
     expect(source('src/geometry/pairs.ts').includes('heldOverlap')).toBeTruthy()
   })
 
@@ -122,31 +123,40 @@ describe('the board shows overlap rather than asserting it', () => {
 
   it('computes overlap from real geometry', () => {
     expect(source('src/geometry/overlap.ts').includes('intersectPolygons')).toBeTruthy()
+    expect(source('src/geometry/overlap.ts').includes('polygonCentroid')).toBeTruthy()
   })
 
   it('requires both congruence and coincidence', () => {
-    // overlap alone would accept a small shape resting inside a large one
     const pairs = source('src/geometry/pairs.ts')
     expect(pairs.includes('sameCongruence')).toBeTruthy()
     expect(pairs.includes('fullyCovered')).toBeTruthy()
   })
 
   it('components do not decide congruence', () => {
-    // enforced by conventions.spec too; this pins the intent
     const parts = source('src/components/BoardParts.tsx')
     expect(parts.includes('checkCongruence')).toBeFalsy()
-    expect(parts.includes('measureOverlap(')).toBeFalsy()
+    expect(parts.includes('judge(')).toBeFalsy()
   })
 })
 
 describe('the wording matches the teaching', () => {
-  it('says 합동 rather than only praising', () => {
-    expect(source('src/modes/CongruenceStage.tsx').includes(expected.stack.congruentMsg)).toBeTruthy()
+  it('states the verdict', () => {
+    expect(source('src/modes/CongruenceStage.tsx').includes(expected.board.congruentMsg)).toBeTruthy()
   })
 
   it('teaches that direction does not matter', () => {
+    expect(source('src/modes/CongruenceStage.tsx').includes(expected.board.directionMsg)).toBeTruthy()
+  })
+
+  it('names the size trap without giving the answer away', () => {
     const stage = source('src/modes/CongruenceStage.tsx')
-    expect(stage.includes(expected.stack.directionMsg)).toBeTruthy()
+    expect(stage.includes(expected.board.sizeTrap)).toBeTruthy()
+  })
+})
+
+describe('the board is twelve shapes', () => {
+  it('lays out twelve', () => {
+    expect(buildBoard().length).toBe(12)
   })
 })
 

@@ -1,17 +1,22 @@
 {
-    "home":  {
-                 "title":  "합동과 대칭",
-                 "startBtn":  "합동인 도형 찾기 시작하기",
-                 "unitTitle":  "합동인 도형 찾기"
-             },
     "stack":  {
                   "tools":  [
                                 "돌리기",
                                 "뒤집기",
                                 "처음부터"
-                            ],
+                            ]
+              },
+    "board":  {
+                  "congruentMsg":  "합동이야",
+                  "autoMatch":  "알아서 맞춰집니다",
                   "dragHint":  "누른 뒤 끌어다",
+                  "reset":  "처음부터",
                   "directionMsg":  "방향이 달라도",
-                  "congruentMsg":  "합동"
-              }
+                  "sizeTrap":  "크기가 달라"
+              },
+    "home":  {
+                 "title":  "합동과 대칭",
+                 "startBtn":  "합동인 도형 찾기 시작하기",
+                 "unitTitle":  "합동인 도형 찾기"
+             }
 }

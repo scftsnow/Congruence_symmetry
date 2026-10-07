@@ -7,7 +7,8 @@
 
 import { OverlapLayer } from './OverlapLayer'
 import { pointsToPath } from './svgPath'
-import { shapePoints } from '../geometry/pairs'
+import { shapePoints, sameCongruence } from '../geometry/pairs'
+import { measureOverlap } from '../geometry/overlap'
 import type { BoardShape } from '../modes/useBoard'
 import type { Point } from '../geometry/types'
 
@@ -120,4 +121,35 @@ export function Grid({ width, height }: { width: number; height: number }) {
     )
   }
   return <g>{lines}</g>
+}
+/**
+ * Draws the region the held shape shares with a matching shape.
+ *
+ * Pure presentation: the geometry is computed in the hook and handed over. A
+ * solid region with a solid outline means complete coincidence; a dashed one
+ * means partial, so the child can see there is still work to do.
+ */
+export function StackedOverlay({
+  held,
+  items,
+}: {
+  held: BoardShape
+  items: BoardShape[]
+}) {
+  const heldPoints = shapePoints(held)
+
+  // only same-outline shapes can overlap usefully
+  const partner = items.find((other) => other.id !== held.id && sameCongruence(heldPoints, shapePoints(other), 1000))
+  if (!partner) return null
+
+  const info = measureOverlap(heldPoints, shapePoints(partner))
+  if (!info.intersection) return null
+
+  return (
+    <OverlapLayer
+      intersection={info.intersection}
+      coverage={info.coverage}
+      coincident={info.contained}
+    />
+  )
 }

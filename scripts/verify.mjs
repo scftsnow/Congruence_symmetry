@@ -135,8 +135,15 @@ ok('pair detection exists', pairsSrc.includes('findMatches'))
 ok('both match conditions required', pairsSrc.includes('sameCongruence') && pairsSrc.includes('fullyCovered'))
 const overlapSrc = read('src/geometry/overlap.ts')
 ok('overlap geometry exists', overlapSrc.includes('measureOverlap'))
-const boardSrc = read('src/modes/useBoard.ts')
-ok('trapezoid defined on the board', boardSrc.includes('trapezoid'))
+const boardSrc = read('src/geometry/board.ts')
+ok('trapezoid defined on the board', boardSrc.includes('function trapezoid'))
+ok('twelve shapes on the board', (boardSrc.match(/\{ id: '/g) ?? []).length === 12)
+// the verdict engine tries the mirror as well as rotation
+const verdictSrc = read('src/geometry/verdict.ts')
+ok('verdict engine exists', verdictSrc.includes('judge'))
+ok('verdict seats the turned shape', verdictSrc.includes('seat('))
+ok('verdict pivots on the centroid', verdictSrc.includes('polygonCentroid'))
+ok('shape and size reported apart', verdictSrc.includes('sameOutline'))
 
 // shape catalogue
 const shapeSrc = read('src/geometry/shapes.ts')

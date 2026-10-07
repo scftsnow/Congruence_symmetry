@@ -206,3 +206,40 @@ export function measureOverlap(a: Point[], b: Point[]): OverlapInfo {
     oneInsideOther: coverage > 0.97 || reverseCoverage > 0.97,
   }
 }
+/**
+ * Geometric centre of mass (the polygon's centroid).
+ *
+ * Distinct from the mean of the vertices, which is only equal to the centroid
+ * for a regular polygon. For an arrow, whose vertices bunch up at the tail,
+ * the two differ enough that rotating about the mean leaves the shape
+ * visibly askew after a half turn. Rotation must pivot on this one.
+ */
+export function polygonCentroid(poly: Point[]): Point {
+  if (poly.length === 0) return { x: 0, y: 0 }
+
+  let crossSum = 0
+  let cx = 0
+  let cy = 0
+  for (let i = 0; i < poly.length; i++) {
+    const a = poly[i]
+    const b = poly[(i + 1) % poly.length]
+    const cross = a.x * b.y - b.x * a.y
+    crossSum += cross
+    cx += (a.x + b.x) * cross
+    cy += (a.y + b.y) * cross
+  }
+
+  // A degenerate polygon (all points collinear) has no area to divide by.
+  if (Math.abs(crossSum) < 1e-12) {
+    let sx = 0
+    let sy = 0
+    for (const p of poly) {
+      sx += p.x / poly.length
+      sy += p.y / poly.length
+    }
+    return { x: sx, y: sy }
+  }
+
+  const factor = 1 / (3 * crossSum)
+  return { x: cx * factor, y: cy * factor }
+}

@@ -9,8 +9,18 @@ dist/
 build/
 .vite/
 .dbg/
+# 디버그용 임시 스크립트
+p*.ts
+!src/**/*.ts
+probe-*.ts
+out.txt
 tests/.build/
 tests/.dbg/
+# 디버그용 임시 스크립트
+p*.ts
+!src/**/*.ts
+probe-*.ts
+out.txt
 *.tsbuildinfo
 
 # ---- 환경변수 / 시크릿 (절대 커밋 금지) ----

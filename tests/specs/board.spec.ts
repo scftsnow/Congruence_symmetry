@@ -10,7 +10,12 @@ import { describe, it, expect } from '../harness/api'
 import { buildBoard, shapePoints, TARGET_PAIRS } from '../../src/modes/useBoard'
 import { judge, isMatch } from '../../src/geometry/verdict'
 import { checkCongruence, EPSILON_STACK } from '../../src/geometry/compare'
-import { measureOverlap, polygonArea } from '../../src/geometry/overlap'
+import {
+  isSimplePolygon,
+  measureOverlap,
+  polygonArea,
+  triangulate,
+} from '../../src/geometry/overlap'
 import { applyTransform } from '../../src/geometry/transforms'
 import type { BoardShape } from '../../src/modes/useBoard'
 import { readFileSync } from 'node:fs'
@@ -56,6 +61,28 @@ describe('the board is laid out', () => {
     expect(new Set(labels).size).toBe(labels.length)
   })
 
+  it('reads as the alphabet, left to right and top to bottom', () => {
+    // The child can name any shape they are looking at, which matters once the
+    // screen starts telling them to turn one.
+    const bands = [250, 500]
+    const top = board.filter((i) => i.y < bands[0]).sort((a, b) => a.x - b.x)
+    const mid = board.filter((i) => i.y >= bands[0] && i.y < bands[1]).sort((a, b) => a.x - b.x)
+    const bot = board.filter((i) => i.y >= bands[1]).sort((a, b) => a.x - b.x)
+    expect([...top, ...mid, ...bot].map((i) => i.label).join('')).toBe('가나다라마바사아자차카타')
+  })
+
+  it('uses the twelve syllables, ending at 타', () => {
+    // 파 is the thirteenth and 하 the fourteenth. Twelve shapes have no use for
+    // either, and a label outside the sequence is a bug rather than a variant:
+    // one arrived as 판 because a \u escape was mistyped as U+D310, and these
+    // two checks were the only thing that could have caught it.
+    const labels = board.map((i) => i.label).join('')
+    expect(labels).toBe('가나다라마바사아자차카타')
+    for (const wrong of ['파', '하', '판']) {
+      expect(labels.includes(wrong)).toBeFalsy()
+    }
+  })
+
   it('keeps every shape fully inside the canvas', () => {
     for (const item of board) {
       for (const p of shapePoints(item)) {
@@ -73,6 +100,31 @@ describe('the board is laid out', () => {
         expect(Math.hypot(board[i].x - board[j].x, board[i].y - board[j].y)).toBeGreaterThan(130)
       }
     }
+  })
+})
+
+// ── the shapes are sound ──────────────────────────────────
+describe('every shape is a proper polygon', () => {
+  it('no outline crosses itself', () => {
+    // The arrow shipped with four vertices that crossed, so it was not a simple
+    // polygon. Nothing threw and every test passed, because the tests asked
+    // whether two shapes coincide and two equally broken shapes still do.
+    const broken = board.filter((i) => !isSimplePolygon(i.shape.vertices))
+    expect(broken.length === 0 ? 'ok' : broken.map((i) => i.label).join(', ')).toBe('ok')
+  })
+
+  it('every shape has the area its outline implies', () => {
+    // The crossed arrow measured 338 where its outline implies 4200, so its
+    // overlap, its shading and the percentage on screen were all meaningless.
+    const thin = board.filter((i) => polygonArea(i.shape.vertices) < 1000)
+    expect(thin.length === 0 ? 'ok' : thin.map((i) => i.label).join(', ')).toBe('ok')
+  })
+
+  it('every shape can be triangulated', () => {
+    // The shaded region is built from triangles. A shape that yields none has no
+    // shading at all, which is exactly what the arrow did.
+    const none = board.filter((i) => triangulate(i.shape.vertices).length === 0)
+    expect(none.length === 0 ? 'ok' : none.map((i) => i.label).join(', ')).toBe('ok')
   })
 })
 

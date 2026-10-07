@@ -137,7 +137,8 @@ const overlapSrc = read('src/geometry/overlap.ts')
 ok('overlap geometry exists', overlapSrc.includes('measureOverlap'))
 const boardSrc = read('src/geometry/board.ts')
 ok('trapezoid defined on the board', boardSrc.includes('function trapezoid'))
-ok('twelve shapes on the board', (boardSrc.match(/\{ id: '/g) ?? []).length === 12)
+ok('twelve shapes on the board', (boardSrc.match(/place\(LABELS\[/g) ?? []).length === 12)
+ok('twelve syllables, no escapes', boardSrc.includes('LABELS') && !/label: '\\u/.test(boardSrc))
 // the verdict engine tries the mirror as well as rotation
 const verdictSrc = read('src/geometry/verdict.ts')
 ok('verdict engine exists', verdictSrc.includes('judge'))
@@ -147,7 +148,12 @@ ok('shape and size reported apart', verdictSrc.includes('sameOutline'))
 // A congruent outline alone must not license a turn: the shapes have to be
 // stacked first. This shipped once as a mid-air rotation, so it is checked in
 // the bundle as well as the specs.
-ok('a turn requires a real stack', verdictSrc.includes('MIN_STACK') && verdictSrc.includes('meets('))
+const overlapSrc2 = read('src/geometry/overlap.ts')
+ok('a turn requires the shapes to be together', overlapSrc2.includes('touching') && verdictSrc.includes('touching('))
+ok('proximity is measured against the shapes own size', overlapSrc2.includes('reachOf'))
+ok('overlap is sampled, not read off a clipper', overlapSrc2.includes('agreement'))
+ok('concave shapes are triangulated', overlapSrc2.includes('triangulate'))
+ok('a malformed shape is detectable', overlapSrc2.includes('isSimplePolygon'))
 ok('the turned shape lands on its partner', verdictSrc.includes('turnedItem'))
 ok('the banner decides nothing', (boardSrc.match(/judge\(/g) ?? []).length === 0)
 

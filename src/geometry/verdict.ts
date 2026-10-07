@@ -40,7 +40,7 @@
  */
 
 import type { Point } from './types'
-import { measureOverlap, polygonCentroid } from './overlap'
+import { measureOverlap, polygonCentroid, touching } from './overlap'
 import { checkCongruence, compareShape, EPSILON_STACK, perimeter } from './compare'
 import { shapePoints, type Matchable } from './pairs'
 
@@ -66,24 +66,6 @@ export interface Turn {
    */
   center: Point
 }
-
-/**
- * How much of the smaller shape's box must lie over the larger's before the
- * two count as having met.
- *
- * A quarter is chosen from measurements on the board, which sit well clear of
- * it in both directions:
- *
- *   - the worst-centred genuine stack (the arrow pair) shares 0.52, so even a
- *     poor drop keeps nearly twice the margin
- *   - a shape dropped clear of its partner shares 0.00
- *   - a shape dragged past on its way somewhere shares 0.16 to 0.21
- *   - a deliberately sloppy drop, 30px off, shares 0.32 or more
- *
- * Expressed against the *smaller* box, so a distractor dropped inside a pair
- * member is not quietly excused.
- */
-export const MIN_STACK = 0.25
 
 export interface VerdictResult {
   verdict: Verdict
@@ -148,58 +130,6 @@ function coincide(a: Point[], b: Point[]): boolean {
   return measureOverlap(a, b).contained
 }
 
-/**
- * How much of the smaller shape's bounding box lies over the larger's, 0..1.
- *
- * Bounding boxes, not area. Measured on the board, a rightward arrow centred
- * exactly on an upright one shares 0.52 of its box but 0.00 of its area, because
- * the arrow's tail and the other's shaft miss each other across the notch and
- * the polygon clipper mishandles that reflex corner. Asking about area would
- * report the best-placed arrow on the board as never having touched anything.
- */
-export function stackShare(a: Point[], b: Point[]): number {
-  const ba = bounds(a)
-  const bb = bounds(b)
-
-  const width = Math.min(ba.maxX, bb.maxX) - Math.max(ba.minX, bb.minX)
-  const height = Math.min(ba.maxY, bb.maxY) - Math.max(ba.minY, bb.minY)
-  if (width <= 0 || height <= 0) return 0
-
-  const smaller = Math.min(area(ba), area(bb))
-  if (smaller === 0) return 0
-  return (width * height) / smaller
-}
-
-interface Box {
-  minX: number
-  maxX: number
-  minY: number
-  maxY: number
-}
-
-function bounds(points: Point[]): Box {
-  return {
-    minX: Math.min(...points.map((p) => p.x)),
-    maxX: Math.max(...points.map((p) => p.x)),
-    minY: Math.min(...points.map((p) => p.y)),
-    maxY: Math.max(...points.map((p) => p.y)),
-  }
-}
-
-function area(b: Box): number {
-  return (b.maxX - b.minX) * (b.maxY - b.minY)
-}
-
-/**
- * Have these two shapes actually been stacked on each other?
- *
- * This is the gate on everything else. Matching outlines alone is not enough
- * and must never be enough: the child has to put one on the other before the
- * system decides anything.
- */
-export function meets(a: Point[], b: Point[]): boolean {
-  return stackShare(a, b) >= MIN_STACK
-}
 
 /** A shape that has met nothing: the neutral prompt, never a match. */
 export function APART(): VerdictResult {
@@ -241,7 +171,7 @@ export function judge(reference: Point[], held: Point[], canvasSize: number): Ve
   // so a shape sitting alone on the board is simply not under discussion.
   // This check comes first: without it, a shape judged against itself would
   // report itself fully contained and announce a match with nothing.
-  if (!meets(reference, held)) {
+  if (!touching(reference, held)) {
     return base
   }
 

@@ -14,19 +14,19 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { findMatches, pairKey, shapePoints, transformOf } from '../geometry/pairs'
+import { polygonCentroid, touching } from '../geometry/overlap'
+import { APART, judge, turnedItem, type Turn, type VerdictResult } from '../geometry/verdict'
 import {
-  APART,
-  judge,
-  MIN_STACK,
-  stackShare,
-  turnedItem,
-  type Turn,
-  type VerdictResult,
-} from '../geometry/verdict'
-import { buildBoard, CANVAS_H, CANVAS_W, TARGET_PAIRS, type BoardShape } from '../geometry/board'
+  buildBoard,
+  CANVAS_H,
+  CANVAS_W,
+  LABELS,
+  TARGET_PAIRS,
+  type BoardShape,
+} from '../geometry/board'
 import type { Point } from '../geometry/types'
 
-export { buildBoard, CANVAS_H, CANVAS_W, TARGET_PAIRS, transformOf, shapePoints, pairKey }
+export { buildBoard, CANVAS_H, CANVAS_W, TARGET_PAIRS, transformOf, shapePoints, pairKey, LABELS }
 export type { BoardShape }
 
 export function useBoard() {
@@ -91,13 +91,18 @@ export function useBoard() {
     if (!heldItem) return null
     const heldPoints = shapePoints(heldItem)
 
-    let best: { points: Point[]; share: number } | null = null
+    const heldAt = polygonCentroid(heldPoints)
+
+    let best: { points: Point[]; near: number } | null = null
     for (const other of items) {
       if (other.id === heldItem.id) continue
       const otherPoints = shapePoints(other)
-      const share = stackShare(heldPoints, otherPoints)
-      if (share < MIN_STACK) continue
-      if (!best || share > best.share) best = { points: otherPoints, share }
+      if (!touching(heldPoints, otherPoints)) continue
+
+      // Where several shapes are in reach at once, the nearest is the one meant.
+      const otherAt = polygonCentroid(otherPoints)
+      const near = Math.hypot(heldAt.x - otherAt.x, heldAt.y - otherAt.y)
+      if (!best || near < best.near) best = { points: otherPoints, near }
     }
 
     if (!best) return APART()

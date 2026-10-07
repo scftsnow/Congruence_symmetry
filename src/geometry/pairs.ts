@@ -17,7 +17,7 @@
 import type { Point, Shape, Transform } from './types'
 import { applyTransform } from './transforms'
 import { checkCongruence, EPSILON_STACK } from './compare'
-import { measureOverlap } from './overlap'
+import { measureOverlap, polygonCentroid, touching } from './overlap'
 
 export interface Matchable {
   id: string
@@ -85,15 +85,26 @@ export function findMatches<T extends Matchable>(
 export function heldOverlap<T extends Matchable>(
   held: T,
   items: T[],
-  canvasSize: number,
-): { intersection: Point[]; coverage: number; contained: boolean } | null {
+): { intersection: Point[][]; agreement: number; contained: boolean } | null {
   const heldPoints = shapePoints(held)
-  const partner = items.find(
-    (other) => other.id !== held.id && sameCongruence(heldPoints, shapePoints(other), canvasSize),
-  )
-  if (!partner) return null
+  const heldAt = polygonCentroid(heldPoints)
 
-  const info = measureOverlap(heldPoints, shapePoints(partner))
+  // The partner is the shape the child has actually brought this one to, which
+  // is a question about position. Choosing by outline instead would report an
+  // overlap against a shape on the far side of the board.
+  let best: { points: Point[]; near: number } | null = null
+  for (const other of items) {
+    if (other.id === held.id) continue
+    const otherPoints = shapePoints(other)
+    if (!touching(heldPoints, otherPoints)) continue
+
+    const otherAt = polygonCentroid(otherPoints)
+    const near = Math.hypot(heldAt.x - otherAt.x, heldAt.y - otherAt.y)
+    if (!best || near < best.near) best = { points: otherPoints, near }
+  }
+  if (!best) return null
+
+  const info = measureOverlap(heldPoints, best.points)
   if (!info.intersection) return null
-  return { intersection: info.intersection, coverage: info.coverage, contained: info.contained }
+  return { intersection: info.intersection, agreement: info.agreement, contained: info.contained }
 }

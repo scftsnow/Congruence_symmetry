@@ -109,9 +109,27 @@ describe('congruence board renders', () => {
 })
 
 describe('the board shows overlap rather than asserting it', () => {
-  it('renders the shared region', () => {
-    expect(source('src/components/OverlapLayer.tsx').includes('intersection')).toBeTruthy()
+  it('renders every piece of the shared region', () => {
+    // Two arrows crossing at right angles share two separate lobes. A single
+    // outline cannot describe them, so the layer draws all of them.
+    const layer = source('src/components/OverlapLayer.tsx')
+    expect(layer.includes('intersection')).toBeTruthy()
+    expect(layer.includes('intersection.map')).toBeTruthy()
     expect(source('src/geometry/pairs.ts').includes('heldOverlap')).toBeTruthy()
+  })
+
+  it('reads out agreement, not the held shape own coverage', () => {
+    // A small shape inside a large one covers all of itself, so its own
+    // coverage reads 100% and the bar would congratulate the child for a stack
+    // that proves nothing. Agreement is the worse of the two directions.
+    const layer = source('src/components/OverlapLayer.tsx')
+    expect(layer.includes('agreement')).toBeTruthy()
+
+    // Checked outside the comments: the file explains why coverage is wrong, so
+    // the word has to appear there.
+    const code = layer.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '')
+    expect(code.includes('coverage')).toBeFalsy()
+    expect(code.includes('agreement')).toBeTruthy()
   })
 
   it('distinguishes full from partial overlap', () => {

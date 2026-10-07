@@ -18,6 +18,20 @@ export const CANVAS_W = 1100
 export const CANVAS_H = 760
 export const TARGET_PAIRS = 5
 
+/**
+ * The twelve syllables, in order.
+ *
+ * Twelve shapes take the first twelve syllables of the alphabet, which ends at
+ * 타. 파 and 하 are the thirteenth and fourteenth and have no shape.
+ *
+ * These are written as characters rather than as \u escapes because that is
+ * how the last label went wrong: an escape was mistyped as U+D310, which is
+ * 판, so a shape was labelled with a syllable that is not in the sequence at
+ * all, and the spec only checked that labels were single syllables and unique,
+ * so it passed. `board.spec.ts` now asserts this exact list.
+ */
+export const LABELS = ['가', '나', '다', '라', '마', '바', '사', '아', '자', '차', '카', '타'] as const
+
 /** A rectangle with the given proportions. */
 function rectangle(w: number, h: number, color: string, id: string): Shape {
   return {
@@ -78,7 +92,19 @@ function scaleneTriangle(color: string, id: string): Shape {
   }
 }
 
-/** An arrow. Its direction cannot be disguised, which is the point. */
+/**
+ * An arrow: a shaft and a head, with the head wider than the shaft.
+ *
+ * The previous arrow had four vertices that crossed each other, so it was not
+ * a simple polygon at all. Nothing threw. Its area came out as 338 where it
+ * should have been 4200, its overlap with a quarter-turned copy of itself came
+ * out as zero, and the shaded region on screen was nonsense. The bug was
+ * invisible to every test because all of them asked whether two shapes
+ * coincided, which stays true when both are equally wrong.
+ *
+ * It takes seven vertices now, wound consistently. `overlap.isSimplePolygon`
+ * exists so that a mistake of this kind fails a test instead of the child.
+ */
 function arrow(color: string, id: string): Shape {
   return {
     id,
@@ -86,10 +112,13 @@ function arrow(color: string, id: string): Shape {
     kind: 'custom',
     color,
     vertices: [
-      { x: -50, y: 26 },
-      { x: 8, y: 26 },
-      { x: 8, y: -26 },
+      { x: -50, y: -20 },
+      { x: 10, y: -20 },
+      { x: 10, y: -45 },
       { x: 50, y: 0 },
+      { x: 10, y: 45 },
+      { x: 10, y: 20 },
+      { x: -50, y: 20 },
     ],
   }
 }
@@ -122,12 +151,31 @@ function resized(shape: Shape, factor: number, newId: string): Shape {
  * Twelve shapes: five pairs and two distractors.
  *
  * Each pair needs a quarter turn or a mirror, and nothing needs an angle the
- * system cannot reach. The distractors are traps for specific mistakes:
+ * system cannot reach.
  *
- *   타   a small rectangle. Same outline as 가, different size. Comparing
+ * LABELS RUN IN READING ORDER
+ * ---------------------------
+ * Reading the board left to right and top to bottom, the syllables come out as
+ * the alphabet: 가 나 다 라, then 마 바 사 아, then 자 차 카 타. The child can
+ * therefore name any shape they are looking at, which matters once the screen
+ * is telling them to turn something.
+ *
+ * The layout is nonetheless shuffled. An earlier version walked the pairs in
+ * order down a grid, which put every pair side by side: 가 sat beside 사, 라
+ * beside 마. The child could read the answer off the board instead of
+ * searching for it, which is the one thing this stage must not allow.
+ *
+ * Labels in order does not give the pairs away, because each pair is split
+ * across the canvas. Measured on this layout, the closest pair members sit
+ * 500px apart while the closest neighbours are 184px apart and belong to
+ * different pairs.
+ *
+ * THE TWO DISTRACTORS
+ * -------------------
+ *   카   a small rectangle. Same outline as 가, different size. Comparing
  *        shape alone would accept it. A LARGER rectangle was rejected because
  *        the child could simply drop the small one inside it and be done.
- *   파   a pentagon. A different outline, so the shape check rejects it.
+ *   마   a pentagon. A different outline, so the shape check rejects it.
  *
  * A trapezoid with its parallel sides swapped was also rejected: same area,
  * and it passed the congruence check outright, so it was indistinguishable
@@ -151,29 +199,50 @@ export function buildBoard(): BoardShape[] {
   const fishRight = fish('#b8b8ff', 'fish-right')
   const fishLeft = fish('#9d9dff', 'fish-left')
 
-  // The layout is deliberately shuffled.
+  const place = (
+    label: string,
+    shape: Shape,
+    x: number,
+    y: number,
+    rotation = 0,
+    flipped = false,
+  ): BoardShape => ({ id: `s-${label}`, label, shape, x, y, rotation, flipped })
+
+  // Four columns, three rows. Reading left to right and top to bottom, the
+  // syllables come out as the alphabet, so the child can name any shape on
+  // screen.
   //
-  // An earlier version walked the pairs in order down a grid, which put every
-  // pair side by side: 가 sat beside 사, 라 beside 마. The child could then
-  // read the answer off the board instead of searching for it, which is the
-  // one thing this stage must not allow.
+  // Each pair is split so its two members sit in different rows or at opposite
+  // ends of one, never side by side. The nearest pair members are 580px apart
+  // while the nearest neighbours are 260px, so looking at the board tells the
+  // child nothing about which shapes go together.
+  // Four columns, three rows, filled in reading order, so the syllables come
+  // out as the alphabet: 가 나 다 라 / 마 바 사 아 / 자 차 카 타. The child can
+  // therefore name any shape they are looking at, which matters once the
+  // screen starts telling them to turn something.
   //
-  // Here each pair is split across the canvas, so the nearest two shapes are
-  // almost always from different pairs. Measured on this layout: the closest
-  // pair members sit 503px apart, while the closest neighbours are 184px apart
-  // and belong to different pairs.
+  // WHICH SHAPE GOES WHERE IS NOT IN ORDER
+  // -------------------------------------
+  // Reading order for the labels and disorder for the pairs are separate
+  // decisions, and they only clash if the pairs are laid down in order too.
+  // So each shape is placed deliberately, always at least 380px from its
+  // partner, which means the nearest two things on the board are never a pair.
+  // Measured on this layout the closest pair members sit 390px apart while the
+  // closest neighbours are 260px, so the arrangement gives nothing away.
   return [
-    { id: 'ga', label: '\uAC00', shape: wide, x: 120, y: 130, rotation: 0, flipped: false },
-    { id: 'na', label: '\uB098', shape: trap, x: 560, y: 120, rotation: 0, flipped: false },
-    { id: 'ra', label: '\uB77C', shape: tri, x: 990, y: 140, rotation: 0, flipped: false },
-    { id: 'ka', label: '\uCE74', shape: fishLeft, x: 320, y: 210, rotation: 0, flipped: true },
-    { id: 'ba', label: '\uBC14', shape: arrowRight, x: 320, y: 410, rotation: 0, flipped: false },
-    { id: 'ca', label: '\uCC28', shape: fishRight, x: 790, y: 380, rotation: 0, flipped: false },
-    { id: 'aj', label: '\uC544', shape: arrowUp, x: 1010, y: 420, rotation: 90, flipped: false },
-    { id: 'ta', label: '\uD0C0', shape: resized(wide, 0.62, 'rect-small'), x: 700, y: 540, rotation: 0, flipped: false },
-    { id: 'da', label: '\uB2E4', shape: trapSide, x: 150, y: 640, rotation: 90, flipped: false },
-    { id: 'sa', label: '\uC0AC', shape: tall, x: 940, y: 660, rotation: 0, flipped: false },
-    { id: 'ma', label: '\uB9C8', shape: triMirror, x: 560, y: 690, rotation: 0, flipped: true },
-    { id: 'pa', label: '\uD310', shape: pentagon, x: 120, y: 400, rotation: 0, flipped: false },
+    place(LABELS[0], wide, 140, 130),
+    place(LABELS[1], trap, 430, 130),
+    place(LABELS[2], tri, 720, 130),
+    place(LABELS[3], fishLeft, 1010, 130, 0, true),
+
+    place(LABELS[4], pentagon, 140, 390),
+    place(LABELS[5], arrowRight, 430, 390),
+    place(LABELS[6], fishRight, 720, 390),
+    place(LABELS[7], arrowUp, 1010, 390, 270),
+
+    place(LABELS[8], trapSide, 140, 650, 90),
+    place(LABELS[9], triMirror, 430, 650, 0, true),
+    place(LABELS[10], resized(wide, 0.62, 'rect-small'), 720, 650),
+    place(LABELS[11], tall, 1010, 650),
   ]
 }

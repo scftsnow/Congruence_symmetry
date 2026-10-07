@@ -8,8 +8,7 @@
 import { OverlapLayer } from './OverlapLayer'
 import { pointsToPath } from './svgPath'
 import { shapePoints } from '../geometry/pairs'
-import { measureOverlap } from '../geometry/overlap'
-import { MIN_STACK, stackShare } from '../geometry/verdict'
+import { measureOverlap, polygonCentroid, touching } from '../geometry/overlap'
 import type { BoardShape } from '../modes/useBoard'
 import type { Point } from '../geometry/types'
 
@@ -55,13 +54,13 @@ export function PairMark({ a, b }: { a: BoardShape; b: BoardShape }) {
 export function HeldOverlap({
   overlap,
 }: {
-  overlap: { intersection: Point[]; coverage: number; contained: boolean } | null
+  overlap: { intersection: Point[][]; agreement: number; contained: boolean } | null
 }) {
   if (!overlap) return null
   return (
     <OverlapLayer
       intersection={overlap.intersection}
-      coverage={overlap.coverage}
+      agreement={overlap.agreement}
       coincident={overlap.contained}
     />
   )
@@ -142,14 +141,17 @@ export function StackedOverlay({
   items: BoardShape[]
 }) {
   const heldPoints = shapePoints(held)
+  const heldAt = polygonCentroid(heldPoints)
 
-  let best: { points: Point[]; share: number } | null = null
+  let best: { points: Point[]; near: number } | null = null
   for (const other of items) {
     if (other.id === held.id) continue
     const otherPoints = shapePoints(other)
-    const share = stackShare(heldPoints, otherPoints)
-    if (share < MIN_STACK) continue
-    if (!best || share > best.share) best = { points: otherPoints, share }
+    if (!touching(heldPoints, otherPoints)) continue
+
+    const otherAt = polygonCentroid(otherPoints)
+    const near = Math.hypot(heldAt.x - otherAt.x, heldAt.y - otherAt.y)
+    if (!best || near < best.near) best = { points: otherPoints, near }
   }
   if (!best) return null
 
@@ -159,7 +161,7 @@ export function StackedOverlay({
   return (
     <OverlapLayer
       intersection={info.intersection}
-      coverage={info.coverage}
+      agreement={info.agreement}
       coincident={info.contained}
     />
   )

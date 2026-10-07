@@ -40,15 +40,7 @@ export function PairMark({ a, b }: { a: BoardShape; b: BoardShape }) {
  * The overlap between the held shape and whatever it is sitting on.
  *
  * This is the proof the child reads: a solid shared region grows as the two
- * coincide, and the coverage bar reports the percentage. Dashed means
- * partial, solid means complete.
- */
-/**
- * Draws the shared region between the held shape and a matching shape.
- *
- * Pure presentation: the geometry is computed in useBoard and handed over.
- * A solid region with a solid outline means complete coincidence; a dashed
- * outline means partial, so the child can see there is still work to do.
+ * coincide. Amber while they only partly agree, teal when they coincide.
  */
 export function HeldOverlap({
   overlap,
@@ -153,9 +145,11 @@ export function Grid({ width, height }: { width: number; height: number }) {
 /**
  * Draws the region the held shape shares with the shape it is lying on.
  *
- * Pure presentation: the geometry is computed in the hook and handed over. A
- * solid region with a solid outline means complete coincidence; a dashed one
- * means partial, so the child can see there is still work to do.
+ * Pure presentation: the geometry is computed in the hook and handed over. The
+ * colour carries the answer — amber while they only partly agree, teal when
+ * they coincide — and there is deliberately no outline of its own, because the
+ * shared region is cut from triangles and every attempt at outlining it drew
+ * seams across the middle.
  *
  * The partner is the shape actually covered, not merely the first one with a
  * matching outline. A region drawn against a shape on the far side of the

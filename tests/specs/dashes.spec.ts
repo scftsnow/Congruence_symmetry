@@ -158,11 +158,16 @@ describe('no edge is drawn where there is no edge', () => {
     expect(layer.includes('<path d={d} fill={fill}')).toBeTruthy()
   })
 
-  it('the outline is built by dropping shared edges', () => {
+  it('the seam fix holds: no outline is drawn at all', () => {
+    // The first attempt dropped only the edges two pieces share and kept the
+    // rest. It was still wrong: measured edge by edge, half of what remained
+    // still lay inside the region. So the outline went entirely. This is the
+    // check that it stays gone.
     const layer = source('src/components/OverlapLayer.tsx')
-    expect(layer.includes('outlinePath')).toBeTruthy()
-    // an edge seen more than once is internal
-    expect(layer.includes('seen > 1')).toBeTruthy()
+    expect(layer.includes('outlinePath')).toBeFalsy()
+    expect(layer.includes('strokeDasharray')).toBeFalsy()
+    // fill only — one path, filled, nothing stroked
+    expect(layer.includes('fill={fill}')).toBeTruthy()
   })
 })
 

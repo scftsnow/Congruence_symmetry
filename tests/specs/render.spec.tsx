@@ -160,17 +160,21 @@ describe('the board shows overlap rather than asserting it', () => {
 
   it('still says plainly whether they coincide', () => {
     // Removing the number must not leave the child without an answer. The region
-    // carries it: solid when they coincide, dashed while they do not.
-    const layer = source('src/components/OverlapLayer.tsx')
+    // carries it: amber while the shapes only partly agree, teal when they
+    // coincide. No outline of its own — both shapes are already outlined
+    // underneath, and every attempt at a second one drew seams across the middle.
+    const layer = strip('src/components/OverlapLayer.tsx')
     expect(layer.includes('coincident')).toBeTruthy()
-    expect(layer.includes('strokeDasharray')).toBeTruthy()
+    expect(layer.includes('strokeDasharray')).toBeFalsy()
+    expect(layer.includes('rgba(42, 157, 143')).toBeTruthy()
   })
 
-  it('distinguishes full from partial overlap', () => {
-    const layer = source('src/components/OverlapLayer.tsx')
+  it('distinguishes full from partial overlap by colour alone', () => {
+    const layer = strip('src/components/OverlapLayer.tsx')
     expect(layer.includes('coincident')).toBeTruthy()
-    // partial overlap reads as unfinished
-    expect(layer.includes('strokeDasharray')).toBeTruthy()
+    // two fills, no stroke: partial reads as amber, complete as teal
+    expect(layer.includes('rgba(233, 196, 106')).toBeTruthy()
+    expect(layer.includes('stroke')).toBeFalsy()
   })
 
   it('computes overlap from real geometry', () => {

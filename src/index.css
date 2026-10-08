@@ -533,6 +533,66 @@ body {
   text-decoration: underline;
 }
 
+/* ── the end of a unit ──────────────────────────────────── */
+
+/*
+ * A unit that finishes has to say so somewhere that stays.
+ *
+ * The star burst is over in a second and a half, which is a flash rather than an
+ * ending, and the back arrow in the header reads as navigation rather than as the
+ * end of something. So the board stays on screen, this sits under it, and the way
+ * back to the start is the biggest thing on the page.
+ */
+.done {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 24px 20px;
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  box-shadow: 0 2px 12px rgba(2, 48, 71, 0.06);
+  text-align: center;
+}
+
+.done__mark {
+  margin: 0;
+  font-size: 3rem;
+  line-height: 1;
+  animation: pop 1.4s ease-out;
+}
+
+.done__title {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.done__title strong {
+  color: #1b6b4a;
+}
+
+/*
+ * The note is the lesson, in one sentence the child can repeat back.
+ *
+ * It is not praise and it is not a score: "잘했어요" says nothing about what was
+ * learned, and this is the one moment where that is worth saying.
+ */
+.done__note {
+  margin: 0 0 6px;
+  max-width: 30em;
+  font-size: 1.02rem;
+  color: var(--color-ink-soft);
+  line-height: 1.6;
+}
+
+.done .start-btn {
+  min-width: 260px;
+}
+
+.done .mini-btn {
+  margin-left: 0;
+}
+
 /* ── correspondence stage ───────────────────────────────── */
 
 /*

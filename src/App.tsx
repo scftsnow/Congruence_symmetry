@@ -7,6 +7,11 @@
  * shape-picker step and no separate "find" and "stack" screens, because proving
  * congruence and finding it are the same act.
  *
+ * The home has no start button of its own. It used to carry one below the list,
+ * pointing at the first unit, which meant two different-sized doors into the same
+ * room and no way to tell which was the front one. The rows of the list are now
+ * the only way in.
+ *
  * The correspondence stage is a separate screen rather than a fourth step of the
  * board. It has its own shapes and its own question, and bolting it onto a board
  * the child has already worked through would make two different activities share
@@ -82,14 +87,7 @@ export default function App() {
           </ul>
         </section>
 
-        <button
-          type="button"
-          className="start-btn"
-          onClick={() => setScreen('congruence')}
-        >
-          합동인 도형 찾기 시작하기 →
-        </button>
-      </main>
+        </main>
     </div>
   )
 }

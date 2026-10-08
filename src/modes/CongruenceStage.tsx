@@ -19,7 +19,8 @@ import { useBoard } from './useBoard'
 import type { BoardShape } from './useBoard'
 import { BoardShapeView, Grid, PairMark, StackedOverlay } from '../components/BoardParts'
 import { Celebration, VerdictBanner } from '../components/VerdictBanner'
-import { bannerFor } from '../components/verdictText'
+import { DonePanel } from '../components/DonePanel'
+import { bannerFor, donePanelFor } from '../components/verdictText'
 
 interface CongruenceStageProps {
   onBack: () => void
@@ -127,6 +128,8 @@ export function CongruenceStage({ onBack }: CongruenceStageProps) {
   }, [count])
 
   const held = board.heldItem
+  const cleared = count >= board.target
+  const done = donePanelFor()
 
   return (
     <div className="mode">
@@ -140,7 +143,9 @@ export function CongruenceStage({ onBack }: CongruenceStageProps) {
         </div>
       </header>
 
-      <VerdictBanner {...bannerFor(verdict, turned, count, board.target)} />
+      {/* The banner is dropped once the board is cleared: it would say the same thing
+          as the panel below, in a strip the child reads as transient feedback. */}
+      {!cleared && <VerdictBanner {...bannerFor(verdict, turned, count, board.target)} />}
 
       <div className="canvas-wrap">
         <svg
@@ -176,16 +181,36 @@ export function CongruenceStage({ onBack }: CongruenceStageProps) {
         </svg>
       </div>
 
-      <div className="toolbar">
-        <div className="toolbar__actions">
-          <p className="stage1-hint">
-            도형을 <strong>누른 뒤 끌어다</strong> 겹쳐 보세요. 맞으면 저절로 맞춰집니다
-          </p>
-          <button type="button" className="mini-btn mini-btn--ghost" onClick={board.reset}>
-            ↺ 처음부터
-          </button>
+      {cleared ? (
+        /*
+         * The ending, and it stays.
+         *
+         * The star burst above fades after a second and a half, which is not long
+         * enough to be an ending. This panel does not go away, so the child is
+         * told the board is finished in words they can act on, and there is one
+         * obvious way back to the start. The drag hint goes with it: there is
+         * nothing left to drag.
+         */
+        <DonePanel
+          title={done.title}
+          note={done.note}
+          homeLabel={done.homeLabel}
+          againLabel={done.againLabel}
+          onHome={onBack}
+          onAgain={board.reset}
+        />
+      ) : (
+        <div className="toolbar">
+          <div className="toolbar__actions">
+            <p className="stage1-hint">
+              도형을 <strong>누른 뒤 끌어다</strong> 겹쳐 보세요. 맞으면 저절로 맞춰집니다
+            </p>
+            <button type="button" className="mini-btn mini-btn--ghost" onClick={board.reset}>
+              ↺ 처음부터
+            </button>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }

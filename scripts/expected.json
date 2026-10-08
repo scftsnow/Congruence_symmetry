@@ -18,7 +18,10 @@
                       "dragHint":  "누른 뒤 끌어다",
                       "directionMsg":  "방향이 달라도",
                       "startBtn":  "합동인 도형 찾기 시작하기",
-                      "unitTitle":  "합동인 도형 찾기"
+                      "unitTitle":  "합동인 도형 찾기",
+                      "homeLabel":  "첫 화면으로",
+                      "congruenceNote":  "방향이 달라도, 겹쳐서 완전히 포개지면 모양과 크기가 같은 도형이야",
+                      "corrNote":  "합동인 두 도형은 마주 보는 점과 변과 각이 같아져"
                   },
     "toolLabels":  [
                        "처음부터"

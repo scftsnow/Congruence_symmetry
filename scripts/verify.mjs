@@ -157,8 +157,33 @@ const ui = expected.uiStrings
 
 ok('home title', appSrc.includes(ui.homeTitle), ui.homeTitle)
 ok('unit title', appSrc.includes(ui.unitTitle), ui.unitTitle)
-ok('start button', appSrc.includes(ui.startBtn))
 ok('stage title', stageSrc.includes(ui.unitTitle))
+
+/*
+ * One way into each unit, not two.
+ *
+ * The home used to carry a start button under the list pointing at the first
+ * unit, so the same place had a small door in the list and a big one underneath
+ * it. The rows are now the only way in, which is checked here so the duplicate
+ * cannot creep back.
+ */
+ok('home has no start button of its own', !appSrc.includes('className="start-btn"'))
+ok('every unit row is a real button', (appSrc.match(/className="unit-open"/g) || []).length >= 2)
+
+/*
+ * Every unit ends somewhere.
+ *
+ * The star burst is over in a second and a half, which is a flash rather than an
+ * ending, and the header back arrow reads as navigation. Each unit therefore
+ * states its own lesson and offers a way back to the start once it is cleared.
+ */
+ok('congruence ends with a way home', stageSrc.includes('DonePanel'))
+ok('correspondence ends with a way home', read('src/modes/CorrespondenceStage.tsx').includes('DonePanel'))
+ok('the ending lives in one component', existsSync(join(root, 'src/components/DonePanel.tsx')))
+ok('home label', read('src/components/verdictText.ts').includes(ui.homeLabel), ui.homeLabel)
+ok('congruence ending names the lesson', read('src/components/verdictText.ts').includes(ui.congruenceNote), ui.congruenceNote)
+ok('correspondence ending names the lesson', read('src/components/corrText.ts').includes(ui.corrNote), ui.corrNote)
+for (const s of [ui.congruenceNote, ui.corrNote]) ok('ending reached the bundle', bundle.includes(s), s)
 ok('verdict wording', wordsSrc.includes(ui.congruentMsg), ui.congruentMsg)
 ok('direction lesson', wordsSrc.includes(ui.directionMsg), ui.directionMsg)
 ok('drag hint', stageSrc.includes(ui.dragHint), ui.dragHint)

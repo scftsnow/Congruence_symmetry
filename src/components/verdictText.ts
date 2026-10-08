@@ -26,6 +26,28 @@ export interface Banner {
   parts: Array<{ text: string; strong?: boolean }>
 }
 
+/**
+ * The words for the end of the congruence board.
+ *
+ * The note is the point of the unit in one sentence, and it names the lesson the
+ * board was built to teach: the direction did not matter, only the shape and the
+ * size. It is not praise and it is not a score. A child who cleared the board
+ * should be able to say what they learned, and "잘했어요" does not let them.
+ */
+export function donePanelFor(): {
+  title: Array<{ text: string; strong?: boolean }>
+  note: string
+  homeLabel: string
+  againLabel: string
+} {
+  return {
+    title: [{ text: '합동인 도형을 ' }, { text: '모두 찾았어!', strong: true }],
+    note: '방향이 달라도, 겹쳐서 완전히 포개지면 모양과 크기가 같은 도형이야',
+    homeLabel: '첫 화면으로',
+    againLabel: '↺ 처음부터',
+  }
+}
+
 export function bannerFor(
   verdict: VerdictResult | null,
   turned: boolean,

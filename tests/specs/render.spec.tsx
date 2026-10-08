@@ -21,6 +21,9 @@ import App from '../../src/App'
 import { CongruenceStage } from '../../src/modes/CongruenceStage'
 import { CorrespondenceStage } from '../../src/modes/CorrespondenceStage'
 import { buildBoard } from '../../src/modes/useBoard'
+import { DonePanel } from '../../src/components/DonePanel'
+import { donePanelFor } from '../../src/components/verdictText'
+import { donePanelFor as corrDonePanelFor } from '../../src/components/corrText'
 
 function source(path: string): string {
   return readFileSync(join(process.cwd(), path), 'utf8')
@@ -52,8 +55,22 @@ describe('home screen renders', () => {
     expect(html.includes(expected.home.unitTitle)).toBeTruthy()
   })
 
-  it('has a start button', () => {
-    expect(html.includes(expected.home.startBtn)).toBeTruthy()
+  /*
+   * The list rows are the only doors.
+   *
+   * The home used to carry a start button under the list pointing at the first
+   * unit, so the same place had a small door in the list and a big one underneath.
+   * Two doors into one room is not a choice, it is a question the child cannot
+   * answer, and the duplicate is now gone.
+   */
+  it('opens each unit from its own row', () => {
+    const rows = html.match(/<button[^>]*class="unit-open"/g) || []
+    expect(rows.length >= 2 ? 'ok' : rows.length + ' rows').toBe('ok')
+    expect(html.includes(expected.home.corrUnitTitle)).toBeTruthy()
+  })
+
+  it('has no second way into a unit', () => {
+    expect(html.includes('시작하기')).toBeFalsy()
   })
 
   it('does not ask the child to pick shapes first', () => {
@@ -326,6 +343,58 @@ describe('correspondence stage renders', () => {
 
   it('has no turn control', () => {
     expect(/onRotate|onFlip|돌리기|뒤집기/.test(html)).toBeFalsy()
+  })
+})
+
+// ── the end of a unit ─────────────────────────────────────
+//
+// A unit ending in silence is a unit that has not said it finished. The star
+// burst is over in a second and a half — a flash, not an ending — and the header
+// back arrow reads as navigation rather than as the end of something. So each
+// unit states its own lesson and offers an unmistakable way back to the start.
+
+describe('a cleared unit ends properly', () => {
+  const words = donePanelFor()
+  const html = renderToStaticMarkup(
+    <DonePanel
+      title={words.title}
+      note={words.note}
+      homeLabel={words.homeLabel}
+      againLabel={words.againLabel}
+      onHome={() => {}}
+      onAgain={() => {}}
+    />,
+  )
+
+  it('says the unit is finished', () => {
+    expect(html.includes('모두 찾았어!')).toBeTruthy()
+  })
+
+  it('names what was learned, not just that it went well', () => {
+    // The note is the one thing worth saying at the end: it is the lesson in a
+    // sentence the child can repeat back. "잘했어요" says nothing about what was
+    // learned, and praise where the content should be is praise as filler.
+    expect(words.note).toBe(expected.home.congruenceNote)
+    for (const filler of ['잘했', '대박', '최고', '짝수', '점수']) {
+      expect(words.note.includes(filler) ? `note is only praise: ${filler}` : 'ok').toBe('ok')
+    }
+  })
+
+  it('offers a way back to the first screen', () => {
+    expect(html.includes(expected.home.homeLabel)).toBeTruthy()
+    expect(html.includes('<button')).toBeTruthy()
+  })
+
+  it('still offers a replay', () => {
+    // Not asked for, but removing the existing reset would have been a quiet loss
+    // rather than a decision, so it stays and is now stated.
+    expect(html.includes('처음부터')).toBeTruthy()
+  })
+
+  it('both units name their own lesson', () => {
+    expect(donePanelFor().note).toBe(expected.home.congruenceNote)
+    expect(corrDonePanelFor().note).toBe(expected.home.corrNote)
+    expect(donePanelFor().note === corrDonePanelFor().note).toBeFalsy()
   })
 })
 

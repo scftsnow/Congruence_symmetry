@@ -51,6 +51,27 @@ const HINT: Record<Pass, string> = {
 export const FIRST_SHAPE = '첫 번째 도형'
 export const SECOND_SHAPE = '두 번째 도형'
 
+/**
+ * The words for the end of the unit.
+ *
+ * This used to be the same panel as the end of a pair, with the last pair
+ * looping round to the first one — which left the unit with no ending at all. It
+ * is now its own sentence, and the note names what the whole unit was for.
+ */
+export function donePanelFor(): {
+  title: Array<{ text: string; strong?: boolean }>
+  note: string
+  homeLabel: string
+  againLabel: string
+} {
+  return {
+    title: [{ text: '대응점을 ' }, { text: '모두 찾았어!', strong: true }],
+    note: '합동인 두 도형은 마주 보는 점과 변과 각이 같아져',
+    homeLabel: '첫 화면으로',
+    againLabel: '↺ 처음부터',
+  }
+}
+
 export interface Banner {
   tone: BannerTone
   icon: string

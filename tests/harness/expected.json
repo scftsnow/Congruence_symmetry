@@ -8,7 +8,7 @@
               },
     "board":  {
                   "congruentMsg":  "합동이야",
-                  "autoMatch":  "알아서 맞춰집니다",
+                  "autoMatch":  "저절로 맞춰집니다",
                   "dragHint":  "누른 뒤 끌어다",
                   "reset":  "처음부터",
                   "directionMsg":  "방향이 달라도",

@@ -14,11 +14,18 @@
  *
  * It is a separate file so the screen describing what the child sees stays short
  * enough to read in one go.
+ *
+ * NOT A BANNER
+ * ------------
+ * It is called `messageFor` rather than `bannerFor` because nothing here is drawn
+ * in a strip any more. The screen picks where the words go — success and a miss
+ * arrive over the board, and the standing instruction sits at the bottom — and
+ * this file only decides what is said.
  */
 
 import type { VerdictResult } from '../geometry/verdict'
 import { isMatch } from '../geometry/verdict'
-import type { BannerTone } from './VerdictBanner'
+import type { BannerTone } from './tone'
 
 export interface Banner {
   tone: BannerTone
@@ -48,7 +55,7 @@ export function donePanelFor(): {
   }
 }
 
-export function bannerFor(
+export function messageFor(
   verdict: VerdictResult | null,
   turned: boolean,
   count: number,

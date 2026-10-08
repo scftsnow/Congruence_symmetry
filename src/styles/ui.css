@@ -82,45 +82,6 @@
  * one screen. 
  */
 
-/* ── 판정 배너 ───────────────────────────────────────── */
-
-.banner {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  min-height: 64px;
-  padding: 12px 20px;
-  border-radius: var(--radius);
-  font-size: 1.1rem;
-  font-weight: 600;
-  transition: background 0.25s;
-}
-
-.banner--success {
-  background: #d8f3e8;
-  color: #1b6b4a;
-}
-
-.banner--hint {
-  background: #fdf3d3;
-  color: #7a5c00;
-}
-
-.banner--neutral {
-  background: #eaf1f7;
-  color: var(--color-ink-soft);
-}
-
-.banner__icon {
-  font-size: 1.5rem;
-}
-
-/* the drawing surface
- *
- * Split out of src/index.css, which was one file because there was
- * one screen. 
- */
-
 /* ── 캔버스 ──────────────────────────────────────────── */
 
 .canvas-wrap {
@@ -287,6 +248,29 @@
 
 .toast__text strong {
   color: #1b6b4a;
+}
+
+/*
+ * A miss is not a success, so it does not borrow the success colours.
+ *
+ * Amber and the magnifier rather than a tick, because the child has just been
+ * told something is not right and the card must not read as praise at a glance.
+ */
+.toast--success {
+  background: var(--color-surface);
+}
+
+.toast--hint {
+  background: #fdf6e0;
+  box-shadow: 0 12px 40px rgba(122, 92, 0, 0.28);
+}
+
+.toast--hint .toast__text {
+  color: #7a5c00;
+}
+
+.toast--hint .toast__text strong {
+  color: #7a5c00;
 }
 
 @keyframes toast-in {

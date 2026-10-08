@@ -198,8 +198,21 @@
 
 .corr-foot {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
+  gap: 8px;
+}
+
+/*
+ * The one standing instruction, at the bottom.
+ *
+ * It was a strip across the top of the screen, above a board the child was looking
+ * at rather than in. Here it is read once and then left alone, with nothing over
+ * the shapes — and it sits in the same place as the congruence board's, so the two
+ * units do not teach the same lesson from two different screens.
+ */
+.corr-instruction {
+  text-align: center;
 }
 
 .corr-dots {

@@ -25,7 +25,7 @@ import {
   sideTransform,
 } from '../../src/geometry/correspondence'
 import { CORRESPONDENCE_PAIRS } from '../../src/geometry/correspondenceShapes'
-import { bannerFor } from '../../src/components/corrText'
+import { messageFor } from '../../src/components/corrText'
 import { isSimplePolygon, polygonArea } from '../../src/geometry/overlap'
 import { applyTransform, identity } from '../../src/geometry/transforms'
 import type { Point } from '../../src/geometry/types'
@@ -156,7 +156,7 @@ describe('every shape has parts the child can tell apart', () => {
    * So the claim arrives when the part lands, and stays long enough to read.
    */
   describe('the comparison says what it shows', () => {
-    const landedSide = bannerFor({
+    const landedSide = messageFor({
       phase: 'compare',
       wrong: false,
       done: false,
@@ -164,7 +164,7 @@ describe('every shape has parts the child can tell apart', () => {
       flyingAngle: false,
       landed: true,
     })
-    const landedAngle = bannerFor({
+    const landedAngle = messageFor({
       phase: 'compare',
       wrong: false,
       done: false,

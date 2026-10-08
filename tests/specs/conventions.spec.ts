@@ -466,6 +466,81 @@ describe('a file holds one thing', () => {
     }
   })
 
+  it('every component is used by something', () => {
+    /*
+     * ResultBanner.tsx survived the removal of the screen it belonged to. It was
+     * still here when the banner styles were taken out with the strip, and it
+     * rendered unstyled for as long as nobody noticed — because a file that is
+     * never imported breaks nothing and reports nothing.
+     */
+    const source = sourceFiles
+      .filter((f) => /\.(tsx|ts)$/.test(f))
+      .map((f) => [rel(f), readFileSync(f, 'utf8')] as const)
+
+    const orphans: string[] = []
+    for (const [path] of source) {
+      if (!path.startsWith('src/components/')) continue
+      if (!path.endsWith('.tsx')) continue
+      const stem = path.split('/').pop()!.replace(/\.tsx$/, '')
+      const used = source.some(([other, body]) => other !== path && body.includes(stem))
+      if (!used) orphans.push(path)
+    }
+    expect(orphans.join(', ') || 'ok').toBe('ok')
+  })
+
+  it('no rule styles a class nothing uses', () => {
+    /*
+     * The general version of the check above, because the two narrow ones kept
+     * having to be written by hand. Removed screens take their rules with them
+     * only if something notices, and the only thing that can notice is a test.
+     *
+     * Also catches the strip along the top of a unit: when the banner component
+     * went, six rules for it stayed behind and nothing was broken by them.
+     */
+    const source = sourceFiles
+      .filter((f) => /\.(tsx|ts)$/.test(f))
+      .map((f) => readFileSync(f, 'utf8'))
+      .join('\n')
+
+    const declared = new Set<string>()
+    for (const file of readdirSync(join(root, 'src', 'styles'))) {
+      const css = readFileSync(join(root, 'src', 'styles', file), 'utf8')
+      for (const [, name] of css.matchAll(/\.([a-zA-Z][\w-]*)/g)) declared.add(name)
+    }
+
+    const orphans = [...declared].filter((name) => !source.includes(name)).sort()
+    expect(orphans.join(', ') || 'ok').toBe('ok')
+  })
+
+  it('a unit has no strip along the top of its board', () => {
+    /*
+     * The instruction, the counter and the hint were all in one strip above the
+     * shapes. In the congruence board it repeated the toolbar and the header; in
+     * the correspondence unit it sat over the board the child was looking at. Both
+     * units now say everything over the board instead, and the standing line lives
+     * at the bottom next to the controls.
+     */
+    for (const stage of [
+      'src/modes/CongruenceStage.tsx',
+      'src/modes/CorrespondenceStage.tsx',
+    ]) {
+      const code = read(stage)
+      expect(code.includes('banner')).toBeFalsy()
+      expect(code.includes('<Toast')).toBeTruthy()
+    }
+    expect(existsSync(join(root, 'src/components/VerdictBanner.tsx'))).toBeFalsy()
+    expect(styles().includes('.banner')).toBeFalsy()
+  })
+
+  it('a repeated miss is answered every time, not only the first', () => {
+    // Two misses in a row produce the same words, so a popup keyed on the text
+    // alone would find nothing changed and stay silent — and the child is still
+    // stuck. Both screens therefore pass a counter that moves on every attempt.
+    expect(/misses/.test(read('src/modes/useCorrespondence.ts'))).toBeTruthy()
+    expect(/attempts/.test(read('src/modes/CongruenceStage.tsx'))).toBeTruthy()
+    expect(/nonce/.test(read('src/modes/useToast.ts'))).toBeTruthy()
+  })
+
   it('the star burst scales about its own centre', () => {
     // A CSS transform on an SVG element is taken about the SVG viewport origin —
     // the top-left of the viewBox — unless told otherwise. The stars were being

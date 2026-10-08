@@ -21,11 +21,10 @@ import { BoardShapeView } from '../components/BoardShapeView'
 import { Grid } from '../components/BoardGrid'
 import { PairMark } from '../components/PairMark'
 import { StackedOverlay } from '../components/StackedOverlay'
-import { VerdictBanner } from '../components/VerdictBanner'
 import { Toast } from '../components/Toast'
 import { Celebration } from '../components/Celebration'
 import { DonePanel } from '../components/DonePanel'
-import { bannerFor, donePanelFor } from '../components/verdictText'
+import { donePanelFor, messageFor } from '../components/verdictText'
 import { useToast } from './useToast'
 
 interface CongruenceStageProps {
@@ -38,6 +37,8 @@ export function CongruenceStage({ onBack }: CongruenceStageProps) {
   const [justFound, setJustFound] = useState(false)
   /** true only after the child lets go, so a mere touch never turns a shape */
   const [released, setReleased] = useState(false)
+  /** one per release; re-arms the popup so a repeated miss still says something */
+  const [attempts, setAttempts] = useState(0)
   /**
    * True while a finger is actually moving a shape.
    *
@@ -98,7 +99,17 @@ export function CongruenceStage({ onBack }: CongruenceStageProps) {
   }
 
   const onPointerUp = () => {
-    if (drag.current) setReleased(true)
+    if (drag.current) {
+      setReleased(true)
+      /*
+       * One release, one attempt. This is the nonce that re-arms the popup, so a
+       * second stack on the same wrong partner gets the same sentence again — the
+       * words do not change between the first miss and the second, and keying on
+       * the words alone would mean the hint faded after one try and said nothing
+       * for the next three.
+       */
+      setAttempts((n) => n + 1)
+    }
     drag.current = null
     // Hand the position back to the animation, so the turn that follows is
     // something the child watches rather than something that already happened.
@@ -138,15 +149,23 @@ export function CongruenceStage({ onBack }: CongruenceStageProps) {
   const done = donePanelFor()
 
   /*
-   * Success leaves the strip and comes to the middle of the board.
+   * Everything said goes through the popup in the middle of the board.
    *
-   * The child has just dragged a shape across the board and stacked it, so their
-   * eyes are on the shapes — not up at the top edge, which on a tablet held
-   * upright may not even be on screen. The stars for this same answer burst from
-   * the middle, and the sentence belongs with them.
+   * The strip along the top is gone. What it said was already said twice — the
+   * toolbar at the bottom carries the instruction and the header carries the
+   * count — so it was a third copy of the same two facts, in a place the child
+   * was not looking at.
+   *
+   * `attempts` counts releases. It is the nonce that re-arms the popup, so a
+   * second wrong stack gets the same sentence again. Keyed on the words alone the
+   * hint would have faded after the first attempt and stayed silent through the
+   * next three, which is the one thing a hint must never do.
    */
-  const banner = bannerFor(verdict, turned, count, board.target)
-  const toast = useToast(banner.tone === 'success' && !cleared ? banner.parts.map((p) => p.text).join('') : null)
+  const message = messageFor(verdict, turned, count, board.target)
+  const toast = useToast(
+    !cleared && message.tone !== 'neutral' ? message.parts.map((p) => p.text).join('') : null,
+    attempts,
+  )
 
   return (
     <div className="mode">
@@ -161,16 +180,13 @@ export function CongruenceStage({ onBack }: CongruenceStageProps) {
       </header>
 
       {/*
-       * The strip keeps the standing instruction and the hint after a miss: both
-       * have to stay up while the child works. A success does not, so it goes to
-       * the middle instead, and there is only ever one of the two on screen.
+       * The only thing that is ever said over the board: a match, or a miss, or
+       * the board being finished. The standing instruction is at the bottom of the
+       * screen in the toolbar, where it can be read once and then left alone.
        */}
-      {!cleared &&
-        (toast ? (
-          <Toast icon={banner.icon} parts={banner.parts} />
-        ) : (
-          <VerdictBanner {...banner} />
-        ))}
+      {toast && !cleared && (
+        <Toast tone={message.tone === 'success' ? 'success' : 'hint'} icon={message.icon} parts={message.parts} />
+      )}
 
       <div className="canvas-wrap">
         <svg

@@ -1,14 +1,13 @@
 /**
  * Correspondence stage — 대응점, then 대응변, then 대응각.
  *
- * The chrome around the scene: a banner saying what is wanted, a way to pick
+ * The chrome around the scene: a way to pick
  * which pair of shapes, and a row of dots showing how far along the current pass
  * the child is. All the state lives in the hook and all the drawing lives in the
  * scene, so this file is just a description of the screen.
  */
 
 import { CorrespondenceScene } from '../components/CorrespondenceScene'
-import { VerdictBanner } from '../components/VerdictBanner'
 import { Toast } from '../components/Toast'
 import { DonePanel } from '../components/DonePanel'
 import { donePanelFor } from '../components/corrText'
@@ -22,12 +21,18 @@ export function CorrespondenceStage({ onBack }: { onBack: () => void }) {
   const done = donePanelFor()
 
   /*
-   * The same split as the congruence board: success comes to the middle of the
-   * board and fades there with the stars, and the standing question and the hint
-   * after a miss stay in the strip at the top because they have to be there while
-   * the child works on them.
+   * The same arrangement as the congruence board: everything that just happened
+   * arrives in the middle and leaves again, and the one standing instruction sits
+   * at the bottom of the screen where it is read once and left alone.
+   *
+   * `misses` is the nonce that re-arms the popup. Two wrong taps produce the same
+   * words, so keying on the words alone would mean the hint said its piece once
+   * and then stayed silent for every attempt after it.
    */
-  const toast = useToast(!c.done && c.banner.tone === 'success' ? c.banner.text : null)
+  const toast = useToast(
+    !c.done && c.message.tone !== 'neutral' ? c.message.text : null,
+    c.misses,
+  )
 
   return (
     <div className="mode">
@@ -38,14 +43,17 @@ export function CorrespondenceStage({ onBack }: { onBack: () => void }) {
         <h1 className="mode__title">대응점 · 대응변 · 대응각</h1>
       </header>
 
-      {/* the banner is dropped at the end, where the panel says it better and
-          keeps saying it */}
-      {!c.done &&
-        (toast ? (
-          <Toast icon={c.banner.icon} text={toast} />
-        ) : (
-          <VerdictBanner tone={c.banner.tone} icon={c.banner.icon} parts={[{ text: c.banner.text }]} />
-        ))}
+      {/*
+       * The only thing ever said over the board: a match, a miss, or a part that
+       * has just landed exactly on its partner.
+       */}
+      {toast && !c.done && (
+        <Toast
+          tone={c.message.tone === 'success' ? 'success' : 'hint'}
+          icon={c.message.icon}
+          text={toast}
+        />
+      )}
 
       <nav className="corr-pairs" aria-label="도형 고르기">
         {CORRESPONDENCE_PAIRS.map((p, i) => (
@@ -97,20 +105,31 @@ export function CorrespondenceStage({ onBack }: { onBack: () => void }) {
             </button>
           )
         ) : (
-          <ol className="corr-dots" aria-label="진행">
-            {Array.from({ length: c.corners }).map((_, i) => (
-              <li
-                key={i}
-                className={
-                  i === c.step
-                    ? 'corr-dot corr-dot--now'
-                    : i < c.step
-                      ? 'corr-dot corr-dot--done'
-                      : 'corr-dot'
-                }
-              />
-            ))}
-          </ol>
+          <>
+            {/*
+             * The one standing instruction, at the bottom.
+             *
+             * It used to be a strip across the top, above a board the child was
+             * looking at rather than in. The congruence board already keeps this
+             * same line in its bottom toolbar, so this is where it belongs in both
+             * units: read once, then left alone, with nothing over the shapes.
+             */}
+            <p className="stage1-hint corr-instruction">{c.instruction}</p>
+            <ol className="corr-dots" aria-label="진행">
+              {Array.from({ length: c.corners }).map((_, i) => (
+                <li
+                  key={i}
+                  className={
+                    i === c.step
+                      ? 'corr-dot corr-dot--now'
+                      : i < c.step
+                        ? 'corr-dot corr-dot--done'
+                        : 'corr-dot'
+                  }
+                />
+              ))}
+            </ol>
+          </>
         )}
       </div>
     </div>

@@ -17,8 +17,8 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { CORRESPONDENCE_PAIRS } from '../geometry/correspondenceShapes'
-import { bannerFor } from '../components/corrText'
-import type { Banner, Pass, Phase } from '../components/corrText'
+import { instructionFor, messageFor } from '../components/corrText'
+import type { Message, Pass, Phase } from '../components/corrText'
 import { PASSES } from '../components/corrText'
 
 /** how long a side or angle takes to travel and settle */
@@ -51,9 +51,19 @@ export interface Correspondence {
   landed: boolean
   /** true just after a correct find, for the burst of stars */
   justFound: boolean
+  /**
+   * how many times the child has missed
+   *
+   * Not shown. It exists so the popup can tell a repeated miss from the first one:
+   * the sentence is the same every time, and without something that changed the
+   * second miss would be met with silence.
+   */
+  misses: number
+  /** the one standing instruction, shown at the bottom of the screen */
+  instruction: string
   flying: boolean
   done: boolean
-  banner: Banner
+  message: Message
   startPair: (index: number) => void
   answer: (given: number) => void
   /** on to the next shape, or round again after the last */
@@ -68,6 +78,7 @@ export function useCorrespondence(): Correspondence {
   const [flyStep, setFlyStep] = useState(0)
   const [landed, setLanded] = useState(false)
   const [justFound, setJustFound] = useState(false)
+  const [misses, setMisses] = useState(0)
   const starTimer = useRef<number | null>(null)
 
   const pair = CORRESPONDENCE_PAIRS[pairIndex]
@@ -103,6 +114,14 @@ export function useCorrespondence(): Correspondence {
       // hint cannot stumble into the right answer by accident.
       if (wrong || phase === 'compare') return
       if (given !== step) {
+        /*
+         * One count per miss, whether or not it is the same corner twice. The popup
+         * keys on this so a repeated hint comes back: two wrong taps in a row
+         * produce the same words, and without a counter the second one would find
+         * the text unchanged and stay silent — which is the one thing a hint must
+         * never do, because the child is still stuck.
+         */
+        setMisses((n) => n + 1)
         explain()
         return
       }
@@ -175,9 +194,11 @@ export function useCorrespondence(): Correspondence {
     flyStep,
     landed,
     justFound,
+    misses,
     flying,
     done,
-    banner: bannerFor({
+    instruction: instructionFor(phase),
+    message: messageFor({
       phase,
       wrong,
       done,

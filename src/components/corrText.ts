@@ -15,7 +15,7 @@
  * reading.
  */
 
-import type { BannerTone } from './VerdictBanner'
+import type { BannerTone } from './tone'
 
 /** The three passes, in the textbook's order, then the demonstration. */
 export type Phase = 'points' | 'sides' | 'angles' | 'compare'
@@ -72,7 +72,26 @@ export function donePanelFor(): {
   }
 }
 
-export interface Banner {
+/**
+ * The one standing instruction, shown at the bottom of the screen.
+ *
+ * This is the only thing that was ever in the strip along the top, and it now
+ * sits under the board instead: above the shapes is a place the child is not
+ * looking at, and the congruence board already keeps its instruction in its
+ * bottom toolbar, so both units say it from the same place.
+ */
+export function instructionFor(phase: Phase): string {
+  return ASK[phase as Pass]
+}
+
+/**
+ * Not a Banner, because nothing is drawn in a strip any more.
+ *
+ * The screen decides where words go — a success and a miss arrive over the board,
+ * the standing instruction sits at the bottom — and this file only decides what
+ * is said.
+ */
+export interface Message {
   tone: BannerTone
   icon: string
   text: string
@@ -98,7 +117,7 @@ const MOVING = { side: '대응변을 옮겨 보고 있어요', angle: '대응각
 const LANDED = { side: '대응변의 길이가 같아요', angle: '대응각의 크기가 같아요' }
 
 /** The one sentence on screen, decided from where the child has got to. */
-export function bannerFor(input: {
+export function messageFor(input: {
   phase: Phase
   /** true while a miss is being explained */
   wrong: boolean
@@ -110,7 +129,7 @@ export function bannerFor(input: {
   flyingAngle: boolean
   /** and it has just arrived */
   landed: boolean
-}): Banner {
+}): Message {
   if (input.done) {
     return {
       tone: 'success',

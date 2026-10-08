@@ -1,44 +1,54 @@
 /**
- * A success message, briefly, in the middle of the board.
+ * A message about something that just happened, briefly, in the middle.
  *
- * THE SUCCESS BANNER DID NOT WORK
- * -------------------------------
- * Success used to arrive as a strip along the top of the screen, which is the
- * worst possible place for it twice over. The child had dragged a shape across
- * the board and stacked it — their eyes are on the board, at the shape, at the
- * place where the two outlines have just become one. A strip above all of that is
- * a place they have to look away to, and on a tablet held upright it may not even
- * be on screen.
+ * EVERY MESSAGE ON SCREEN COMES THROUGH HERE
+ * -----------------------------------------
+ * There is no strip along the top of a unit any more. The standing instruction
+ * used to be there, and it was the worst element on the screen twice over: in the
+ * congruence board it repeated what the toolbar at the bottom and the counter in
+ * the header already said, three times over; and in the correspondence unit it
+ * sat above a board the child was looking at rather than in it.
  *
- * It also fought the thing happening at the same moment. The stars burst from the
- * middle of the board for a good answer, and the sentence for that same answer
- * appeared at the top edge, so the two halves of one reaction were a hand's width
- * apart at opposite ends of the screen.
+ * So the board says what to do at the bottom, where it is read once and left
+ * alone, and everything else — a pair matched, a miss, a part landing exactly on
+ * its partner — arrives here, in the middle, and leaves again.
  *
- * So success is centred, brief, and sits with the stars.
+ * CENTRED, NOT AT THE TOP
+ * ----------------------
+ * The child has just dragged a shape across the board and stacked it. Their eyes
+ * are on the shapes. A strip above all of that is a place they have to look away
+ * to, and on a tablet held upright it may not be on screen at all. It also fought
+ * the stars, which burst from the middle of the board for that same answer: one
+ * reaction with its two halves at opposite ends of the screen.
  *
- * ONLY SUCCESS
- * ------------
- * The standing instruction and the hint after a miss stay in the strip at the
- * top, and that is not an inconsistency. They have to persist: the instruction is
- * what the child is being asked to do, and the hint has to stay up while they try
- * again. A message that vanishes after a second and a half cannot do either job.
- * A success needs neither, so it goes where the celebration already is.
+ * The board underneath stays completely live — no dimmed backdrop, and no pointer
+ * events of its own — so a child can carry straight on dragging with a message up.
+ *
+ * Pure presentation. It is handed what to say and how loudly, and decides nothing,
+ * for the same reason VerdictBanner does.
  */
 
 export function Toast({
+  tone,
   icon,
   text,
   parts,
 }: {
+  tone: 'success' | 'hint'
   icon: string
   /** plain text, when the sentence has no emphasis in it */
   text?: string
   /** the sentence split, when part of it is worth bolding */
   parts?: Array<{ text: string; strong?: boolean }>
 }) {
+  // Written out rather than assembled from the tone, so that the class names in
+  // here and the rules in the stylesheet can be read side by side — and so that a
+  // rule with nothing pointing at it is visible as such rather than hidden behind
+  // a template literal.
+  const className = tone === 'success' ? 'toast toast--success' : 'toast toast--hint'
+
   return (
-    <div className="toast" role="status">
+    <div className={className} role="status">
       <span className="toast__icon" aria-hidden="true">
         {icon}
       </span>

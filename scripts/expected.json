@@ -53,6 +53,6 @@
     "board":  {
                   "title":  "합동인 도형 찾기",
                   "dragHint":  "누른 뒤 끌어다",
-                  "autoMatch":  "알아서 맞춰집니다"
+                  "autoMatch":  "저절로 맞춰집니다"
               }
 }

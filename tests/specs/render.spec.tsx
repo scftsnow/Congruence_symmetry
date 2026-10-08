@@ -167,7 +167,7 @@ describe('the board shows overlap rather than asserting it', () => {
     // ' % ' is the modulo operator walking an array, not a printed percentage.
     for (const path of [
       'src/modes/CongruenceStage.tsx',
-      'src/components/VerdictBanner.tsx',
+      'src/components/Toast.tsx',
       'src/components/verdictText.ts',
       'src/components/BoardShapeView.tsx',
       'src/components/StackedOverlay.tsx',
@@ -474,16 +474,28 @@ describe('a success is in the middle, not at the top', () => {
     }
   })
 
-  it('the instruction and the hint stay in the strip', () => {
-    // Not an inconsistency. The instruction is what the child is being asked to
-    // do and the hint has to survive several attempts; neither can be a message
-    // that vanishes after a second and a half.
+  it('the standing instruction is on the board, and only once', () => {
+    /*
+     * This one changed its mind, on purpose.
+     *
+     * It used to check that the instruction and the hint stayed in the strip at the
+     * top, on the argument that a message which vanishes after a second and a half
+     * cannot do either job. That is right about the hint and wrong about the
+     * board: the strip repeated what the toolbar and the header already said, and
+     * sat above the shapes rather than in them. The strip is gone and everything
+     * comes over the board instead — so the check now guards the thing that was
+     * actually wrong.
+     */
     for (const stage of [
       'src/modes/CongruenceStage.tsx',
       'src/modes/CorrespondenceStage.tsx',
     ]) {
-      expect(source(stage).includes('<VerdictBanner')).toBeTruthy()
+      expect(source(stage).includes('<Toast')).toBeTruthy()
     }
+    // the congruence board still says what to do, at the bottom
+    const board = renderToStaticMarkup(<CongruenceStage onBack={() => {}} />)
+    expect(board.includes(expected.board.dragHint)).toBeTruthy()
+    expect(board.includes(expected.board.autoMatch)).toBeTruthy()
   })
 
   it('a success does not last forever', () => {

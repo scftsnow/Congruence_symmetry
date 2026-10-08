@@ -61,8 +61,20 @@ describe('a touch alone does not turn a shape', () => {
   })
 
   it('releasing only counts when a drag was in progress', () => {
+    // A tap without a drag is not an attempt, so it must not judge the board.
+    // Read the handler by its own braces rather than by a fixed number of
+    // characters: it has grown statements and comments inside the guard, and
+    // matching its whole text would break on the next thing added to it.
     const stage = source('src/modes/CongruenceStage.tsx')
-    expect(stage.includes('if (drag.current) setReleased(true)')).toBeTruthy()
+    const start = stage.indexOf('const onPointerUp')
+    const end = stage.indexOf('\n  const ', start + 10)
+    const handler = stage.slice(start, end === -1 ? undefined : end)
+
+    expect(/if \(drag\.current\)/.test(handler)).toBeTruthy()
+    const guard = handler.indexOf('if (drag.current)')
+    expect(handler.indexOf('setReleased(true)')).toBeGreaterThan(guard)
+    // and the attempt counter is inside the same guard, or a bare tap would count
+    expect(handler.indexOf('setAttempts')).toBeGreaterThan(guard)
   })
 
   it('the turn is applied at most once per solution', () => {

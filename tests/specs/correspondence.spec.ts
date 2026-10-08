@@ -57,13 +57,20 @@ function sizeOf(angle: { vertex: Point; prev: Point; next: Point }): number {
  * is the point: the string is what reaches the browser, and a malformed one moves
  * the side off screen while every geometric property stays perfectly true.
  *
+ * A CSS transform is written outermost first and applied back to front, so
+ * `translate(to) rotate(deg) translate(from)` first moves by the second
+ * translate, then rotates, then moves by the first. Getting that backwards here
+ * was worth the trouble: it is the only reason to be sure the two moves are in
+ * the order the string implies.
+ *
  * Returns null rather than throwing, so an unreadable string fails as a named
  * expectation instead of a stack trace.
  */
 function applyCss(point: Point, css: string): Point | null {
-  const moves = [...css.matchAll(/translate\(\s*(-?[\d.]+)px,\s*(-?[\d.]+)px\s*\)/g)].map(
-    (m) => ({ x: Number(m[1]), y: Number(m[2]) }),
-  )
+  const moves = [...css.matchAll(/translate\(\s*(-?[\d.]+)px,\s*(-?[\d.]+)px\s*\)/g)].map((m) => ({
+    x: Number(m[1]),
+    y: Number(m[2]),
+  }))
   const turn = /rotate\((-?[\d.]+)deg\)/.exec(css)
   if (!turn || moves.length !== 2) return null
 
@@ -71,22 +78,44 @@ function applyCss(point: Point, css: string): Point | null {
   const cos = Math.cos(rad)
   const sin = Math.sin(rad)
 
-  // The string is written outermost-first, so it is applied back to front.
-  const undo = (p: Point) => ({ x: p.x - moves[0].x, y: p.y - moves[0].y })
-  const spin = (p: Point) => ({ x: p.x * cos - p.y * sin, y: p.x * sin + p.y * cos })
-  const redo = (p: Point) => ({ x: p.x + moves[1].x, y: p.y + moves[1].y })
-
-  return redo(spin(undo(point)))
+  const inner = { x: point.x + moves[1].x, y: point.y + moves[1].y }
+  const spun = { x: inner.x * cos - inner.y * sin, y: inner.x * sin + inner.y * cos }
+  return { x: spun.x + moves[0].x, y: spun.y + moves[0].y }
 }
 
-const near = (p: Point | null, q: Point) =>
-  p !== null && Math.hypot(p.x - q.x, p.y - q.y) < 0.001
+/**
+ * Half a pixel.
+ *
+ * The production transform rounds its degrees to two decimals so the string does
+ * not carry float noise into a file people read. Over the longest lever arm on
+ * this canvas that is a shade over 0.05px of error, so a tolerance of a
+ * thousandth of a pixel would be testing the rounding rather than the geometry.
+ * Half a pixel is still far finer than anything the child can see.
+ */
+const near = (p: Point | null, q: Point) => p !== null && Math.hypot(p.x - q.x, p.y - q.y) < 0.5
+
+/** The two shapes, placed exactly as the scene places them. */
+const LEFT = { x: 250, y: 280 }
+const RIGHT = { x: 850, y: 280 }
 
 const placed = CORRESPONDENCE_PAIRS.map((pair) => {
-  const a = applyTransform(pair.a.vertices, identity(280, 300))
-  const b = applyTransform(pair.b.vertices, identity(820, 300))
+  const a = applyTransform(pair.a.vertices, identity(LEFT.x, LEFT.y))
+  const b = applyTransform(pair.b.vertices, identity(RIGHT.x, RIGHT.y))
   return { pair, corr: correspondence(a, b), a, b }
 })
+
+/**
+ * The two thresholds, in one place.
+ *
+ * These are the floor for telling parts apart, not a target. The first pair on
+ * this board was drawn by eye and then measured, and it came out with two sides
+ * 1.3px apart and two angles 3.2 degrees apart — at which point "which side is
+ * the partner" has several right answers and the child is guessing. The shapes
+ * now in use manage 46px and 18 degrees on the triangle and 27px and 18 on the
+ * quad, so there is headroom above these lines before it matters again.
+ */
+const SIDE_GAP = 25
+const ANGLE_GAP = 15
 
 // ── the shapes are legible ────────────────────────────────
 
@@ -136,7 +165,7 @@ describe('every shape has parts the child can tell apart', () => {
       )
       for (let i = 0; i < ls.length; i++) {
         for (let j = i + 1; j < ls.length; j++) {
-          if (Math.abs(ls[i] - ls[j]) < 12) clashes.push(`${p.id} ${i}/${j}`)
+          if (Math.abs(ls[i] - ls[j]) < SIDE_GAP) clashes.push(`${p.id} ${i}/${j}`)
         }
       }
     }
@@ -149,7 +178,7 @@ describe('every shape has parts the child can tell apart', () => {
       const as = corr.angles.map((g) => sizeOf(g.a))
       for (let i = 0; i < as.length; i++) {
         for (let j = i + 1; j < as.length; j++) {
-          if (Math.abs(as[i] - as[j]) < 10) clashes.push(`${i}/${j}`)
+          if (Math.abs(as[i] - as[j]) < ANGLE_GAP) clashes.push(`${i}/${j}`)
         }
       }
     }
@@ -157,12 +186,13 @@ describe('every shape has parts the child can tell apart', () => {
   })
 
   it('keeps both shapes well inside the canvas', () => {
+    // The captions sit at y = 554, so nothing may reach the caption line.
     for (const { a, b } of placed) {
       for (const p of [...a, ...b]) {
-        expect(p.x).toBeGreaterThan(20)
-        expect(p.x).toBeLessThan(1080)
-        expect(p.y).toBeGreaterThan(20)
-        expect(p.y).toBeLessThan(500)
+        expect(p.x > 20 ? 'ok' : `x ${p.x}`).toBe('ok')
+        expect(p.x < 1080 ? 'ok' : `x ${p.x}`).toBe('ok')
+        expect(p.y > 20 ? 'ok' : `y ${p.y}`).toBe('ok')
+        expect(p.y < 540 ? 'ok' : `y ${p.y}`).toBe('ok')
       }
     }
   })
@@ -245,28 +275,50 @@ describe('a part travels onto its partner exactly', () => {
   })
 
   it('carries an angle onto the corresponding angle', () => {
+    /*
+     * The claim is that the wedge lands on the wedge, not that the corner called
+     * "prev" lands on the corner called "prev".
+     *
+     * Those differ on the mirrored pair, and the difference is real geometry: a
+     * reflection is not a rotation, so under any rotation the two rays swap
+     * roles. The transform lines the bisectors up, which puts the whole region
+     * exactly on top because a wedge is symmetric about its bisector — and it is
+     * the only rotation that does. So the two outgoing rays have to land on the
+     * two incoming rays in SOME order, and which order is the thing worth pinning
+     * down rather than assuming.
+     */
     for (const { corr } of placed) {
       corr.angles.forEach((g) => {
         const css = angleTransform(g.a, g.b)
-        expect(near(applyCss(g.a.vertex, css), g.b.vertex)).toBe(true)
-        expect(near(applyCss(g.a.prev, css), g.b.prev)).toBe(true)
-        expect(near(applyCss(g.a.next, css), g.b.next)).toBe(true)
+        const corner = applyCss(g.a.vertex, css)!
+        expect(near(corner, g.b.vertex)).toBe(true)
+
+        const rayTo = (from: Point, to: Point) => Math.atan2(to.y - from.y, to.x - from.x)
+        const movedPrev = applyCss(g.a.prev, css)!
+        const movedNext = applyCss(g.a.next, css)!
+        const moved = [rayTo(corner, movedPrev), rayTo(corner, movedNext)]
+        const wanted = [rayTo(g.b.vertex, g.b.prev), rayTo(g.b.vertex, g.b.next)]
+        const same = (x: number, y: number) => Math.abs(x - y) < 0.02
+        const straight = same(moved[0], wanted[0]) && same(moved[1], wanted[1])
+        const swapped = same(moved[0], wanted[1]) && same(moved[1], wanted[0])
+        expect(straight || swapped ? 'ok' : `rays land on neither side: ${css}`).toBe('ok')
       })
     }
   })
 
   it('keeps the travelling part the same size it started', () => {
-    // A transform that also scaled would arrive looking smaller and the child
+    // A transform that also scaled would arrive looking smaller, and the child
     // would read that as the sides being different lengths.
+    const scaled: string[] = []
     for (const { corr } of placed) {
       corr.sides.forEach((s) => {
-        const css = sideTransform(s.a, s.b)
-        expect(css).not.toContain('scale')
+        if (sideTransform(s.a, s.b).includes('scale')) scaled.push('side')
       })
       corr.angles.forEach((g) => {
-        expect(angleTransform(g.a, g.b)).not.toContain('scale')
+        if (angleTransform(g.a, g.b).includes('scale')) scaled.push('angle')
       })
     }
+    expect(scaled.join(', ') || 'ok').toBe('ok')
   })
 
   it('turns the wedge by a whole number of degrees', () => {
@@ -281,7 +333,7 @@ describe('a part travels onto its partner exactly', () => {
       }
     }
     expect(degrees.length > 0).toBe(true)
-    for (const d of degrees) expect(d).toMatch(/^-?\d+(\.\d{1,2})?$/)
+    for (const d of degrees) expect(/^-?\d+(\.\d{1,2})?$/.test(d) ? 'ok' : d + ' decimals').toBe('ok')
   })
 })
 
@@ -299,21 +351,66 @@ describe('the angle wedge is a drawable path', () => {
     }
   })
 
-  it('draws the same wedge for a pair, mirrored only in where it sits', () => {
-    // The sweep flag follows the sign of the turn between the rays, so the same
-    // corner drawn on both shapes comes out the same way round. A wrong flag
-    // would fill the reflex and hide the very angle being asked about.
-    const flags: string[] = []
+  it('fills the interior of the angle, not its outside', () => {
+    // Every shape here is convex, so the angle is always the smaller one between
+    // the two rays and the arc must be the minor arc — large-arc-flag 0. If that
+    // flag ever came back 1 the wedge would fill the reflex and hide the very
+    // angle being asked about, which is the failure this catches.
+    //
+    // The sweep flag is deliberately NOT required to match between the two
+    // shapes. A mirrored pair runs the other way round, so the sign of the turn
+    // flips and the flag flips with it; that is correct, and it is what keeps
+    // the filled region the interior one on both sides.
+    const wrongArc: string[] = []
+    let checked = 0
+    for (const { corr } of placed) {
+      corr.angles.forEach((g, i) => {
+        checked++
+        if (!/A 60 60 0 0 [01]/.test(angleWedge(g.a, 60))) wrongArc.push(String(i))
+      })
+    }
+    expect(checked > 0).toBe(true)
+    expect(wrongArc.join(', ') || 'ok').toBe('ok')
+  })
+
+  it('puts the arc ends exactly on the two rays', () => {
+    // A wedge whose ends drift off the rays is not the corner at all, and the
+    // child would be comparing two regions that were never the same thing.
+    /*
+ * Does a point lie on the ray from `corner` towards `aim`?
+ *
+ * Tested by the cross product rather than by distance: the arc's ends are a fixed
+ * radius from the corner while the neighbouring corners are a whole side away,
+ * so comparing lengths would fail on every angle.
+ */
+function onRay(p: number[], corner: Point, aim: Point): boolean {
+  const ux = p[0] - corner.x
+  const uy = p[1] - corner.y
+  const vx = aim.x - corner.x
+  const vy = aim.y - corner.y
+  const cross = ux * vy - uy * vx
+  const along = ux * vx + uy * vy
+  const scale = Math.hypot(vx, vy) || 1
+  return Math.abs(cross) / scale < 0.01 && along > 0
+}
+
+    const drift: string[] = []
     for (const { corr } of placed) {
       for (const g of corr.angles) {
-        const fa = /A 60 60 0 \d \d/.exec(angleWedge(g.a, 60))
-        const fb = /A 60 60 0 \d \d/.exec(angleWedge(g.b, 60))
-        if (!fa || !fb) return
-        flags.push(fa[0] === fb[0] ? 'same' : 'differs')
+        const d = angleWedge(g.a, 60)
+        const n = (d.match(/-?\d+(?:\.\d+)?/g) || []).map(Number)
+        // M vx vy   L x1 y1   A r r 0 largeArc sweep x2 y2   Z
+        //      0  1      2  3      4 5 6      7       8  9 10
+        if (n.length < 11) {
+          drift.push('unreadable: ' + d)
+          continue
+        }
+        if (Math.hypot(n[0] - g.a.vertex.x, n[1] - g.a.vertex.y) > 0.01) drift.push('bad start')
+        if (!onRay([n[2], n[3]], g.a.vertex, g.a.prev)) drift.push('first end off-ray')
+        if (!onRay([n[9], n[10]], g.a.vertex, g.a.next)) drift.push('second end off-ray')
       }
     }
-    expect(flags.length > 0).toBe(true)
-    expect(flags.filter((f) => f === 'differs').join(', ') || 'ok').toBe('ok')
+    expect(drift.join(', ') || 'ok').toBe('ok')
   })
 })
 
@@ -376,7 +473,10 @@ describe('the child is never asked to turn anything', () => {
     // Two pairs side by side would need the child to hold four figures in mind
     // and decide which two are the question, which is not what this unit is for.
     const scene = source('src/components/CorrespondenceScene.tsx')
-    const shapes = (scene.match(/corr-shape/g) || []).length
+    const shapes = (scene.match(/className="corr-shape /g) || []).length
     expect(shapes).toBe(2)
   })
 })
+
+const { report } = await import('../harness/spec.mjs')
+report()

@@ -269,6 +269,35 @@ describe('correspondence stage renders', () => {
     expect((html.match(/class="corr-tap"/g) || []).length).toBe(3)
   })
 
+  /*
+   * A right answer has to show itself.
+   *
+   * The marks used to be drawn only once a whole pass had finished, so a child
+   * who tapped all three points of the triangle correctly ended up looking at a
+   * screen indistinguishable from the one they started on: nothing said they were
+   * right except the highlight jumping somewhere else. Nothing is found yet on
+   * the first question, so a fresh pair of marks here is the whole difference
+   * between "you got it" and silence.
+   */
+  it('has nothing marked before anything has been found', () => {
+    expect(html.includes('corr-mark')).toBeFalsy()
+    expect(html.includes('corr-fresh')).toBeFalsy()
+  })
+
+  it('will mark a pair the moment one is found', () => {
+    // The layers have to be rendered from a found count rather than a phase, or
+    // the mark cannot appear until the pass is over. Checked in the source
+    // because the state that drives it lives in the hook.
+    const scene = source('src/components/CorrespondenceScene.tsx')
+    expect(scene.includes('foundPoints')).toBeTruthy()
+    expect(scene.includes('foundSides')).toBeTruthy()
+    expect(scene.includes('foundAngles')).toBeTruthy()
+    // and the marks must be sliced to that count, not gated on the phase
+    expect(scene.includes('corr.vertices.slice(0, foundPoints)')).toBeTruthy()
+    expect(scene.includes('corr.sides.slice(0, foundSides)')).toBeTruthy()
+    expect(scene.includes("phase !== 'points' &&\n        corr.vertices.map")).toBeFalsy()
+  })
+
   it('gives every target a corner to aim at', () => {
     // The tap targets are invisible, so a target with no coordinate is a target
     // that cannot be pressed. cx is required for a circle to exist at all.

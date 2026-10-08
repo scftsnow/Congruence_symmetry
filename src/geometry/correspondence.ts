@@ -120,20 +120,29 @@ export function angleWedge(angle: Angle, radius: number): string {
  * one shape travel and fit the other, which is a stronger claim than being
  * told the two numbers match.
  *
- * The transform is a rotation about the first corner followed by a move to the
- * second, which is the same thing the congruence stage does to a whole shape.
- * Written as a CSS transform string so the browser interpolates it.
+ * WHY IT LINES UP ON THE BISECTOR, NOT ON A RAY
+ * ----------------------------------------------
+ * The obvious move is to rotate until one ray lands on its partner. That works
+ * for a rotated pair and silently fails for a mirrored one, because a reflection
+ * is not a rotation: the turn from the first ray round to the second goes the
+ * other way round in the mirror image. Aligning one ray then leaves the wedge
+ * mirrored, and it arrives looking as though it does not fit — on the one pair
+ * where the child most needs to see that it does.
+ *
+ * A wedge is symmetric about its own bisector, so turning the bisector onto the
+ * other bisector puts the whole region exactly on top, mirrored pair or not. The
+ * bisector is the mean of the two ray directions taken the short way round,
+ * which for a convex corner is the middle of the interior angle.
  */
 export function angleTransform(from: Angle, to: Angle): string {
-  const fromRay = Math.atan2(from.prev.y - from.vertex.y, from.prev.x - from.vertex.x)
-  const toRay = Math.atan2(to.prev.y - to.vertex.y, to.prev.x - to.vertex.x)
+  const bisector = (angle: Angle) => {
+    const a1 = Math.atan2(angle.prev.y - angle.vertex.y, angle.prev.x - angle.vertex.x)
+    const a2 = Math.atan2(angle.next.y - angle.vertex.y, angle.next.x - angle.vertex.x)
+    return a1 + normalize(a2 - a1) / 2
+  }
 
-  let rotation = toRay - fromRay
-  while (rotation <= -Math.PI) rotation += 2 * Math.PI
-  while (rotation > Math.PI) rotation -= 2 * Math.PI
-
-  const deg = (rotation * 180) / Math.PI
-  return `translate(${to.vertex.x}px, ${to.vertex.y}px) rotate(${deg}deg) translate(${-from.vertex.x}px, ${-from.vertex.y}px)`
+  const rotation = normalize(bisector(to) - bisector(from))
+  return `translate(${to.vertex.x}px, ${to.vertex.y}px) rotate(${deg(rotation)}deg) translate(${-from.vertex.x}px, ${-from.vertex.y}px)`
 }
 
 /**
@@ -142,15 +151,34 @@ export function angleTransform(from: Angle, to: Angle): string {
  * Same idea as angleTransform, for a line. The side is drawn at the first
  * position and this moves it onto the second, where it lies exactly along the
  * corresponding side — the two have the same length, which is the point.
+ *
+ * Turning the first end onto the first end and the heading onto the heading is
+ * enough here, mirror or no mirror: two equal-length vectors always differ by a
+ * rotation, whatever it was that did the moving.
  */
 export function sideTransform(from: [Point, Point], to: [Point, Point]): string {
-  const fromAngle = Math.atan2(from[1].y - from[0].y, from[1].x - from[0].x)
-  const toAngle = Math.atan2(to[1].y - to[0].y, to[1].x - to[0].x)
+  const heading = (side: [Point, Point]) =>
+    Math.atan2(side[1].y - side[0].y, side[1].x - side[0].x)
 
-  let rotation = toAngle - fromAngle
-  while (rotation <= -Math.PI) rotation += 2 * Math.PI
-  while (rotation > Math.PI) rotation -= 2 * Math.PI
+  const rotation = normalize(heading(to) - heading(from))
+  return `translate(${to[0].x}px, ${to[0].y}px) rotate(${deg(rotation)}deg) translate(${-from[0].x}px, ${-from[0].y}px)`
+}
 
-  const deg = (rotation * 180) / Math.PI
-  return `translate(${to[0].x}px, ${to[0].y}px) rotate(${deg}deg) translate(${-from[0].x}px, ${-from[0].y}px)`
+/** Fold an angle into (-π, π]. */
+function normalize(angle: number): number {
+  let a = angle
+  while (a <= -Math.PI) a += 2 * Math.PI
+  while (a > Math.PI) a -= 2 * Math.PI
+  return a
+}
+
+/**
+ * Degrees, with the arithmetic noise taken off.
+ *
+ * The transform string is read by people as well as by the browser, and a
+ * `90.00000000000001deg` in it is both noise and a distraction. Two decimals is
+ * far finer than one pixel on this canvas.
+ */
+function deg(radians: number): number {
+  return Math.round(((radians * 180) / Math.PI) * 100) / 100
 }

@@ -338,6 +338,24 @@ describe('tests live where they are run', () => {
       const bare = /throw new Error\(/.test(body)
       expect(bare ? 'use expect() so the failure gets a name' : 'ok').toBe('ok')
     })
+
+    /*
+     * A spec must end by calling report().
+     *
+     * An edit dropped this call from the correspondence spec. The file ran, every
+     * assertion passed, nothing was printed and the process exited 0 — so the
+     * runner saw a clean exit and reported the spec green. Thirty-odd checks,
+     * including the ones that would have caught a shape whose sides were two
+     * pixels apart, all quietly gone.
+     *
+     * The runner now fails a silent spec as well, but the mistake is far easier
+     * to catch here, at the point of the edit, than there after the fact.
+     */
+    it(`${rel(spec)} ends by reporting`, () => {
+      const body = read(spec)
+      const calls = /await import\('\.\.\/harness\/spec\.mjs'\)\s*\n\s*report\(\)/.test(body)
+      expect(calls ? 'ok' : 'a spec with no report() call cannot fail').toBe('ok')
+    })
   }
 
   for (const rule of TEST_PLACEMENT.deprecated) {

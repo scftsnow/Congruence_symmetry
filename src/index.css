@@ -564,13 +564,45 @@ body {
 .corr-mark {
   fill: #e63946;
   stroke: #fff;
-  stroke-width: 2.5;
+  stroke-width: 3;
+}
+
+/*
+ * The burst on a part that has just been found.
+ *
+ * This exists because the first version drew nothing at all until a whole pass
+ * had finished, so a child who tapped the right point three times in a row saw
+ * no difference between right and wrong — the only clue was the highlight
+ * jumping elsewhere. A right answer now announces itself at the point it was
+ * given, on both shapes, and then fades.
+ */
+.corr-fresh {
+  fill: none;
+  stroke: #2a9d8f;
+  stroke-width: 6;
+  pointer-events: none;
+  animation: corr-found 700ms ease-out forwards;
+}
+
+.corr-fresh--side {
+  stroke-linecap: round;
+}
+
+@keyframes corr-found {
+  0% {
+    opacity: 0.95;
+    stroke-width: 12;
+  }
+  100% {
+    opacity: 0;
+    stroke-width: 2;
+  }
 }
 
 /* Two sides that correspond, one on each shape. */
 .corr-pairside line {
   stroke: #2a9d8f;
-  stroke-width: 7;
+  stroke-width: 9;
   stroke-linecap: round;
 }
 
@@ -629,7 +661,7 @@ body {
 .corr-tap {
   fill: transparent;
   stroke: transparent;
-  stroke-width: 48;
+  stroke-width: 56;
   cursor: pointer;
   pointer-events: all;
   touch-action: manipulation;

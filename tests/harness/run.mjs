@@ -129,8 +129,33 @@ for (const spec of specs) {
   // pass through the spec's own report
   if (stdout) console.log(stdout.replace(/\n$/, ''))
 
+  /*
+   * A spec that printed no summary is a spec that cannot fail.
+   *
+   * This actually happened: an edit dropped the trailing `report()` call, so the
+   * file ran every assertion, all of them passed, printed nothing at all and
+   * exited 0 — and this runner reported success. Thirty-odd checks, including
+   * the ones that would have caught illegible shapes, silently gone.
+   *
+   * The runner's own header says a test that cannot fail is not a test. Holding
+   * this file to that is the whole point, so an absent summary is a failure
+   * rather than a shrug, and so is a summary of zero.
+   */
   const summary = stdout.match(/PASS (\d+)\s+FAIL (\d+)/)
-  if (summary) totalPass += Number(summary[1])
+  if (!summary) {
+    console.log('  FAIL silent: the spec printed no summary')
+    console.log('         Every spec must end with report(). Without it nothing is')
+    console.log('         printed and the file cannot fail, however good its checks are.')
+    failed.push(label + ' (silent)')
+    continue
+  }
+
+  totalPass += Number(summary[1])
+  if (Number(summary[1]) === 0) {
+    console.log('  FAIL silent: the spec reported zero assertions')
+    failed.push(label + ' (no assertions)')
+    continue
+  }
 
   if (run.status === 1) {
     failed.push(label)

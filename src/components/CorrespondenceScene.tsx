@@ -29,10 +29,10 @@ import { FIRST_SHAPE, SECOND_SHAPE } from './corrText'
 const W = 1100
 const H = 600
 /** far enough apart that neither shape reads as touching the other */
-const LEFT = { x: 280, y: 300 }
-const RIGHT = { x: 820, y: 300 }
+const LEFT = { x: 250, y: 280 }
+const RIGHT = { x: 850, y: 280 }
 /** radius of a drawn angle wedge, and the scale of the tap target around it */
-const WEDGE = 78
+const WEDGE = 90
 
 /** An angle, as geometry hands it over: the corner and the two either side. */
 type Angle3 = { vertex: Point; prev: Point; next: Point }
@@ -66,6 +66,20 @@ export function CorrespondenceScene({
   const flying = phase === 'compare' && flyStep < n * 2
   const target = phase === 'points' || phase === 'sides' || phase === 'angles' ? step : -1
 
+  /*
+   * What has been found, per kind.
+   *
+   * During a pass this is the step just completed, so a right answer is marked
+   * the instant it is given. The first version only drew the marks once a pass
+   * had finished, which meant that finding all three points of the triangle left
+   * the screen looking exactly as it had at the start: there was nothing at all
+   * to tell the child they were right except the highlight jumping somewhere
+   * else. Once the pass is over, every part is shown.
+   */
+  const foundPoints = phase === 'points' ? step : n
+  const foundSides = phase === 'sides' ? step : phase === 'points' ? 0 : n
+  const foundAngles = phase === 'angles' ? step : phase === 'compare' ? n : 0
+
   const fly: Flyable | null = !flying
     ? null
     : flyStep < n
@@ -84,32 +98,40 @@ export function CorrespondenceScene({
       <path className="corr-shape corr-shape--a" d={pointsToPath(a)} fill={pair.a.color} />
       <path className="corr-shape corr-shape--b" d={pointsToPath(b)} fill={pair.a.color} />
 
-      {/* what the earlier passes found stays on screen through the later ones */}
-      {phase !== 'points' &&
-        corr.vertices.map((v, i) => (
-          <g key={`p${i}`}>
-            <circle className="corr-mark" cx={v.a.x} cy={v.a.y} r={11} />
-            <circle className="corr-mark" cx={v.b.x} cy={v.b.y} r={11} />
-          </g>
-        ))}
-      {(phase === 'angles' || phase === 'compare') &&
-        corr.sides.map((s, i) => (
-          <g key={`s${i}`} className="corr-pairside">
-            <line x1={s.a[0].x} y1={s.a[0].y} x2={s.a[1].x} y2={s.a[1].y} />
-            <line x1={s.b[0].x} y1={s.b[0].y} x2={s.b[1].x} y2={s.b[1].y} />
-          </g>
-        ))}
-      {phase === 'compare' &&
-        corr.angles.map((g, i) => (
-          <g key={`g${i}`}>
-            <path className="corr-wedge" d={angleWedge(g.a, WEDGE * 0.72)} />
-            <path className="corr-wedge" d={angleWedge(g.b, WEDGE * 0.72)} />
-          </g>
-        ))}
+      {/* what has been found so far stays on screen, pass by pass */}
+      {corr.vertices.slice(0, foundPoints).map((v, i) => (
+        <g key={`p${i}`}>
+          <circle className="corr-mark" cx={v.a.x} cy={v.a.y} r={13} />
+          <circle className="corr-mark" cx={v.b.x} cy={v.b.y} r={13} />
+          {/* the one just found, so a right answer is unmistakable */}
+          {i === foundPoints - 1 && <circle className="corr-fresh" cx={v.a.x} cy={v.a.y} r={26} />}
+          {i === foundPoints - 1 && <circle className="corr-fresh" cx={v.b.x} cy={v.b.y} r={26} />}
+        </g>
+      ))}
+      {corr.sides.slice(0, foundSides).map((s, i) => (
+        <g key={`s${i}`} className="corr-pairside">
+          <line x1={s.a[0].x} y1={s.a[0].y} x2={s.a[1].x} y2={s.a[1].y} />
+          <line x1={s.b[0].x} y1={s.b[0].y} x2={s.b[1].x} y2={s.b[1].y} />
+          {i === foundSides - 1 && (
+            <path className="corr-fresh corr-fresh--side" d={`M ${s.a[0].x} ${s.a[0].y} L ${s.a[1].x} ${s.a[1].y}`} />
+          )}
+          {i === foundSides - 1 && (
+            <path className="corr-fresh corr-fresh--side" d={`M ${s.b[0].x} ${s.b[0].y} L ${s.b[1].x} ${s.b[1].y}`} />
+          )}
+        </g>
+      ))}
+      {corr.angles.slice(0, foundAngles).map((g, i) => (
+        <g key={`g${i}`}>
+          <path className="corr-wedge" d={angleWedge(g.a, WEDGE * 0.72)} />
+          <path className="corr-wedge" d={angleWedge(g.b, WEDGE * 0.72)} />
+          {i === foundAngles - 1 && <path className="corr-fresh" d={angleWedge(g.a, WEDGE * 0.9)} />}
+          {i === foundAngles - 1 && <path className="corr-fresh" d={angleWedge(g.b, WEDGE * 0.9)} />}
+        </g>
+      ))}
 
       {/* the part being asked about, lit on the left shape */}
       {target >= 0 && phase === 'points' && (
-        <circle className="corr-target" cx={corr.vertices[target].a.x} cy={corr.vertices[target].a.y} r={25} />
+        <circle className="corr-target" cx={corr.vertices[target].a.x} cy={corr.vertices[target].a.y} r={30} />
       )}
       {target >= 0 && phase === 'sides' && (
         <line
@@ -130,7 +152,7 @@ export function CorrespondenceScene({
       {/* the taps, and only the ones belonging to the pass in progress */}
       {phase === 'points' &&
         corr.vertices.map((v, i) => (
-          <circle key={`h${i}`} className="corr-tap" cx={v.b.x} cy={v.b.y} r={36} onClick={() => onAnswer(i)} />
+          <circle key={`h${i}`} className="corr-tap" cx={v.b.x} cy={v.b.y} r={44} onClick={() => onAnswer(i)} />
         ))}
       {phase === 'sides' &&
         corr.sides.map((s, i) => (

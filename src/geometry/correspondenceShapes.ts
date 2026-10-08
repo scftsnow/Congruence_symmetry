@@ -14,16 +14,22 @@
  * So no square, no rectangle, no isosceles triangle, no regular polygon. The
  * congruence board already rejected all of those for the same reason.
  *
- * HOW A PAIR IS BUILT
- * -------------------
- * Each pair is one shape and a transform of it. The transform is what makes
- * the correspondence non-obvious — the same shape turned round or mirrored —
- * and it is also what fixes the answer, since vertex i of the original is the
- * point that lands on vertex i of the copy.
+ * HOW BIG THE GAPS HAVE TO BE
+ * --------------------------
+ * The first pair here was drawn by eye and measured afterwards: its four sides
+ * came out within 1.3px of each other and two of its angles within 3.2 degrees.
+ * At the size it was drawn on screen that is a smudge, and "which side is the
+ * partner" had no answer — several sides would do. Both shapes below were found
+ * by searching for the widest spread of side lengths and of angles that still
+ * fits a sensible box, and the spec now refuses anything under a 25px gap
+ * between the two closest sides or a 15 degree gap between the two closest
+ * angles. Those numbers are the floor, not a target.
  *
- * The pairs get harder: three corners, then four, then four with a mirror,
- * which is the hardest thing on the board because a mirrored shape reads as
- * "the same shape" while its corners run the other way round.
+ * A quad cannot spread as far as a triangle, because its four angles sum to 360
+ * and its adjacent-arc sums pair to 360 as well. Pushing all four apart means
+ * pushing two of them well below and well above 90 degrees, so the quad settles
+ * for a 27px and an 18 degree gap where the triangle manages 46px and 18. That
+ * is the shape of the problem, not a choice.
  */
 
 import type { Point, Shape } from './types'
@@ -33,25 +39,30 @@ function shape(id: string, name: string, color: string, vertices: Point[]): Shap
   return { id, name, kind: 'custom', color, vertices }
 }
 
-/** A scalene triangle: three unequal sides, three unequal angles. */
+/**
+ * A scalene triangle: three clearly unequal sides, three clearly unequal angles.
+ *
+ * Ordinary enough to look like something a child would draw, which matters
+ * because a needle with a 121 degree corner spreads well but reads as a trick.
+ */
 const TRIANGLE: Point[] = [
-  { x: 0, y: -60 },
-  { x: 70, y: 50 },
-  { x: -50, y: 40 },
+  { x: -105, y: -140 },
+  { x: 105, y: 110 },
+  { x: -105, y: 140 },
 ]
 
 /**
  * An irregular quadrilateral.
  *
- * A trapezoid was considered and rejected: its two parallel sides make it
- * look like it has a "right way up", which gives the child a clue that has
- * nothing to do with correspondence.
+ * A trapezoid was considered and rejected: its two parallel sides make it look
+ * like it has a "right way up", which gives the child a clue that has nothing to
+ * do with correspondence.
  */
 const QUADRILATERAL: Point[] = [
-  { x: -60, y: -40 },
-  { x: 50, y: -50 },
-  { x: 70, y: 40 },
-  { x: -40, y: 60 },
+  { x: -14, y: -110 },
+  { x: 106, y: -69 },
+  { x: 141, y: 111 },
+  { x: -141, y: 111 },
 ]
 
 export interface CorrespondencePair {

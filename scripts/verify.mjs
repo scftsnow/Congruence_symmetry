@@ -91,6 +91,37 @@ for (const [label, s] of [
   ok(label, bundle.includes(s), s)
 }
 
+/*
+ * The correspondence unit, checked for arriving whole.
+ *
+ * This is here because of the flower: a petal loop advanced by two instead of one,
+ * so every shape that used it rendered empty — and lint, the tests, the type
+ * checker and the build all passed. A screen can be wired into the app, styled,
+ * type-checked and bundled and still show nothing. What proves otherwise is
+ * looking in the artefact, so the sentences this unit speaks are searched for in
+ * the built bundle rather than trusted from the source.
+ *
+ * expected.json is read again here rather than reused from below, because the
+ * bundle is checked before that file is parsed.
+ */
+const corr = JSON.parse(read('scripts/expected.json')).correspondence
+for (const [label, s] of [
+  ['correspondence scene', 'corr-flyline'],
+  ['correspondence taps', 'corr-tap'],
+  ['correspondence target', 'corr-target'],
+  ['correspondence title', corr.title],
+  ['shape captions', corr.firstShape],
+  ['second shape caption', corr.secondShape],
+  ['conclusion', corr.conclusion],
+  ['side in flight', corr.movingSide],
+  ['angle in flight', corr.movingAngle],
+  ...corr.pairNotes.map((n) => ['pair note', n]),
+  ...corr.asks.map((n) => ['ask', n]),
+  ...corr.hints.map((n) => ['hint', n]),
+]) {
+  ok(label, bundle.includes(s), s)
+}
+
 // 5. styles
 section('5. css styles')
 for (const [label, s] of [
@@ -103,6 +134,11 @@ for (const [label, s] of [
   ['tap token', '--tap'],
   ['pop keyframes', '@keyframes pop'],
   ['disabled tool button', '.mini-btn:disabled'],
+  ['correspondence target', '.corr-target'],
+  ['correspondence taps', '.corr-tap'],
+  ['correspondence travel', '.corr-fly'],
+  ['correspondence dots', '.corr-dot'],
+  ['pulse keyframes', '@keyframes corr-pulse'],
 ]) {
   ok(label, css.includes(s), s)
 }
@@ -127,6 +163,33 @@ ok('verdict wording', wordsSrc.includes(ui.congruentMsg), ui.congruentMsg)
 ok('direction lesson', wordsSrc.includes(ui.directionMsg), ui.directionMsg)
 ok('drag hint', stageSrc.includes(ui.dragHint), ui.dragHint)
 for (const label of expected.toolLabels) ok('tool label', stageSrc.includes(label), label)
+
+// The correspondence unit. Its sentences live in corrText.ts apart from the
+// screen, so the wording is checked where it is written rather than where it is
+// drawn — reading it from the screen used to work until the file was split, and
+// then failed for the wrong reason.
+const corrSrc = read('src/components/corrText.ts')
+const corrStageSrc = read('src/modes/CorrespondenceStage.tsx')
+const corrShapesSrc = read('src/geometry/correspondenceShapes.ts')
+const c = expected.correspondence
+ok('correspondence title', corrStageSrc.includes(c.title), c.title)
+ok('correspondence unit row', appSrc.includes(c.unitRow), c.unitRow)
+ok('shape captions', corrSrc.includes(c.firstShape) && corrSrc.includes(c.secondShape))
+ok('conclusion wording', corrSrc.includes(c.conclusion), c.conclusion)
+for (const n of c.asks) ok('ask', corrSrc.includes(n), n)
+for (const n of c.hints) ok('hint', corrSrc.includes(n), n)
+for (const n of c.pairNotes) ok('pair note', corrShapesSrc.includes(n), n)
+// No length and no angle size is quoted anywhere in the unit. A figure the child
+// cannot produce with their own hands is one they can only be told, and degrees
+// belong to a later unit in fifth grade anyway.
+ok('no degree is quoted', !/[0-9]+\s*도/.test(corrSrc))
+ok('no length is quoted', !/[0-9]+\s*(cm|mm|px)/.test(corrSrc))
+// No turn control reappears. Direction was settled in the congruence unit.
+const corrHookSrc = read('src/modes/useCorrespondence.ts')
+ok(
+  'no rotate or flip control',
+  !/onRotate|onFlip|rotateBy/.test(corrStageSrc) && !/onRotate|onFlip|rotateBy/.test(corrHookSrc),
+)
 
 // No angle is ever named. "돌려서 겹쳤어" reports that the system turned the
 // shape; saying 90 or 270 would hand over the answer to the next question.

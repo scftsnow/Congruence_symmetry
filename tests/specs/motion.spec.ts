@@ -48,19 +48,19 @@ describe('the shape is drawn in its own coordinates so CSS can move it', () => {
   it('the outline is the shape local vertices, not screen coordinates', () => {
     // Drawn in screen coordinates there is nothing to transition: the path
     // changes and the shape is somewhere else next frame.
-    const parts = source('src/components/BoardParts.tsx')
+    const parts = source('src/components/BoardShapeView.tsx')
     expect(parts.includes('pointsToPath(item.shape.vertices)')).toBeTruthy()
   })
 
   it('the view does not recompute screen points', () => {
-    const view = code('src/components/BoardParts.tsx')
+    const view = code('src/components/BoardShapeView.tsx')
     // shapePoints is still used by the overlay, which measures real geometry.
     // What must not happen is the view building its own outline from it.
     expect(view.includes('pointsToPath(shapePoints(')).toBeFalsy()
   })
 
   it('position, rotation and mirror are all CSS transforms', () => {
-    const view = source('src/components/BoardParts.tsx')
+    const view = source('src/components/BoardShapeView.tsx')
     expect(view.includes('translate(')).toBeTruthy()
     expect(view.includes('rotate(')).toBeTruthy()
     // the mirror, so a flipped pair visibly turns over
@@ -70,7 +70,7 @@ describe('the shape is drawn in its own coordinates so CSS can move it', () => {
   it('the label does not spin with its shape', () => {
     // A syllable that rotates is no longer a name for the shape, and the child
     // cannot point at 가 if 가 is upside down.
-    const parts = source('src/components/BoardParts.tsx')
+    const parts = source('src/components/BoardShapeView.tsx')
     const view = parts.slice(parts.indexOf('export function BoardShapeView'))
 
     const inner = view.slice(0, view.indexOf('</g>') + 4)
@@ -82,12 +82,12 @@ describe('the shape is drawn in its own coordinates so CSS can move it', () => {
 // ── the motion ───────────────────────────────────────────
 describe('a turn is animated', () => {
   it('the transform is transitioned', () => {
-    expect(/\.board-shape\s*\{[^}]*transition/.test(source('src/index.css'))).toBeTruthy()
+    expect(/\.board-shape\s*\{[^}]*transition/.test(source('src/styles/board.css'))).toBeTruthy()
   })
 
   it('a quarter turn is long enough to follow', () => {
     // Under 300ms it reads as a jump, which is the failure this exists to fix.
-    const css = source('src/index.css')
+    const css = source('src/styles/board.css')
     const match = css.match(/\.board-shape\s*\{[^}]*transform\s+(\d+)ms/)
     expect(match ? Number(match[1]) > 300 : false).toBeTruthy()
   })
@@ -95,13 +95,13 @@ describe('a turn is animated', () => {
   it('the whole transform moves, not just the rotation', () => {
     // A turn also carries the shape onto its partner. Splitting the two would
     // show the shape teleport and then spin, which is two motions instead of one.
-    expect(/transform\s+\d+ms/.test(source('src/index.css'))).toBeTruthy()
+    expect(/transform\s+\d+ms/.test(source('src/styles/board.css'))).toBeTruthy()
   })
 
   it('the transition is dropped while a finger is down', () => {
     // The position is part of the transform, so transitioning it makes the shape
     // lag behind a moving finger. This is the check that would have caught that.
-    expect(/\.board-shape--dragging\s*\{[^}]*transition:\s*opacity/.test(source('src/index.css'))).toBe(
+    expect(/\.board-shape--dragging\s*\{[^}]*transition:\s*opacity/.test(source('src/styles/board.css'))).toBe(
       true,
     )
   })
@@ -127,7 +127,7 @@ describe('a turn is animated', () => {
   })
 
   it('the class is actually applied', () => {
-    const parts = source('src/components/BoardParts.tsx')
+    const parts = source('src/components/BoardShapeView.tsx')
     expect(parts.includes('board-shape--dragging')).toBeTruthy()
   })
 })
@@ -191,7 +191,7 @@ describe('the animation did not break the geometry', () => {
     // scale first, then rotate, then translate — which is exactly what
     // applyTransform does. Written any other way round, a turned shape lands
     // beside its partner instead of on it, and nothing throws.
-    const parts = source('src/components/BoardParts.tsx')
+    const parts = source('src/components/BoardShapeView.tsx')
     const transform = parts.match(/transform: `([^`]*)`/)?.[1] ?? ''
     expect(transform).toBeTruthy()
 

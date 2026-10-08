@@ -15,6 +15,10 @@
  * invited a comparison the child has no way to make. Two arrows stacked dead
  * centre and plainly on top of each other agree 58%, and a child told their
  * perfect stack was barely half right learns something false.
+ *
+ * The star burst used to live here too. It is in Celebration.tsx now: it is a
+ * reward for a correct answer, not a way of saying one, and the second unit
+ * needs it as well.
  */
 
 export type BannerTone = 'success' | 'hint' | 'neutral'
@@ -37,29 +41,5 @@ export function VerdictBanner({ tone, icon, parts }: VerdictBannerProps) {
         )}
       </span>
     </div>
-  )
-}
-
-/** The burst of stars shown once a new pair is registered. */
-export function Celebration({ x, y }: { x: number; y: number }) {
-  return (
-    <g className="celebrate" pointerEvents="none">
-      {Array.from({ length: 8 }).map((_, i) => {
-        const angle = (i * Math.PI) / 4
-        return (
-          <text
-            key={i}
-            x={x + Math.cos(angle) * 120}
-            y={y + Math.sin(angle) * 120}
-            fontSize="42"
-            textAnchor="middle"
-            className="celebrate__star"
-            style={{ animationDelay: `${i * 0.08}s` }}
-          >
-            ⭐
-          </text>
-        )
-      })}
-    </g>
   )
 }

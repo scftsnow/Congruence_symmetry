@@ -25,6 +25,7 @@ import {
   sideTransform,
 } from '../../src/geometry/correspondence'
 import { CORRESPONDENCE_PAIRS } from '../../src/geometry/correspondenceShapes'
+import { bannerFor } from '../../src/components/corrText'
 import { isSimplePolygon, polygonArea } from '../../src/geometry/overlap'
 import { applyTransform, identity } from '../../src/geometry/transforms'
 import type { Point } from '../../src/geometry/types'
@@ -94,6 +95,11 @@ function applyCss(point: Point, css: string): Point | null {
  */
 const near = (p: Point | null, q: Point) => p !== null && Math.hypot(p.x - q.x, p.y - q.y) < 0.5
 
+/** A source file, for the checks that are about how something is written. */
+function source(path: string): string {
+  return readFileSync(join(process.cwd(), path), 'utf8')
+}
+
 /** The two shapes, placed exactly as the scene places them. */
 const LEFT = { x: 250, y: 280 }
 const RIGHT = { x: 850, y: 280 }
@@ -136,6 +142,83 @@ describe('every shape has parts the child can tell apart', () => {
     // which, which is the entire question.
     const numeric = CORRESPONDENCE_PAIRS.map((p) => p.transformNote).filter((n) => /[0-9]/.test(n))
     expect(numeric.join(', ') || 'ok').toBe('ok')
+  })
+
+  /*
+   * The animation needs a sentence.
+   *
+   * A side used to lift off, cross and fit its partner while the banner said only
+   * "대응변을 옮겨 보고 있어요" — which describes what was happening, not what it
+   * means, and then the banner went back to the next question. Watching a thing
+   * fit is not the same as being told the two are the same, and the child was
+   * left to make the inference.
+   *
+   * So the claim arrives when the part lands, and stays long enough to read.
+   */
+  describe('the comparison says what it shows', () => {
+    const landedSide = bannerFor({
+      phase: 'compare',
+      wrong: false,
+      done: false,
+      flying: true,
+      flyingAngle: false,
+      landed: true,
+    })
+    const landedAngle = bannerFor({
+      phase: 'compare',
+      wrong: false,
+      done: false,
+      flying: true,
+      flyingAngle: true,
+      landed: true,
+    })
+
+    it('states the claim when a side lands', () => {
+      expect(landedSide.text).toBe('대응변의 길이가 같아요')
+    })
+
+    it('states the claim when an angle lands', () => {
+      expect(landedAngle.text).toBe('대응각의 크기가 같아요')
+    })
+
+    it('uses the unit\'s vocabulary, not a description of the picture', () => {
+      // "이 두 변의 길이는 같아요" is true of the two lines on screen and teaches
+      // nothing. The child is meant to leave able to say "대응변", so that is the
+      // word the banner has to use.
+      for (const banner of [landedSide, landedAngle]) {
+        expect(banner.text.includes('대응')).toBeTruthy()
+        expect(/이 두 (변|각)/.test(banner.text)).toBeFalsy()
+      }
+    })
+
+    it('says it as a fact, not as something still to be done', () => {
+      expect(landedSide.text.endsWith('같아요')).toBeTruthy()
+      expect(landedSide.text.includes('옮겨')).toBeFalsy()
+      expect(landedAngle.text.includes('옮겨')).toBeFalsy()
+    })
+
+    it('keeps the claim up long enough to read', () => {
+      // It arrived and left in the same instant the fit became visible, which is
+      // the one moment the child is definitely looking.
+      const hook = source('src/modes/useCorrespondence.ts')
+      expect(/HOLD_MS/.test(hook)).toBeTruthy()
+      expect(/PAUSE_MS \+ FLY_MS \+ HOLD_MS/.test(hook)).toBeTruthy()
+    })
+  })
+
+  it('celebrates a correct find the way the congruence board does', () => {
+    // The unit has its own feedback — the ring that appears where the part was
+    // paired — but that ring is geometry and cannot say anything. The stars are
+    // the "you got it", and leaving them out made a right answer quieter here than
+    // the identical act one screen away.
+    expect(source('src/components/Celebration.tsx')).toBeTruthy()
+    const scene = source('src/components/CorrespondenceScene.tsx')
+    expect(scene.includes('<Celebration')).toBeTruthy()
+    // and it fires from the answer, not from the step: the step runs 0,1,2,0,1,2
+    // and only two of those six moves are a correct answer
+    const hook = source('src/modes/useCorrespondence.ts')
+    expect(/justFound/.test(hook)).toBeTruthy()
+    expect(/STAR_MS/.test(hook)).toBeTruthy()
   })
 
   it('has no outline that crosses itself', () => {
@@ -417,10 +500,6 @@ function onRay(p: number[], corner: Point, aim: Point): boolean {
 // ── the screen asks rather than steers ────────────────────
 
 describe('the child is never asked to turn anything', () => {
-  function source(path: string): string {
-    return readFileSync(join(process.cwd(), path), 'utf8')
-  }
-
   it('has no rotate or flip control', () => {
     // The congruence stage makes the same promise. Direction was settled there;
     // bringing a turn control back would tell the child it still matters, which

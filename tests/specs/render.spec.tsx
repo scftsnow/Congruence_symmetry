@@ -130,9 +130,9 @@ describe('congruence board renders', () => {
   })
 
   it('disables touch panning so dragging does not scroll a tablet', () => {
-    const parts = source('src/components/BoardParts.tsx')
+    const parts = source('src/components/BoardShapeView.tsx')
     expect(parts.includes('touchAction')).toBeTruthy()
-    expect(/touch-action:\s*none/.test(source('src/index.css'))).toBeTruthy()
+    expect(/touch-action:\s*none/.test(source('src/styles/ui.css'))).toBeTruthy()
   })
 })
 
@@ -168,7 +168,8 @@ describe('the board shows overlap rather than asserting it', () => {
       'src/modes/CongruenceStage.tsx',
       'src/components/VerdictBanner.tsx',
       'src/components/verdictText.ts',
-      'src/components/BoardParts.tsx',
+      'src/components/BoardShapeView.tsx',
+      'src/components/StackedOverlay.tsx',
     ]) {
       const code = strip(path)
       expect(code.includes('pct')).toBeFalsy()
@@ -207,7 +208,7 @@ describe('the board shows overlap rather than asserting it', () => {
   })
 
   it('components do not decide congruence', () => {
-    const parts = source('src/components/BoardParts.tsx')
+    const parts = source('src/components/BoardShapeView.tsx')
     expect(parts.includes('checkCongruence')).toBeFalsy()
     expect(parts.includes('judge(')).toBeFalsy()
   })

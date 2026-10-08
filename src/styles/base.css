@@ -1,0 +1,43 @@
+/* 합동과 대칭 — 기본 스타일
+ *
+ * 원칙: 처음부터 큰 글씨·높은 대비를 기본값으로.
+ *      초등 5학년이 읽기 쉬운 크기를 기준으로 잡는다.
+ */
+
+:root {
+  --color-bg: #f7f9fc;
+  --color-surface: #ffffff;
+  --color-ink: #023047;
+  --color-ink-soft: #456a80;
+  --color-line: #dbe4ee;
+  --color-primary: #219ebc;
+  --color-success: #2a9d8f;
+  --color-warn: #e9c46a;
+  --radius: 16px;
+  --radius-sm: 10px;
+  --tap: 64px; /* 최소 터치 영역 */
+  font-family:
+    'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', system-ui, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-ink);
+  font-size: 18px;
+  line-height: 1.5;
+  -webkit-text-size-adjust: 100%;
+}
+
+#root {
+  min-height: 100vh;
+}

@@ -54,6 +54,7 @@ export function CorrespondenceStage({ onBack }: { onBack: () => void }) {
           step={c.step}
           flyStep={c.flyStep}
           landed={c.landed}
+          justFound={c.justFound}
           onAnswer={c.answer}
         />
       </div>

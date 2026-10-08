@@ -15,7 +15,7 @@
  * congruence unit, and offering a turn again would say it still matters.
  */
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { CORRESPONDENCE_PAIRS } from '../geometry/correspondenceShapes'
 import { bannerFor } from '../components/corrText'
 import type { Banner, Pass, Phase } from '../components/corrText'
@@ -25,8 +25,18 @@ import { PASSES } from '../components/corrText'
 const FLY_MS = 900
 /** the beat before it sets off, so the child sees what is about to move */
 const PAUSE_MS = 340
+/**
+ * how long the conclusion stays up once the part has landed
+ *
+ * Without this the claim flashed past in the same instant the fit became visible,
+ * which is the one moment the child is definitely looking — so the sentence was
+ * on screen for no time at all and had to be guessed at.
+ */
+const HOLD_MS = 1200
 /** how long a miss is explained before the ask comes back */
 const HINT_MS = 1800
+/** how long the stars stay up after a correct find, as in the congruence stage */
+const STAR_MS = 1500
 
 export interface Correspondence {
   pairIndex: number
@@ -39,6 +49,8 @@ export interface Correspondence {
   /** which part is on its way during the demonstration */
   flyStep: number
   landed: boolean
+  /** true just after a correct find, for the burst of stars */
+  justFound: boolean
   flying: boolean
   done: boolean
   banner: Banner
@@ -55,6 +67,8 @@ export function useCorrespondence(): Correspondence {
   const [wrong, setWrong] = useState(false)
   const [flyStep, setFlyStep] = useState(0)
   const [landed, setLanded] = useState(false)
+  const [justFound, setJustFound] = useState(false)
+  const starTimer = useRef<number | null>(null)
 
   const pair = CORRESPONDENCE_PAIRS[pairIndex]
   const corners = pair.a.vertices.length
@@ -92,6 +106,22 @@ export function useCorrespondence(): Correspondence {
         explain()
         return
       }
+
+      /*
+       * A correct find is celebrated, every time, exactly as the congruence board
+       * does it. The unit has its own feedback — the ring that appears at the part
+       * just paired up — and that ring is geometry, so it cannot say anything; the
+       * stars are the part of this that is purely "you got it", and leaving them
+       * out made a right answer quieter here than the identical act one screen
+       * away.
+       *
+       * Fired from the event rather than derived from the step, because the step
+       * goes 0,1,2,0,1,2 and only two of those six moves are a correct answer.
+       */
+      setJustFound(true)
+      if (starTimer.current) window.clearTimeout(starTimer.current)
+      starTimer.current = window.setTimeout(() => setJustFound(false), STAR_MS)
+
       if (step + 1 < corners) {
         setStep(step + 1)
         return
@@ -129,7 +159,7 @@ export function useCorrespondence(): Correspondence {
     const advance = window.setTimeout(() => {
       setLanded(false)
       setFlyStep((s) => s + 1)
-    }, PAUSE_MS + FLY_MS)
+    }, PAUSE_MS + FLY_MS + HOLD_MS)
     return () => {
       window.clearTimeout(lift)
       window.clearTimeout(advance)
@@ -144,6 +174,7 @@ export function useCorrespondence(): Correspondence {
     corners,
     flyStep,
     landed,
+    justFound,
     flying,
     done,
     banner: bannerFor({
@@ -152,6 +183,7 @@ export function useCorrespondence(): Correspondence {
       done,
       flying,
       flyingAngle: flying && flyStep >= corners,
+      landed: flying && landed,
     }),
     startPair,
     answer,

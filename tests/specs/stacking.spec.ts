@@ -362,7 +362,7 @@ describe('the board hook does not bypass the gate', () => {
   it('the overlay picks the touched shape too', () => {
     // The shaded overlap region is drawn against this partner, so choosing by
     // outline would shade a region that is not there.
-    const parts = source('src/components/BoardParts.tsx')
+    const parts = source('src/components/StackedOverlay.tsx')
     expect(parts.includes('touching')).toBeTruthy()
     expect(parts.includes('sameCongruence')).toBeFalsy()
   })

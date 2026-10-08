@@ -1,0 +1,242 @@
+/* the primary button
+ *
+ * Split out of src/index.css, which was one file because there was
+ * one screen. 
+ */
+
+/* ── 시작 버튼 ───────────────────────────────────────── */
+
+.start-btn {
+  min-height: 72px;
+  border: none;
+  border-radius: var(--radius);
+  background: var(--color-primary);
+  color: #fff;
+  font-family: inherit;
+  font-size: 1.25rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.12s, box-shadow 0.12s;
+}
+
+.start-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(33, 158, 188, 0.3);
+}
+
+.start-btn:active {
+  transform: translateY(0);
+}
+
+/* the shell every unit screen shares
+ *
+ * Split out of src/index.css, which was one file because there was
+ * one screen. 
+ */
+
+/* ── 모드 화면 ───────────────────────────────────────── */
+
+.mode {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.mode__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.mode__title {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.back-btn {
+  min-height: 48px;
+  padding: 0 18px;
+  border: 2px solid var(--color-line);
+  border-radius: var(--radius-sm);
+  background: #fff;
+  font-family: inherit;
+  font-size: 1rem;
+  color: var(--color-ink);
+  cursor: pointer;
+}
+
+.star-counter {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--color-ink);
+  white-space: nowrap;
+}
+
+/* the one-sentence banner
+ *
+ * Split out of src/index.css, which was one file because there was
+ * one screen. 
+ */
+
+/* ── 판정 배너 ───────────────────────────────────────── */
+
+.banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 64px;
+  padding: 12px 20px;
+  border-radius: var(--radius);
+  font-size: 1.1rem;
+  font-weight: 600;
+  transition: background 0.25s;
+}
+
+.banner--success {
+  background: #d8f3e8;
+  color: #1b6b4a;
+}
+
+.banner--hint {
+  background: #fdf3d3;
+  color: #7a5c00;
+}
+
+.banner--neutral {
+  background: #eaf1f7;
+  color: var(--color-ink-soft);
+}
+
+.banner__icon {
+  font-size: 1.5rem;
+}
+
+/* the drawing surface
+ *
+ * Split out of src/index.css, which was one file because there was
+ * one screen. 
+ */
+
+/* ── 캔버스 ──────────────────────────────────────────── */
+
+.canvas-wrap {
+  background: var(--color-surface);
+  border-radius: var(--radius);
+  padding: 12px;
+  box-shadow: 0 2px 12px rgba(2, 48, 71, 0.06);
+}
+
+.canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  touch-action: none;
+  user-select: none;
+}
+
+/* tablet in landscape
+ *
+ * Split out of src/index.css, which was one file because there was
+ * one screen. 
+ */
+
+/* ── 태블릿 가로 모드 최적화 ─────────────────────────── */
+
+/*
+ * Only the body size belongs here. This used to also widen the four tool
+ * buttons, which were the rotate and flip controls — both of which were removed,
+ * because offering a turn tells the child that direction matters and this unit
+ * teaches that it does not. The toolbar's own wide-screen layout is in
+ * board.css, next to the toolbar.
+ */
+@media (min-width: 900px) {
+  body {
+    font-size: 19px;
+  }
+}
+
+/* the popup a finished unit shows
+ *
+ * Split out of src/index.css, which was one file because there was
+ * one screen. 
+ */
+
+/* ── the end of a unit ──────────────────────────────────── */
+
+/*
+ * Fixed to the window, not stacked at the bottom of the page.
+ *
+ * The congruence board is a 1100 by 760 canvas in a column, so on a tablet held
+ * upright the ending used to land below the fold. A child who had scrolled while
+ * dragging shapes watched the stars burst somewhere off screen and then nothing
+ * at all: no message, no way forward, and no reason to think anything had
+ * happened. Fixed and centred means it cannot be scrolled past, and it cannot be
+ * pushed off a short screen either.
+ *
+ * The board stays behind it rather than being replaced, so the child can see the
+ * work they finished while the message is up.
+ */
+.done {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(2, 48, 71, 0.62);
+}
+
+.done__card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: min(520px, 100%);
+  max-height: 100%;
+  overflow-y: auto;
+  padding: 26px 24px;
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  box-shadow: 0 12px 40px rgba(2, 48, 71, 0.35);
+  text-align: center;
+}
+
+.done__mark {
+  margin: 0;
+  font-size: 3rem;
+  line-height: 1;
+  animation: pop 1.4s ease-out;
+}
+
+.done__title {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.done__title strong {
+  color: #1b6b4a;
+}
+
+/*
+ * The note is the lesson, in one sentence the child can repeat back.
+ *
+ * It is not praise and it is not a score: "잘했어요" says nothing about what was
+ * learned, and this is the one moment where that is worth saying.
+ */
+.done__note {
+  margin: 0 0 6px;
+  max-width: 30em;
+  font-size: 1.02rem;
+  color: var(--color-ink-soft);
+  line-height: 1.6;
+}
+
+.done__card .start-btn {
+  width: 100%;
+}
+

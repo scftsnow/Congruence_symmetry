@@ -23,6 +23,7 @@ import type { CorrespondencePair } from '../geometry/correspondenceShapes'
 import { applyTransform, identity } from '../geometry/transforms'
 import type { Point } from '../geometry/types'
 import { pointsToPath } from './svgPath'
+import { Celebration } from './Celebration'
 import type { Phase } from './corrText'
 import { FIRST_SHAPE, SECOND_SHAPE } from './corrText'
 
@@ -48,6 +49,7 @@ export function CorrespondenceScene({
   step,
   flyStep,
   landed,
+  justFound,
   onAnswer,
 }: {
   pair: CorrespondencePair
@@ -57,6 +59,8 @@ export function CorrespondenceScene({
   /** which part is on its way, during the demonstration */
   flyStep: number
   landed: boolean
+  /** true just after a correct find */
+  justFound: boolean
   onAnswer: (index: number) => void
 }) {
   const a = useMemo(() => applyTransform(pair.a.vertices, identity(LEFT.x, LEFT.y)), [pair])
@@ -170,6 +174,7 @@ export function CorrespondenceScene({
         corr.angles.map((g, i) => (
           <path key={`h${i}`} className="corr-tap" d={angleWedge(g.b, WEDGE)} onClick={() => onAnswer(i)} />
         ))}
+    {justFound && <Celebration x={W / 2} y={H / 2} />}
     </svg>
   )
 }

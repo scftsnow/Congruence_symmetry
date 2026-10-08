@@ -78,6 +78,25 @@ export interface Banner {
   text: string
 }
 
+/**
+ * What is said while a part is travelling, and the moment it lands.
+ *
+ * The animation was there before the sentence was. A side lifted off one shape,
+ * crossed and fitted the other, and the child was left to work out what they had
+ * just been shown — which is watching, not learning.
+ *
+ * So the claim arrives with the fit: while it travels the banner says what is
+ * being shown, and the moment it lands it says the fact and stays up long enough
+ * to be read.
+ *
+ * The wording is the unit's own vocabulary rather than a description of the
+ * picture. "이 두 변의 길이는 같아요" is true of the two lines on screen and
+ * teaches nothing; "대응변의 길이가 같아요" is the sentence the child is meant to
+ * be able to say afterwards, and it is the sentence the textbook uses.
+ */
+const MOVING = { side: '대응변을 옮겨 보고 있어요', angle: '대응각을 옮겨 보고 있어요' }
+const LANDED = { side: '대응변의 길이가 같아요', angle: '대응각의 크기가 같아요' }
+
 /** The one sentence on screen, decided from where the child has got to. */
 export function bannerFor(input: {
   phase: Phase
@@ -89,6 +108,8 @@ export function bannerFor(input: {
   flying: boolean
   /** that part is an angle rather than a side */
   flyingAngle: boolean
+  /** and it has just arrived */
+  landed: boolean
 }): Banner {
   if (input.done) {
     return {
@@ -97,12 +118,15 @@ export function bannerFor(input: {
       text: '합동인 도형은 대응변의 길이와 대응각의 크기가 같아요',
     }
   }
-  if (input.flying) {
+  if (input.landed) {
     return {
-      tone: 'neutral',
-      icon: '👉',
-      text: input.flyingAngle ? '대응각을 옮겨 보고 있어요' : '대응변을 옮겨 보고 있어요',
+      tone: 'success',
+      icon: '✅',
+      text: input.flyingAngle ? LANDED.angle : LANDED.side,
     }
+  }
+  if (input.flying) {
+    return { tone: 'neutral', icon: '👉', text: input.flyingAngle ? MOVING.angle : MOVING.side }
   }
   if (input.wrong && input.phase !== 'compare') {
     return { tone: 'hint', icon: '💡', text: HINT[input.phase as Pass] }

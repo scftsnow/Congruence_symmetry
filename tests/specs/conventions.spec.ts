@@ -398,5 +398,94 @@ describe('convention rules carry their rationale', () => {
   })
 })
 
+// ── 11. one thing per file ────────────────────────────────
+//
+// Added after the correspondence unit, when src/components/BoardParts.tsx turned
+// out to hold four unrelated components behind a name that described none of them,
+// Celebration turned out to be living inside VerdictBanner because only one screen
+// needed it, and src/index.css turned out to be 847 lines because there used to
+// be one screen. None of that broke anything; all of it cost time. A file named
+// after nothing in particular is a file nobody can find anything in.
+
+describe('a file holds one thing', () => {
+  const styles = () =>
+    readdirSync(join(root, 'src', 'styles'))
+      .filter((f) => f.endsWith('.css'))
+      .map((f) => readFileSync(join(root, 'src', 'styles', f), 'utf8'))
+      .join('\n')
+
+  it('the board pieces are named after what they draw', () => {
+    expect(existsSync(join(root, 'src/components/BoardParts.tsx'))).toBeFalsy()
+    const expected = [
+      'BoardShapeView.tsx',
+      'BoardGrid.tsx',
+      'PairMark.tsx',
+      'StackedOverlay.tsx',
+      'Celebration.tsx',
+    ]
+    const missing = expected.filter((f) => !existsSync(join(root, 'src/components', f)))
+    expect(missing.join(', ') || 'ok').toBe('ok')
+  })
+
+  it('a component file exports one component', () => {
+    // VerdictBanner.tsx exported a banner and a burst of stars, which is a reward
+    // for a right answer living in the file that decides what a wrong one says.
+    //
+    // Only .tsx, deliberately: a text module exporting two wording functions is
+    // one thing, and svgPath.ts exporting two path builders is one thing too.
+    // It is a grab bag when the file holds pieces that would be wanted
+    // independently of each other.
+    const offenders: string[] = []
+    for (const file of sourceFiles) {
+      if (!rel(file).startsWith('src/components/')) continue
+      if (!rel(file).endsWith('.tsx')) continue
+      const exported = (read(file).match(/^export function \w+/gm) || []).length
+      if (exported > 1) offenders.push(rel(file) + ' exports ' + exported)
+    }
+    expect(offenders.join(', ') || 'ok').toBe('ok')
+  })
+
+  it('the stylesheet is split, and the entry point only says the order', () => {
+    // base.css must load first: the custom properties every other rule is written
+    // in terms of live there, and a rule landing before them resolves to nothing.
+    const entry = read('src/index.css')
+    const withoutComments = entry.replace(/\/\*[\s\S]*?\*\//g, '')
+    expect(/[{}]/.test(withoutComments) ? 'index.css still holds rules' : 'ok').toBe('ok')
+
+    const order = [...entry.matchAll(/styles\/(\w+)\.css/g)].map((m) => m[1])
+    expect(order[0] === 'base' ? 'ok' : 'base.css must come first, got ' + order[0]).toBe('ok')
+    expect(order.length >= 5 ? 'ok' : order.length + ' stylesheets').toBe('ok')
+  })
+
+  it('no stylesheet styles a screen that was removed', () => {
+    // The shape picker and the rotate/flip tool buttons are both gone. Their rules
+    // outlived them because nothing told the stylesheet they had become unused.
+    const css = styles()
+    for (const dead of ['.shape-chip', '.shape-picker', '.tool-btn']) {
+      expect(css.includes(dead) ? dead + ' styles a removed screen' : 'ok').toBe('ok')
+    }
+  })
+
+  it('the star burst scales about its own centre', () => {
+    // A CSS transform on an SVG element is taken about the SVG viewport origin —
+    // the top-left of the viewBox — unless told otherwise. The stars were being
+    // scaled away from that corner instead of swelling where they sat, so the one
+    // in the bottom right of the board was flung off the canvas.
+    const board = readFileSync(join(root, 'src/styles/board.css'), 'utf8')
+    expect(/transform-box:\s*fill-box/.test(board)).toBeTruthy()
+    expect(/transform-origin:\s*center/.test(board)).toBeTruthy()
+  })
+
+  it('the ending popup cannot be scrolled past', () => {
+    // It was a panel under a 1100x760 canvas, which on a tablet held upright puts
+    // it below the fold — so a child who had scrolled while dragging watched the
+    // stars burst off screen and then nothing at all.
+    const ui = readFileSync(join(root, 'src/styles/ui.css'), 'utf8')
+    const fixed = /\.done\s*\{[^}]*position:\s*fixed/.test(ui)
+    expect(fixed).toBeTruthy()
+    expect(read('src/components/DonePanel.tsx').includes('role="dialog"')).toBeTruthy()
+  })
+})
+
 const { report } = await import('../harness/spec.mjs')
 report()

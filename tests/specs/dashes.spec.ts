@@ -59,7 +59,7 @@ function source(path: string): string {
  * happened the first time this was written.
  */
 function markSource(): string {
-  const parts = source('src/components/BoardParts.tsx')
+  const parts = source('src/components/PairMark.tsx')
   const start = parts.indexOf('export function PairMark')
   const end = parts.indexOf('\nexport ', start + 10)
   return parts.slice(start, end === -1 ? undefined : end)

@@ -22,6 +22,7 @@ import { CongruenceStage } from '../../src/modes/CongruenceStage'
 import { CorrespondenceStage } from '../../src/modes/CorrespondenceStage'
 import { buildBoard } from '../../src/modes/useBoard'
 import { DonePanel } from '../../src/components/DonePanel'
+import { Toast } from '../../src/components/Toast'
 import { donePanelFor } from '../../src/components/verdictText'
 import { donePanelFor as corrDonePanelFor } from '../../src/components/corrText'
 
@@ -396,6 +397,99 @@ describe('a cleared unit ends properly', () => {
     expect(donePanelFor().note).toBe(expected.home.congruenceNote)
     expect(corrDonePanelFor().note).toBe(expected.home.corrNote)
     expect(donePanelFor().note === corrDonePanelFor().note).toBeFalsy()
+  })
+})
+
+// ── where a message is allowed to appear ──────────────────
+//
+// Success used to arrive as a strip along the top. That is the worst place for it
+// twice over: the child has just stacked a shape, so their eyes are on the board
+// and not up at the top edge — which on a tablet held upright may not be on screen
+// at all. It also fought the stars, which burst from the middle for that same
+// answer, so one reaction had its two halves at opposite ends of the screen.
+
+describe('a success is in the middle, not at the top', () => {
+  function source(path: string): string {
+    return readFileSync(join(process.cwd(), path), 'utf8')
+  }
+
+  const html = renderToStaticMarkup(<Toast icon="⭐" text="겹쳤어! 합동이야" />)
+
+  it('is a live region, so it is announced as well as shown', () => {
+    expect(html.includes('role="status"')).toBeTruthy()
+    expect(html.includes('겹쳤어!')).toBeTruthy()
+  })
+
+  it('is fixed to the middle of the window', () => {
+    const ui = source('src/styles/ui.css')
+    const fixed = /\.toast\s*\{[^}]*position:\s*fixed/.test(ui)
+    expect(fixed).toBeTruthy()
+    // centred by both axes, not anchored to the top
+    expect(/\.toast\s*\{[^}]*top:\s*50%/.test(ui)).toBeTruthy()
+    expect(/\.toast\s*\{[^}]*left:\s*50%/.test(ui)).toBeTruthy()
+    expect(/\.toast\s*\{[^}]*transform:\s*translate\(-50%, -50%\)/.test(ui)).toBeTruthy()
+  })
+
+  it('shares the ending popup\'s shape, so the two look like one kind of event', () => {
+    const ui = source('src/styles/ui.css')
+    const toast = /\.toast\s*\{([^}]*)\}/.exec(ui)![1]
+    const card = /\.done__card\s*\{([^}]*)\}/.exec(ui)![1]
+    const value = (block: string, property: string) =>
+      new RegExp(property + ':\\s*([^;]+)').exec(block)![1].trim()
+
+    for (const property of ['background', 'border-radius']) {
+      const a = value(toast, property)
+      const b = value(card, property)
+      expect(a === b ? 'ok' : `${property}: toast ${a} vs card ${b}`).toBe('ok')
+    }
+
+    // The shadow is compared on its geometry, not its alpha: the ending sits on a
+    // dimmed backdrop and the toast on the live board, so the same shadow wants a
+    // slightly different opacity there. Same offset, blur and spread is what makes
+    // them read as the same kind of card.
+    const geometry = (block: string) => value(block, 'box-shadow').split('rgba')[0].trim()
+    expect(
+      geometry(toast) === geometry(card) ? 'ok' : `shadow: ${geometry(toast)} vs ${geometry(card)}`,
+    ).toBe('ok')
+  })
+
+  it('does not dim the board behind it', () => {
+    // The ending stops the board, so it dims it. A success does not: the child
+    // carries straight on, and a backdrop would swallow the taps.
+    const ui = source('src/styles/ui.css')
+    const toast = /\.toast\s*\{([^}]*)\}/.exec(ui)![1]
+    expect(toast.includes('background: rgba') ? 'toast dims the board' : 'ok').toBe('ok')
+    expect(toast.includes('pointer-events: none')).toBeTruthy()
+  })
+
+  it('both units send their success to it', () => {
+    for (const stage of [
+      'src/modes/CongruenceStage.tsx',
+      'src/modes/CorrespondenceStage.tsx',
+    ]) {
+      const code = source(stage)
+      expect(code.includes('<Toast')).toBeTruthy()
+      // and only the success tone goes there
+      expect(/tone === 'success'/.test(code)).toBeTruthy()
+    }
+  })
+
+  it('the instruction and the hint stay in the strip', () => {
+    // Not an inconsistency. The instruction is what the child is being asked to
+    // do and the hint has to survive several attempts; neither can be a message
+    // that vanishes after a second and a half.
+    for (const stage of [
+      'src/modes/CongruenceStage.tsx',
+      'src/modes/CorrespondenceStage.tsx',
+    ]) {
+      expect(source(stage).includes('<VerdictBanner')).toBeTruthy()
+    }
+  })
+
+  it('a success does not last forever', () => {
+    const hook = source('src/modes/useToast.ts')
+    expect(/TOAST_MS/.test(hook)).toBeTruthy()
+    expect(/window\.setTimeout/.test(hook)).toBeTruthy()
   })
 })
 

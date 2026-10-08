@@ -32,7 +32,7 @@ const PAUSE_MS = 340
  * which is the one moment the child is definitely looking — so the sentence was
  * on screen for no time at all and had to be guessed at.
  */
-const HOLD_MS = 1200
+const HOLD_MS = 1400
 /** how long a miss is explained before the ask comes back */
 const HINT_MS = 1800
 /** how long the stars stay up after a correct find, as in the congruence stage */

@@ -22,9 +22,11 @@ import { Grid } from '../components/BoardGrid'
 import { PairMark } from '../components/PairMark'
 import { StackedOverlay } from '../components/StackedOverlay'
 import { VerdictBanner } from '../components/VerdictBanner'
+import { Toast } from '../components/Toast'
 import { Celebration } from '../components/Celebration'
 import { DonePanel } from '../components/DonePanel'
 import { bannerFor, donePanelFor } from '../components/verdictText'
+import { useToast } from './useToast'
 
 interface CongruenceStageProps {
   onBack: () => void
@@ -135,6 +137,17 @@ export function CongruenceStage({ onBack }: CongruenceStageProps) {
   const cleared = count >= board.target
   const done = donePanelFor()
 
+  /*
+   * Success leaves the strip and comes to the middle of the board.
+   *
+   * The child has just dragged a shape across the board and stacked it, so their
+   * eyes are on the shapes — not up at the top edge, which on a tablet held
+   * upright may not even be on screen. The stars for this same answer burst from
+   * the middle, and the sentence belongs with them.
+   */
+  const banner = bannerFor(verdict, turned, count, board.target)
+  const toast = useToast(banner.tone === 'success' && !cleared ? banner.parts.map((p) => p.text).join('') : null)
+
   return (
     <div className="mode">
       <header className="mode__header">
@@ -147,9 +160,17 @@ export function CongruenceStage({ onBack }: CongruenceStageProps) {
         </div>
       </header>
 
-      {/* The banner is dropped once the board is cleared: it would say the same thing
-          as the panel below, in a strip the child reads as transient feedback. */}
-      {!cleared && <VerdictBanner {...bannerFor(verdict, turned, count, board.target)} />}
+      {/*
+       * The strip keeps the standing instruction and the hint after a miss: both
+       * have to stay up while the child works. A success does not, so it goes to
+       * the middle instead, and there is only ever one of the two on screen.
+       */}
+      {!cleared &&
+        (toast ? (
+          <Toast icon={banner.icon} parts={banner.parts} />
+        ) : (
+          <VerdictBanner {...banner} />
+        ))}
 
       <div className="canvas-wrap">
         <svg

@@ -240,3 +240,73 @@
   width: 100%;
 }
 
+/* ── a success, briefly, in the middle ──────────────────── */
+
+/*
+ * The same card as the ending popup, smaller and lighter.
+ *
+ * They are deliberately the same shape with the same shadow, because they are the
+ * same kind of event — something good happened — and a child should recognise the
+ * second one because it looks like the first. What differs is that the ending
+ * stays and this does not, so there is no dimmed backdrop behind it and the board
+ * underneath stays completely live: a child can carry on dragging with it up.
+ *
+ * Centred rather than at the top because that is where they are looking. The stars
+ * for this very answer burst from the middle of the board, and the sentence
+ * belongs with them rather than a hand's width away at the top edge.
+ */
+.toast {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  z-index: 25;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: min(440px, calc(100vw - 40px));
+  padding: 16px 22px;
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  box-shadow: 0 12px 40px rgba(2, 48, 71, 0.3);
+  pointer-events: none;
+  animation: toast-in 260ms cubic-bezier(0.34, 0.9, 0.3, 1);
+}
+
+.toast__icon {
+  font-size: 1.8rem;
+  line-height: 1;
+}
+
+.toast__text {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--color-ink);
+  line-height: 1.4;
+}
+
+.toast__text strong {
+  color: #1b6b4a;
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.86);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+/*
+ * On a screen too short to give the middle of the board away, a centred card
+ * covers the very shapes the child is reaching for. It moves up out of the way.
+ */
+@media (max-height: 620px) {
+  .toast {
+    top: 16%;
+  }
+}
+

@@ -9,15 +9,25 @@
 
 import { CorrespondenceScene } from '../components/CorrespondenceScene'
 import { VerdictBanner } from '../components/VerdictBanner'
+import { Toast } from '../components/Toast'
 import { DonePanel } from '../components/DonePanel'
 import { donePanelFor } from '../components/corrText'
 import { CORRESPONDENCE_PAIRS } from '../geometry/correspondenceShapes'
 import { useCorrespondence } from './useCorrespondence'
+import { useToast } from './useToast'
 
 export function CorrespondenceStage({ onBack }: { onBack: () => void }) {
   const c = useCorrespondence()
   const last = c.pairIndex + 1 >= CORRESPONDENCE_PAIRS.length
   const done = donePanelFor()
+
+  /*
+   * The same split as the congruence board: success comes to the middle of the
+   * board and fades there with the stars, and the standing question and the hint
+   * after a miss stay in the strip at the top because they have to be there while
+   * the child works on them.
+   */
+  const toast = useToast(!c.done && c.banner.tone === 'success' ? c.banner.text : null)
 
   return (
     <div className="mode">
@@ -30,9 +40,12 @@ export function CorrespondenceStage({ onBack }: { onBack: () => void }) {
 
       {/* the banner is dropped at the end, where the panel says it better and
           keeps saying it */}
-      {!c.done && (
-        <VerdictBanner tone={c.banner.tone} icon={c.banner.icon} parts={[{ text: c.banner.text }]} />
-      )}
+      {!c.done &&
+        (toast ? (
+          <Toast icon={c.banner.icon} text={toast} />
+        ) : (
+          <VerdictBanner tone={c.banner.tone} icon={c.banner.icon} parts={[{ text: c.banner.text }]} />
+        ))}
 
       <nav className="corr-pairs" aria-label="도형 고르기">
         {CORRESPONDENCE_PAIRS.map((p, i) => (

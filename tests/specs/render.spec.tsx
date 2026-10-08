@@ -19,6 +19,7 @@ import expected from '../harness/expected.json' with { type: 'json' }
 import { renderToStaticMarkup } from 'react-dom/server'
 import App from '../../src/App'
 import { CongruenceStage } from '../../src/modes/CongruenceStage'
+import { CorrespondenceStage } from '../../src/modes/CorrespondenceStage'
 import { buildBoard } from '../../src/modes/useBoard'
 
 function source(path: string): string {
@@ -227,6 +228,75 @@ describe('the wording matches the teaching', () => {
 describe('the board is twelve shapes', () => {
   it('lays out twelve', () => {
     expect(buildBoard().length).toBe(12)
+  })
+})
+
+// ── the correspondence stage ──────────────────────────────
+//
+// A build is not a render, and neither is a bundle check. The correspondence
+// screen was bundled, type-checked and verified with every string present in the
+// artefact, and still needed this: nothing here has ever mounted the stage. A
+// screen that throws on its first render produces no markup and no error the
+// bundle checks can see.
+
+describe('correspondence stage renders', () => {
+  const html = renderToStaticMarkup(<CorrespondenceStage onBack={() => {}} />)
+
+  it('produces markup', () => {
+    // Not a byte count for its own sake: below this the screen has lost its
+    // chrome. The pieces are each checked on their own further down.
+    expect(html.length > 1200 ? 'ok' : html.length + ' bytes').toBe('ok')
+  })
+
+  it('shows its title', () => {
+    expect(html.includes(expected.corr.stageTitle)).toBeTruthy()
+  })
+
+  it('draws both shapes and labels them', () => {
+    expect(html.includes(expected.corr.firstShape)).toBeTruthy()
+    expect(html.includes(expected.corr.secondShape)).toBeTruthy()
+    // two filled outlines, which is one shape per side
+    expect((html.match(/class="corr-shape/g) || []).length).toBe(2)
+  })
+
+  it('asks for the first correspondence', () => {
+    expect(html.includes(expected.corr.askPoint)).toBeTruthy()
+  })
+
+  it('lights a point on the left shape and offers a target on the right', () => {
+    // one lit point on the left, one tap target on the right, and nothing else
+    expect((html.match(/class="corr-target"/g) || []).length).toBe(1)
+    expect((html.match(/class="corr-tap"/g) || []).length).toBe(3)
+  })
+
+  it('gives every target a corner to aim at', () => {
+    // The tap targets are invisible, so a target with no coordinate is a target
+    // that cannot be pressed. cx is required for a circle to exist at all.
+    const circles = html.match(/<circle[^>]*class="corr-tap"[^>]*>/g) || []
+    expect(circles.length).toBe(3)
+    for (const c of circles) {
+      expect(/cx="-?[\d.]+"/.test(c) ? 'ok' : c).toBe('ok')
+      expect(/r="[\d.]+"/.test(c) ? 'ok' : c).toBe('ok')
+    }
+  })
+
+  it('offers all three pairs', () => {
+    for (const note of expected.corr.pairNotes) {
+      expect(html.includes(note)).toBeTruthy()
+    }
+  })
+
+  it('quotes no length and no angle size', () => {
+    // The claim is made by the fit, not by a reading. A degree belongs to a later
+    // unit in fifth grade, and a figure the child cannot produce with their own
+    // hands is one they can only be told. The pair notes used to read "90도 돌린
+    // 삼각형", which put a degree into the unit without teaching the unit.
+    expect(/[0-9]+\s*도/.test(html)).toBeFalsy()
+    expect(/[0-9]+\s*(cm|mm|px)/.test(html)).toBeFalsy()
+  })
+
+  it('has no turn control', () => {
+    expect(/onRotate|onFlip|돌리기|뒤집기/.test(html)).toBeFalsy()
   })
 })
 

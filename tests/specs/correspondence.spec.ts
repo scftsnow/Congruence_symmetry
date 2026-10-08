@@ -99,6 +99,16 @@ describe('every shape has parts the child can tell apart', () => {
     expect(CORRESPONDENCE_PAIRS[2].transformNote).toContain('뒤집')
   })
 
+  it('names what was done without measuring it', () => {
+    // The notes used to read "90도 돌린 삼각형" and "180도 돌린 사각형".
+    // Measuring in degrees is a later unit in fifth grade, so the number taught
+    // the wrong chapter — and it did not help anyway: for an irregular shape,
+    // knowing it was turned a quarter turn does not say which corner landed on
+    // which, which is the entire question.
+    const numeric = CORRESPONDENCE_PAIRS.map((p) => p.transformNote).filter((n) => /[0-9]/.test(n))
+    expect(numeric.join(', ') || 'ok').toBe('ok')
+  })
+
   it('has no outline that crosses itself', () => {
     // The congruence board shipped an arrow whose four vertices crossed. Nothing
     // threw and every test passed, because the tests only asked whether two

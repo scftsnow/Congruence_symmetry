@@ -92,9 +92,22 @@ function pair(
  * correspondence means before having to cope with a mirror, and the mirror
  * last, because it is the case where the shapes look most alike and the
  * correspondence is hardest to see.
+ *
+ * The notes name what was done without saying how many degrees. Measuring in
+ * degrees is a later unit in fifth grade, so a number here would be teaching the
+ * wrong chapter — and it would not help anyway: for an irregular shape, knowing
+ * it was turned a quarter turn does not tell you which corner landed on which.
+ * That is the whole question, and it has to be read off the drawing.
  */
 export const CORRESPONDENCE_PAIRS: CorrespondencePair[] = [
-  pair('tri', '삼각형', '#ffd166', TRIANGLE, { rotation: 90 }, '90도 돌린 삼각형'),
-  pair('quad', '사각형', '#bde0fe', QUADRILATERAL, { rotation: 180 }, '180도 돌린 사각형'),
-  pair('quad-mirror', '사각형', '#cdb4db', QUADRILATERAL, { flipped: true, rotation: 90 }, '뒤집고 돌린 사각형'),
+  pair('tri', '삼각형', '#ffd166', TRIANGLE, { rotation: 90 }, '삼각형을 돌려 놓은 모습'),
+  pair('quad', '사각형', '#bde0fe', QUADRILATERAL, { rotation: 180 }, '사각형을 돌려 놓은 모습'),
+  pair(
+    'quad-mirror',
+    '사각형',
+    '#cdb4db',
+    QUADRILATERAL,
+    { flipped: true, rotation: 90 },
+    '사각형을 뒤집고 돌려 놓은 모습',
+  ),
 ]

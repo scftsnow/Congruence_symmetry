@@ -1,14 +1,14 @@
 /**
  * The stylesheets, in load order.
  *
- * This was one 847-line file because there was one screen. There are now two
+ * This was one 847-line file because there was one screen. There are now three
  * units, a home screen and a popup, and in one place a change to a button style
  * means reading everything to find out what it might collide with. Each file
  * belongs to one thing: the tokens, the shared pieces, the home, the congruence
- * board, the correspondence unit.
+ * board, the correspondence unit, the symmetry unit.
  *
  * Order matters and is the only thing this file does. base has to be first: the
- * custom properties in it are what the other four are written in terms of, and a
+ * custom properties in it are what the others are written in terms of, and a
  * rule that lands before them resolves to nothing.
  */
 
@@ -17,3 +17,4 @@
 @import './styles/home.css';
 @import './styles/board.css';
 @import './styles/correspondence.css';
+@import './styles/symmetry.css';

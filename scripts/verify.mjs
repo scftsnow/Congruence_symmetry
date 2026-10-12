@@ -139,6 +139,10 @@ for (const [label, s] of [
   ['correspondence travel', '.corr-fly'],
   ['correspondence dots', '.corr-dot'],
   ['pulse keyframes', '@keyframes corr-pulse'],
+  ['symmetry fold', '.sym-fold'],
+  ['symmetry axis', '.sym-axis'],
+  ['symmetry draft', '.sym-draft'],
+  ['symmetry dots', '.sym-dot'],
 ]) {
   ok(label, css.includes(s), s)
 }
@@ -179,11 +183,13 @@ ok('every unit row is a real button', (appSrc.match(/className="unit-open"/g) ||
  */
 ok('congruence ends with a way home', stageSrc.includes('DonePanel'))
 ok('correspondence ends with a way home', read('src/modes/CorrespondenceStage.tsx').includes('DonePanel'))
+ok('symmetry ends with a way home', read('src/modes/SymmetryStage.tsx').includes('DonePanel'))
 ok('the ending lives in one component', existsSync(join(root, 'src/components/DonePanel.tsx')))
 ok('home label', read('src/components/verdictText.ts').includes(ui.homeLabel), ui.homeLabel)
 ok('congruence ending names the lesson', read('src/components/verdictText.ts').includes(ui.congruenceNote), ui.congruenceNote)
 ok('correspondence ending names the lesson', read('src/components/corrText.ts').includes(ui.corrNote), ui.corrNote)
-for (const s of [ui.congruenceNote, ui.corrNote]) ok('ending reached the bundle', bundle.includes(s), s)
+ok('symmetry ending names the lesson', read('src/components/symmText.ts').includes(ui.symmNote), ui.symmNote)
+for (const s of [ui.congruenceNote, ui.corrNote, ui.symmNote]) ok('ending reached the bundle', bundle.includes(s), s)
 ok('verdict wording', wordsSrc.includes(ui.congruentMsg), ui.congruentMsg)
 ok('direction lesson', wordsSrc.includes(ui.directionMsg), ui.directionMsg)
 ok('drag hint', stageSrc.includes(ui.dragHint), ui.dragHint)
@@ -214,6 +220,48 @@ const corrHookSrc = read('src/modes/useCorrespondence.ts')
 ok(
   'no rotate or flip control',
   !/onRotate|onFlip|rotateBy/.test(corrStageSrc) && !/onRotate|onFlip|rotateBy/.test(corrHookSrc),
+)
+
+// The symmetry unit. Same treatment as the correspondence unit above: its
+// sentences live in symmText.ts apart from the screen, the fold is checked in
+// the artefact rather than trusted from the source, and no figure is quoted.
+const symm = JSON.parse(read('scripts/expected.json')).symmetry
+for (const [label, s] of [
+  ['symmetry scene', 'sym-fold'],
+  ['symmetry axis', 'sym-axis'],
+  ['symmetry draft', 'sym-draft'],
+  ['symmetry title', symm.title],
+  ['symmetry instruction', symm.instruction],
+  ['symmetry found', symm.found],
+  ['symmetry no-axis', symm.noAxis],
+  ['symmetry conclusion', symm.conclusion],
+  ...symm.shapeNotes.map((n) => ['symmetry shape', n]),
+  ...[symm.hintOff, symm.hintMiss].map((n) => ['symmetry hint', n]),
+]) {
+  ok(label, bundle.includes(s), s)
+}
+
+// The symmetry unit's sentences live in symmText.ts apart from the screen.
+const symmSrc = read('src/components/symmText.ts')
+const symmStageSrc = read('src/modes/SymmetryStage.tsx')
+const symmShapesSrc = read('src/geometry/symmetryShapes.ts')
+const y = expected.symmetry
+ok('symmetry title', symmStageSrc.includes(y.title), y.title)
+ok('symmetry unit row', appSrc.includes(y.unitRow), y.unitRow)
+ok('symmetry instruction', symmSrc.includes(y.instruction), y.instruction)
+ok('symmetry found', symmSrc.includes(y.found), y.found)
+ok('symmetry no-axis', symmSrc.includes(y.noAxis), y.noAxis)
+ok('symmetry conclusion', symmSrc.includes(y.conclusion), y.conclusion)
+ok('symmetry hint off shape', symmSrc.includes(y.hintOff), y.hintOff)
+ok('symmetry hint miss', symmSrc.includes(y.hintMiss), y.hintMiss)
+for (const n of y.shapeNotes) ok('symmetry shape', symmShapesSrc.includes(n), n)
+// No figure is quoted anywhere in the unit, and no turn control reappears.
+ok('symmetry quotes no degree', !/[0-9]+\s*도/.test(symmSrc))
+ok('symmetry quotes no length', !/[0-9]+\s*(cm|mm|px)/.test(symmSrc))
+const symmHookSrc = read('src/modes/useSymmetry.ts')
+ok(
+  'symmetry has no rotate or flip control',
+  !/onRotate|onFlip|rotateBy/.test(symmStageSrc) && !/onRotate|onFlip|rotateBy/.test(symmHookSrc),
 )
 
 // No angle is ever named. "돌려서 겹쳤어" reports that the system turned the

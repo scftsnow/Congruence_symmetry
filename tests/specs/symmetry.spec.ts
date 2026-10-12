@@ -1,0 +1,317 @@
+/**
+ * Symmetry spec.
+ *
+ * Three things have to hold, and the third one is the reason the first two are
+ * checked the way they are.
+ *
+ * The shapes must be answerable: every true axis has to run in a snapped
+ * direction through a lattice point, because the child can only draw what the
+ * grid allows. A genuinely symmetric shape with its only axis at an odd angle
+ * would be unanswerable, and the pentagon and the star are out for exactly this
+ * reason.
+ *
+ * The snap must be honest: a tap is not a line, and judging one would answer a
+ * question the child never asked.
+ *
+ * And the fold must land. The demonstration shows one half travelling onto the
+ * other; if the transform string were malformed the half would sail off
+ * somewhere else and every geometric property would stay perfectly true.
+ */
+
+import { describe, it, expect } from '../harness/api'
+import {
+  ANGLE_TOLERANCE,
+  axisAngle,
+  axisMatches,
+  CENTER_TOLERANCE,
+  distanceToLine,
+  extendAxisToRect,
+  findAxes,
+  foldPoint,
+  foldTransform,
+  isAxisSymmetric,
+  isLineSymmetric,
+  lineHitsRect,
+  paddedBox,
+  snapAxisToGrid,
+  type Axis,
+} from '../../src/geometry/symmetry'
+import { SYMMETRY_ITEMS, SYMM_CENTER } from '../../src/geometry/symmetryShapes'
+import {
+  symmetryDonePanelFor,
+  symmetryFoundFor,
+  symmetryHintFor,
+  symmetryInstructionFor,
+  symmetryNoAxisFor,
+} from '../../src/components/symmText'
+import { isSimplePolygon, polygonArea } from '../../src/geometry/overlap'
+import { applyTransform, identity, reflectAcrossLine } from '../../src/geometry/transforms'
+import type { Point } from '../../src/geometry/types'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
+
+/** A source file, for the checks that are about how something is written. */
+function source(path: string): string {
+  return readFileSync(join(process.cwd(), path), 'utf8')
+}
+
+/** Every item placed exactly as the scene places it. */
+const placed = SYMMETRY_ITEMS.map((item) => ({
+  item,
+  points: applyTransform(item.shape.vertices, identity(SYMM_CENTER.x, SYMM_CENTER.y)),
+}))
+
+// ── the shapes are answerable ─────────────────────────────
+
+describe('every shape can be answered on the grid', () => {
+  it('offers five items, easiest first and none last', () => {
+    expect(SYMMETRY_ITEMS.length).toBe(5)
+    expect(SYMMETRY_ITEMS.map((s) => s.axes)).toEqual([1, 2, 1, 4, 0])
+    expect(SYMMETRY_ITEMS[4].shape.vertices.length).toBe(3)
+  })
+
+  it('has no outline that crosses itself', () => {
+    const broken = SYMMETRY_ITEMS.filter((s) => !isSimplePolygon(s.shape.vertices))
+    expect(broken.map((s) => s.id).join(', ') || 'ok').toBe('ok')
+  })
+
+  it('has a real interior in every shape', () => {
+    for (const s of SYMMETRY_ITEMS) {
+      expect(polygonArea(s.shape.vertices) > 2000 ? 'ok' : s.id + ' is thin').toBe('ok')
+    }
+  })
+
+  it('finds exactly the declared number of axes', () => {
+    // The count is the answer key. If the geometry found a different number
+    // than the file declares, one of the two is wrong, and the child would be
+    // marked wrong for a line that is right.
+    for (const { item } of placed) {
+      const found = findAxes(item.shape.vertices).length
+      expect(found === item.axes ? 'ok' : `${item.id}: declared ${item.axes}, found ${found}`).toBe('ok')
+    }
+  })
+
+  it('runs every true axis in a snapped direction through a lattice point', () => {
+    // The child can only draw what the grid allows. An axis at an odd angle
+    // would be genuinely right and genuinely undrawable.
+    const bad: string[] = []
+    for (const { item } of placed) {
+      for (const axis of findAxes(item.shape.vertices)) {
+        const snapped = Math.round(axisAngle(axis) / 45) * 45
+        let diff = Math.abs(axisAngle(axis) - snapped)
+        if (diff > 90) diff = 180 - diff
+        if (diff > 1) bad.push(`${item.id} at ${axisAngle(axis).toFixed(1)}`)
+      }
+    }
+    expect(bad.join(', ') || 'ok').toBe('ok')
+  })
+
+  it('keeps every shape well inside the canvas', () => {
+    for (const { points } of placed) {
+      for (const p of points) {
+        expect(p.x > 20 ? 'ok' : `x ${p.x}`).toBe('ok')
+        expect(p.x < 1080 ? 'ok' : `x ${p.x}`).toBe('ok')
+        expect(p.y > 20 ? 'ok' : `y ${p.y}`).toBe('ok')
+        expect(p.y < 540 ? 'ok' : `y ${p.y}`).toBe('ok')
+      }
+    }
+  })
+})
+
+// ── the snap is honest ────────────────────────────────────
+
+describe('a drawn line becomes a grid line, or nothing', () => {
+  it('snaps a near-horizontal drag to horizontal on lattice points', () => {
+    const axis = snapAxisToGrid({ x: 503, y: 298 }, { x: 699, y: 311 })!
+    expect(axis.a.x % 50 === 0 && axis.a.y % 50 === 0 ? 'ok' : 'ends off lattice').toBe('ok')
+    expect(axis.b.x % 50 === 0 && axis.b.y % 50 === 0 ? 'ok' : 'ends off lattice').toBe('ok')
+    expect(axisAngle(axis)).toBe(0)
+  })
+
+  it('snaps a near-diagonal drag to the diagonal', () => {
+    const axis = snapAxisToGrid({ x: 100, y: 100 }, { x: 290, y: 310 })!
+    expect(axisAngle(axis)).toBe(45)
+  })
+
+  it('snaps a near-vertical drag to vertical', () => {
+    const axis = snapAxisToGrid({ x: 553, y: 120 }, { x: 546, y: 480 })!
+    expect(axisAngle(axis)).toBe(90)
+  })
+
+  it('refuses a tap without a drag', () => {
+    expect(snapAxisToGrid({ x: 500, y: 300 }, { x: 505, y: 302 })).toBe(null)
+    expect(snapAxisToGrid({ x: 500, y: 300 }, { x: 500, y: 300 })).toBe(null)
+  })
+
+  it('always returns a line long enough to read as one', () => {
+    const axis = snapAxisToGrid({ x: 500, y: 300 }, { x: 560, y: 300 })!
+    expect(Math.hypot(axis.b.x - axis.a.x, axis.b.y - axis.a.y) >= 100 ? 'ok' : 'too short').toBe('ok')
+  })
+})
+
+// ── the judgement is real ─────────────────────────────────
+
+describe('an axis counts only when the fold would land', () => {
+  it('reflects every symmetric shape onto itself along its true axes', () => {
+    for (const { item } of placed) {
+      for (const axis of findAxes(item.shape.vertices)) {
+        expect(isAxisSymmetric(item.shape.vertices, axis) ? 'ok' : `${item.id} fails its own axis`).toBe('ok')
+      }
+    }
+  })
+
+  it('calls the asymmetric shape what it is', () => {
+    const scalene = placed[4]
+    expect(isLineSymmetric(scalene.item.shape.vertices)).toBe(false)
+    for (const s of placed.slice(0, 4)) {
+      expect(isLineSymmetric(s.item.shape.vertices) ? 'ok' : `${s.item.id} not symmetric`).toBe('ok')
+    }
+  })
+
+  it('accepts a true axis drawn through the middle', () => {
+    for (const { item } of placed.slice(0, 4)) {
+      const [trueAxis] = findAxes(item.shape.vertices)
+      expect(axisMatches(trueAxis, item.shape.vertices) ? 'ok' : `${item.id} rejects its own axis`).toBe('ok')
+    }
+  })
+
+  it('rejects a line at the wrong angle through the middle', () => {
+    // The triangle's only axis is vertical; a horizontal line through the same
+    // middle folds it onto empty space.
+    const tri = placed[0].item.shape.vertices
+    const cx = tri.reduce((s, p) => s + p.x, 0) / tri.length
+    const cy = tri.reduce((s, p) => s + p.y, 0) / tri.length
+    const sideways: Axis = { a: { x: cx - 100, y: cy }, b: { x: cx + 100, y: cy } }
+    expect(axisMatches(sideways, tri)).toBe(false)
+    expect(isAxisSymmetric(tri, sideways)).toBe(false)
+  })
+
+  it('rejects a parallel line a hand away', () => {
+    const tri = placed[0].item.shape.vertices
+    const off: Axis = { a: { x: -200, y: -200 }, b: { x: -200, y: 200 } }
+    expect(axisMatches(off, tri)).toBe(false)
+  })
+
+  it('tells a miss off the shape from a miss at the wrong angle', () => {
+    const tri = placed[0].item.shape.vertices
+    const box = paddedBox(tri, 10)
+    const far: Axis = { a: { x: 1000, y: 1000 }, b: { x: 1100, y: 1000 } }
+    expect(lineHitsRect(far, box)).toBe(false)
+    const [trueAxis] = findAxes(tri)
+    expect(lineHitsRect(trueAxis, box)).toBe(true)
+  })
+
+  it('keeps the tolerances honest', () => {
+    // A tolerance wider than half the pitch would accept the neighbouring grid
+    // line, and then two different snapped lines would both count.
+    expect(CENTER_TOLERANCE <= 25 ? 'ok' : 'centre tolerance admits neighbours').toBe('ok')
+    expect(ANGLE_TOLERANCE < 22.5 ? 'ok' : 'angle tolerance admits neighbours').toBe('ok')
+  })
+})
+
+// ── the fold lands ────────────────────────────────────────
+
+describe('the fold carries one half onto the other', () => {
+  const axis: Axis = { a: { x: 0, y: -100 }, b: { x: 0, y: 100 } }
+
+  it('starts where the point is', () => {
+    const p = { x: 60, y: 30 }
+    const q = foldPoint(p, axis, 1)
+    expect(Math.hypot(q.x - p.x, q.y - p.y) < 0.001 ? 'ok' : 'moved at rest').toBe('ok')
+  })
+
+  it('lands on the mirror image', () => {
+    const points = [
+      { x: 60, y: 30 },
+      { x: -40, y: 80 },
+      { x: 0, y: 0 },
+    ]
+    for (const p of points) {
+      const landed = foldPoint(p, axis, -1)
+      const mirrored = reflectAcrossLine(p, axis.a, axis.b)
+      expect(Math.hypot(landed.x - mirrored.x, landed.y - mirrored.y) < 0.001 ? 'ok' : 'missed the mirror').toBe('ok')
+    }
+  })
+
+  it('passes through the axis halfway', () => {
+    const p = { x: 60, y: 30 }
+    const q = foldPoint(p, axis, 0)
+    expect(distanceToLine(q, axis) < 0.001 ? 'ok' : 'off the axis').toBe('ok')
+  })
+
+  it('writes a transform the browser can interpolate', () => {
+    const css = foldTransform(axis, -1)
+    // Across the axis, not along it: scaling the along component would send
+    // the halfway point off the axis and the landing off the mirror.
+    expect(css.includes('scale(1, -1)') ? 'ok' : css).toBe('ok')
+    expect(css.includes('rotate(') ? 'ok' : 'no rotation').toBe('ok')
+  })
+
+  it('draws the axis edge to edge', () => {
+    const shown = extendAxisToRect({ a: { x: 500, y: 250 }, b: { x: 600, y: 250 } }, 1100, 600)
+    expect(shown.a.x === 0 && shown.b.x === 1100 ? 'ok' : 'not edge to edge').toBe('ok')
+    expect(shown.a.y === 250 && shown.b.y === 250 ? 'ok' : 'left its height').toBe('ok')
+  })
+})
+
+// ── the screen asks rather than steers ────────────────────
+
+describe('the child draws, the system folds', () => {
+  it('says which line was found, in the unit\'s own words', () => {
+    expect(symmetryFoundFor().text).toBe('선대칭도형이에요! 이 선이 대칭축이에요')
+    expect(symmetryFoundFor().tone).toBe('success')
+  })
+
+  it('calls the last shape a discovery, not a failure', () => {
+    expect(symmetryNoAxisFor().text).toContain('선대칭도형이 아니에요')
+    expect(symmetryNoAxisFor().tone).toBe('success')
+  })
+
+  it('has no rotate or flip control', () => {
+    const stage = source('src/modes/SymmetryStage.tsx')
+    expect(stage.includes('onRotate')).toBeFalsy()
+    expect(stage.includes('onFlip')).toBeFalsy()
+    expect(stage.includes('rotateBy')).toBeFalsy()
+  })
+
+  it('shows no lengths and no angles in figures', () => {
+    const stage = source('src/modes/SymmetryStage.tsx')
+    const geo = source('src/geometry/symmetry.ts')
+    expect(stage.includes('sideLength')).toBeFalsy()
+    expect(stage.includes('angleSize')).toBeFalsy()
+    expect(geo.includes('sideLength')).toBeFalsy()
+    expect(geo.includes('angleSize')).toBeFalsy()
+  })
+
+  it('keeps the wording out of the screen markup', () => {
+    const stage = source('src/modes/SymmetryStage.tsx')
+    expect(stage.includes('대칭축')).toBeFalsy()
+    expect(source('src/components/symmText.ts').includes('대칭축')).toBe(true)
+  })
+
+  it('holds the state in a hook and the drawing in a component', () => {
+    expect(source('src/modes/useSymmetry.ts')).toBeTruthy()
+    expect(source('src/modes/SymmetryStage.tsx').includes('useState')).toBeFalsy()
+    expect(source('src/components/SymmetryScene.tsx').includes('useState')).toBeFalsy()
+    expect(source('src/components/SymmetryScene.tsx').includes('useEffect')).toBeFalsy()
+  })
+
+  it('reaches the unit from the home list', () => {
+    const app = source('src/App.tsx')
+    expect(app.includes('SymmetryStage')).toBe(true)
+    expect(app.includes("'symmetry'")).toBe(true)
+    expect(/unit-list__item--locked[\s\S]{0,400}symmetry/.test(app)).toBeFalsy()
+  })
+})
+
+describe('the ending names the kind, not the shape', () => {
+  it('congratulates without counting axes', () => {
+    const done = symmetryDonePanelFor()
+    expect(done.title.map((p) => p.text).join('')).toBe('선대칭도형을 모두 찾았어!')
+    expect(done.note).toBe('하나의 직선을 따라 접었을 때 완전히 겹치는 도형이 선대칭도형이야')
+    expect(/[0-9]/.test(done.note) ? 'counts in the lesson' : 'ok').toBe('ok')
+  })
+})
+
+const { report } = await import('../harness/spec.mjs')
+report()

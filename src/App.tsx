@@ -2,7 +2,7 @@
  * App shell.
  *
  * Two units so far, in the textbook's order: 합동 first, then what a match
- * actually pairs up. The congruence stage is one board — the child drags a shape
+ * actually pairs up, then the lines that fold a shape onto itself. The congruence stage is one board — the child drags a shape
  * onto another and the system turns or flips it until they coincide, with no
  * shape-picker step and no separate "find" and "stack" screens, because proving
  * congruence and finding it are the same act.
@@ -21,8 +21,9 @@
 import { useState } from 'react'
 import { CongruenceStage } from './modes/CongruenceStage'
 import { CorrespondenceStage } from './modes/CorrespondenceStage'
+import { SymmetryStage } from './modes/SymmetryStage'
 
-type Screen = 'home' | 'congruence' | 'correspondence'
+type Screen = 'home' | 'congruence' | 'correspondence' | 'symmetry'
 
 export default function App() {
   const [screen, setScreen] = useState<Screen>('home')
@@ -33,6 +34,10 @@ export default function App() {
 
   if (screen === 'correspondence') {
     return <CorrespondenceStage onBack={() => setScreen('home')} />
+  }
+
+  if (screen === 'symmetry') {
+    return <SymmetryStage onBack={() => setScreen('home')} />
   }
 
   return (
@@ -77,11 +82,24 @@ export default function App() {
                 </span>
               </button>
             </li>
+            <li className="unit-list__item unit-list__item--active">
+              <button
+                type="button"
+                className="unit-open"
+                onClick={() => setScreen('symmetry')}
+              >
+                <span className="unit-list__badge">3</span>
+                <span>
+                  <strong>선대칭</strong>
+                  <em>접으면 겹치는 도형과 대칭축 찾기</em>
+                </span>
+              </button>
+            </li>
             <li className="unit-list__item unit-list__item--locked">
-              <span className="unit-list__badge">3</span>
+              <span className="unit-list__badge">4</span>
               <span>
-                <strong>선대칭과 점대칭</strong>
-                <em>접거나 돌려서 겹치는 중심</em>
+                <strong>점대칭</strong>
+                <em>돌려서 겹치는 중심</em>
               </span>
             </li>
           </ul>

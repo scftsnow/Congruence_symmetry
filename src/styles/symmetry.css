@@ -1,0 +1,102 @@
+/* 선대칭 단원 — 한 도형과 그 위의 한 줄 */
+
+/*
+ * Split out of nothing: this unit arrived after the split, so it never lived in
+ * the single file. One file per unit, so a change to the fold's timing means
+ * reading this and nothing else.
+ */
+
+.sym-foot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+/*
+ * The one standing instruction, at the bottom.
+ *
+ * Read once and then left alone, with nothing over the shape — and in the same
+ * place as in both earlier units, so the three do not teach the same lesson
+ * from three different screens.
+ */
+.sym-instruction {
+  text-align: center;
+}
+
+.sym-dots {
+  display: flex;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sym-dot {
+  width: 18px;
+  height: 18px;
+  border: 3px solid var(--color-line);
+  border-radius: 50%;
+  background: var(--color-surface);
+}
+
+.sym-dot--done {
+  border-color: var(--color-success);
+  background: var(--color-success);
+}
+
+.sym-dot--now {
+  border-color: #e76f51;
+  background: #e76f51;
+  transform: scale(1.25);
+}
+
+/*
+ * The shape under discussion. One colour at two opacities rather than two
+ * colours: the folding copy is the same shape on its way over, not a second
+ * shape, so tinting it apart would say what is false.
+ */
+.sym-shape {
+  stroke: #1d3557;
+  stroke-width: 3;
+  stroke-linejoin: round;
+  fill-opacity: 0.85;
+}
+
+.sym-shape--fold {
+  fill-opacity: 0.45;
+}
+
+/*
+ * The fold in motion.
+ *
+ * The transform is in CSS so the browser interpolates it, for the same reason
+ * the congruence stage's turns animate: recomputed coordinates would jump
+ * between frames with nothing to transition. 700ms is long enough to follow the
+ * half on its way over and short enough not to wait for.
+ */
+.sym-fold {
+  transition: transform 700ms cubic-bezier(0.34, 0.9, 0.3, 1);
+  pointer-events: none;
+}
+
+/*
+ * The drawn axis, edge to edge.
+ *
+ * Solid, because it is the answer under discussion; the finger's preview below
+ * is dashed because it is not an answer yet, only a gesture in progress.
+ */
+.sym-axis {
+  stroke: #e76f51;
+  stroke-width: 6;
+  stroke-linecap: round;
+  pointer-events: none;
+}
+
+.sym-draft {
+  stroke: #8d99ae;
+  stroke-width: 6;
+  stroke-linecap: round;
+  stroke-dasharray: 14 12;
+  pointer-events: none;
+}

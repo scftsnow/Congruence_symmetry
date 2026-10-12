@@ -20,6 +20,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import App from '../../src/App'
 import { CongruenceStage } from '../../src/modes/CongruenceStage'
 import { CorrespondenceStage } from '../../src/modes/CorrespondenceStage'
+import { SymmetryStage } from '../../src/modes/SymmetryStage'
 import { buildBoard, useBoard } from '../../src/modes/useBoard'
 import { DonePanel } from '../../src/components/DonePanel'
 import { Toast } from '../../src/components/Toast'
@@ -66,8 +67,9 @@ describe('home screen renders', () => {
    */
   it('opens each unit from its own row', () => {
     const rows = html.match(/<button[^>]*class="unit-open"/g) || []
-    expect(rows.length >= 2 ? 'ok' : rows.length + ' rows').toBe('ok')
+    expect(rows.length >= 3 ? 'ok' : rows.length + ' rows').toBe('ok')
     expect(html.includes(expected.home.corrUnitTitle)).toBeTruthy()
+    expect(html.includes(expected.symm.stageTitle)).toBeTruthy()
   })
 
   it('has no second way into a unit', () => {
@@ -518,6 +520,7 @@ describe('a success is in the middle, not at the top', () => {
     for (const stage of [
       'src/modes/CongruenceStage.tsx',
       'src/modes/CorrespondenceStage.tsx',
+      'src/modes/SymmetryStage.tsx',
     ]) {
       const code = source(stage)
       expect(code.includes('<Toast')).toBeTruthy()
@@ -538,6 +541,7 @@ describe('a success is in the middle, not at the top', () => {
     for (const stage of [
       'src/modes/CongruenceStage.tsx',
       'src/modes/CorrespondenceStage.tsx',
+      'src/modes/SymmetryStage.tsx',
     ]) {
       expect(source(stage).includes('banner')).toBeFalsy()
     }
@@ -573,6 +577,52 @@ describe('a success is in the middle, not at the top', () => {
     expect(/window\.setTimeout/.test(hook)).toBeTruthy()
     // and nothing brings the old one back
     expect(existsSync(join(process.cwd(), 'src/modes/useToast.ts'))).toBeFalsy()
+  })
+})
+
+// ── the symmetry stage ──────────────────────────────
+//
+// A build is not a render, and neither is a bundle check. A screen that throws
+// on its first render produces no markup and no error the bundle checks can
+// see — which is exactly what this guards, now that three screens mount.
+
+describe('symmetry stage renders', () => {
+  const html = renderToStaticMarkup(<SymmetryStage onBack={() => {}} />)
+
+  it('produces markup', () => {
+    expect(html.length > 1200 ? 'ok' : html.length + ' bytes').toBe('ok')
+  })
+
+  it('shows its title', () => {
+    expect(html.includes(expected.symm.stageTitle)).toBeTruthy()
+  })
+
+  it('draws one shape and the standing instruction', () => {
+    expect((html.match(/class="sym-shape"/g) || []).length).toBe(1)
+    expect(html.includes(expected.symm.instruction)).toBeTruthy()
+  })
+
+  it('draws no axis before one has been drawn', () => {
+    // The axis layer must start empty: a line on screen before the finger has
+    // moved would be an answer the child never gave.
+    expect(html.includes('sym-axis')).toBeFalsy()
+    expect(html.includes('sym-draft')).toBeFalsy()
+    expect(html.includes('sym-fold')).toBeFalsy()
+  })
+
+  it('shows progress through the five shapes', () => {
+    // The list itself is class="sym-dots", so the match requires the closing
+    // quote or a space — otherwise the container counts as a sixth dot.
+    expect((html.match(/class="sym-dot( |")/g) || []).length).toBe(5)
+  })
+
+  it('quotes no length and no angle size', () => {
+    expect(/[0-9]+\s*도/.test(html)).toBeFalsy()
+    expect(/[0-9]+\s*(cm|mm|px)/.test(html)).toBeFalsy()
+  })
+
+  it('has no turn control', () => {
+    expect(/onRotate|onFlip|돌리기|뒤집기/.test(html)).toBeFalsy()
   })
 })
 

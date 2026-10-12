@@ -42,3 +42,6 @@ Thumbs.db
 *.log
 *.err
 .preview.*
+
+# ---- 옆에 있는 다른 프로젝트 ----
+ganseong-ai-training/

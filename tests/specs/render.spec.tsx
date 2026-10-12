@@ -12,7 +12,7 @@
  * on the way to disk in this environment.
  */
 
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, it, expect } from '../harness/api'
 import expected from '../harness/expected.json' with { type: 'json' }
@@ -23,8 +23,8 @@ import { CorrespondenceStage } from '../../src/modes/CorrespondenceStage'
 import { buildBoard } from '../../src/modes/useBoard'
 import { DonePanel } from '../../src/components/DonePanel'
 import { Toast } from '../../src/components/Toast'
-import { donePanelFor } from '../../src/components/verdictText'
-import { donePanelFor as corrDonePanelFor } from '../../src/components/corrText'
+import { congruenceDonePanelFor } from '../../src/components/verdictText'
+import { correspondenceDonePanelFor as corrDonePanelFor } from '../../src/components/corrText'
 
 function source(path: string): string {
   return readFileSync(join(process.cwd(), path), 'utf8')
@@ -356,7 +356,7 @@ describe('correspondence stage renders', () => {
 // unit states its own lesson and offers an unmistakable way back to the start.
 
 describe('a cleared unit ends properly', () => {
-  const words = donePanelFor()
+  const words = congruenceDonePanelFor()
   const html = renderToStaticMarkup(
     <DonePanel
       title={words.title}
@@ -394,9 +394,9 @@ describe('a cleared unit ends properly', () => {
   })
 
   it('both units name their own lesson', () => {
-    expect(donePanelFor().note).toBe(expected.home.congruenceNote)
+    expect(congruenceDonePanelFor().note).toBe(expected.home.congruenceNote)
     expect(corrDonePanelFor().note).toBe(expected.home.corrNote)
-    expect(donePanelFor().note === corrDonePanelFor().note).toBeFalsy()
+    expect(congruenceDonePanelFor().note === corrDonePanelFor().note).toBeFalsy()
   })
 })
 
@@ -462,46 +462,65 @@ describe('a success is in the middle, not at the top', () => {
     expect(toast.includes('pointer-events: none')).toBeTruthy()
   })
 
-  it('both units send their success to it', () => {
+  it('both units send every message to it', () => {
     for (const stage of [
       'src/modes/CongruenceStage.tsx',
       'src/modes/CorrespondenceStage.tsx',
     ]) {
       const code = source(stage)
       expect(code.includes('<Toast')).toBeTruthy()
-      // and only the success tone goes there
-      expect(/tone === 'success'/.test(code)).toBeTruthy()
+      // and neither screen re-decides which tone goes where
+      expect(/tone === 'success'/.test(code)).toBeFalsy()
+      expect(/tone !== 'neutral'/.test(code)).toBeFalsy()
     }
   })
 
-  it('the standing instruction is on the board, and only once', () => {
-    /*
-     * This one changed its mind, on purpose.
-     *
-     * It used to check that the instruction and the hint stayed in the strip at the
-     * top, on the argument that a message which vanishes after a second and a half
-     * cannot do either job. That is right about the hint and wrong about the
-     * board: the strip repeated what the toolbar and the header already said, and
-     * sat above the shapes rather than in them. The strip is gone and everything
-     * comes over the board instead — so the check now guards the thing that was
-     * actually wrong.
-     */
+  it('nothing is said in a strip along the top', () => {
+    // The strip repeated the toolbar and the header, and sat above the shapes
+    // rather than in them. Both units now say everything over the board instead.
+    const styles = readdirSync(join(process.cwd(), 'src', 'styles'))
+      .filter((f) => f.endsWith('.css'))
+      .map((f) => readFileSync(join(process.cwd(), 'src', 'styles', f), 'utf8'))
+      .join('\n')
+
     for (const stage of [
       'src/modes/CongruenceStage.tsx',
       'src/modes/CorrespondenceStage.tsx',
     ]) {
-      expect(source(stage).includes('<Toast')).toBeTruthy()
+      expect(source(stage).includes('banner')).toBeFalsy()
     }
-    // the congruence board still says what to do, at the bottom
+    expect(styles.includes('.banner')).toBeFalsy()
+  })
+
+  it('each unit says what to do, at the bottom', () => {
+    /*
+     * The instruction is the one thing that is not a message about something that
+     * happened, so it is the one thing that does not go over the board. The
+     * congruence board has always kept it in its bottom toolbar; the correspondence
+     * unit now keeps it beside the progress dots, in the same place.
+     */
     const board = renderToStaticMarkup(<CongruenceStage onBack={() => {}} />)
     expect(board.includes(expected.board.dragHint)).toBeTruthy()
     expect(board.includes(expected.board.autoMatch)).toBeTruthy()
+
+    const corr = renderToStaticMarkup(<CorrespondenceStage onBack={() => {}} />)
+    expect(corr.includes(expected.corr.askPoint)).toBeTruthy()
+    // and it is not up in a strip
+    expect(corr.includes('banner')).toBeFalsy()
   })
 
   it('a success does not last forever', () => {
-    const hook = source('src/modes/useToast.ts')
-    expect(/TOAST_MS/.test(hook)).toBeTruthy()
+    /*
+     * One hook holds this rule for both units. It used to be asserted against
+     * `useToast`, which no longer exists — the point of folding it into
+     * `useStageMessage` was that there is exactly one place a message decides
+     * to leave, so this now checks that place.
+     */
+    const hook = source('src/modes/useStageMessage.ts')
+    expect(/POPUP_MS/.test(hook)).toBeTruthy()
     expect(/window\.setTimeout/.test(hook)).toBeTruthy()
+    // and nothing brings the old one back
+    expect(existsSync(join(process.cwd(), 'src/modes/useToast.ts'))).toBeFalsy()
   })
 })
 

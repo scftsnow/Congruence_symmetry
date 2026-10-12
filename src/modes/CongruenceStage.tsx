@@ -24,8 +24,11 @@ import { StackedOverlay } from '../components/StackedOverlay'
 import { Toast } from '../components/Toast'
 import { Celebration } from '../components/Celebration'
 import { DonePanel } from '../components/DonePanel'
-import { donePanelFor, messageFor } from '../components/verdictText'
-import { useToast } from './useToast'
+import { congruenceDonePanelFor, congruenceMessageFor } from '../components/verdictText'
+import { useStageMessage } from './useStageMessage'
+
+/** nothing to say; the board is finished and the ending popup has it */
+const NEUTRAL = { tone: 'neutral', icon: '', text: '' } as const
 
 interface CongruenceStageProps {
   onBack: () => void
@@ -146,7 +149,7 @@ export function CongruenceStage({ onBack }: CongruenceStageProps) {
 
   const held = board.heldItem
   const cleared = count >= board.target
-  const done = donePanelFor()
+  const done = congruenceDonePanelFor()
 
   /*
    * Everything said goes through the popup in the middle of the board.
@@ -160,12 +163,12 @@ export function CongruenceStage({ onBack }: CongruenceStageProps) {
    * second wrong stack gets the same sentence again. Keyed on the words alone the
    * hint would have faded after the first attempt and stayed silent through the
    * next three, which is the one thing a hint must never do.
+   *
+   * Every release is answered: a match, a drop on the wrong partner, a drop on a
+   * smaller one, and a drop in open space all say something.
    */
-  const message = messageFor(verdict, turned, count, board.target)
-  const toast = useToast(
-    !cleared && message.tone !== 'neutral' ? message.parts.map((p) => p.text).join('') : null,
-    attempts,
-  )
+  const message = congruenceMessageFor(verdict, turned, count, board.target)
+  const toast = useStageMessage(cleared ? NEUTRAL : message, attempts)
 
   return (
     <div className="mode">
@@ -184,9 +187,7 @@ export function CongruenceStage({ onBack }: CongruenceStageProps) {
        * the board being finished. The standing instruction is at the bottom of the
        * screen in the toolbar, where it can be read once and then left alone.
        */}
-      {toast && !cleared && (
-        <Toast tone={message.tone === 'success' ? 'success' : 'hint'} icon={message.icon} parts={message.parts} />
-      )}
+      {toast && <Toast {...toast} />}
 
       <div className="canvas-wrap">
         <svg

@@ -17,8 +17,9 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { CORRESPONDENCE_PAIRS } from '../geometry/correspondenceShapes'
-import { instructionFor, messageFor } from '../components/corrText'
-import type { Message, Pass, Phase } from '../components/corrText'
+import { correspondenceMessageFor, foundFor, instructionFor } from '../components/corrText'
+import type { Message } from '../components/tone'
+import type { Pass, Phase } from '../components/corrText'
 import { PASSES } from '../components/corrText'
 
 /** how long a side or angle takes to travel and settle */
@@ -38,7 +39,7 @@ const HINT_MS = 1800
 /** how long the stars stay up after a correct find, as in the congruence stage */
 const STAR_MS = 1500
 
-export interface Correspondence {
+export interface CorrespondenceState {
   pairIndex: number
   pair: (typeof CORRESPONDENCE_PAIRS)[number]
   phase: Phase
@@ -52,15 +53,15 @@ export interface Correspondence {
   /** true just after a correct find, for the burst of stars */
   justFound: boolean
   /**
-   * how many times the child has missed
+   * how many times the child has answered, right or wrong
    *
-   * Not shown. It exists so the popup can tell a repeated miss from the first one:
-   * the sentence is the same every time, and without something that changed the
-   * second miss would be met with silence.
+   * Not shown. It exists so the popup can tell a repeated answer from the first
+   * one: the sentence is the same every time, and without something that changed
+   * the second miss would be met with silence.
    */
-  misses: number
-  /** the one standing instruction, shown at the bottom of the screen */
-  instruction: string
+  attempts: number
+  /** the one standing instruction, or nothing during the demonstration */
+  instruction: string | null
   flying: boolean
   done: boolean
   message: Message
@@ -70,7 +71,7 @@ export interface Correspondence {
   nextPair: () => void
 }
 
-export function useCorrespondence(): Correspondence {
+export function useCorrespondence(): CorrespondenceState {
   const [pairIndex, setPairIndex] = useState(0)
   const [phase, setPhase] = useState<Phase>('points')
   const [step, setStep] = useState(0)
@@ -78,7 +79,8 @@ export function useCorrespondence(): Correspondence {
   const [flyStep, setFlyStep] = useState(0)
   const [landed, setLanded] = useState(false)
   const [justFound, setJustFound] = useState(false)
-  const [misses, setMisses] = useState(0)
+  /** one per tap, right or wrong; re-arms the popup so a repeat still shows */
+  const [attempts, setAttempts] = useState(0)
   const starTimer = useRef<number | null>(null)
 
   const pair = CORRESPONDENCE_PAIRS[pairIndex]
@@ -113,15 +115,14 @@ export function useCorrespondence(): Correspondence {
       // A miss is held rather than counted, so a child tapping quickly through a
       // hint cannot stumble into the right answer by accident.
       if (wrong || phase === 'compare') return
+      setAttempts((n) => n + 1)
       if (given !== step) {
         /*
-         * One count per miss, whether or not it is the same corner twice. The popup
-         * keys on this so a repeated hint comes back: two wrong taps in a row
-         * produce the same words, and without a counter the second one would find
-         * the text unchanged and stay silent — which is the one thing a hint must
-         * never do, because the child is still stuck.
+         * A miss is answered by the popup, which the attempt count above re-arms.
+         * Two wrong taps in a row produce the same words, so keying on the words
+         * alone would leave the child still stuck and told nothing — the one thing
+         * a hint must never do.
          */
-        setMisses((n) => n + 1)
         explain()
         return
       }
@@ -194,18 +195,20 @@ export function useCorrespondence(): Correspondence {
     flyStep,
     landed,
     justFound,
-    misses,
+    attempts,
     flying,
     done,
     instruction: instructionFor(phase),
-    message: messageFor({
-      phase,
-      wrong,
-      done,
-      flying,
-      flyingAngle: flying && flyStep >= corners,
-      landed: flying && landed,
-    }),
+    message: (justFound && phase !== 'compare'
+      ? foundFor(phase)
+      : correspondenceMessageFor({
+          phase,
+          wrong,
+          done,
+          flying,
+          flyingAngle: flying && flyStep >= corners,
+          landed: flying && landed,
+        })) ?? { tone: 'neutral' as const, icon: '', text: '' },
     startPair,
     answer,
     nextPair,

@@ -6,7 +6,13 @@
  */
 
 import { describe, it, expect } from '../harness/api'
-import { intersectPolygons, measureOverlap, pointInPolygon, polygonArea } from '../../src/geometry/overlap'
+import {
+  intersectPolygons,
+  intersectionArea,
+  measureOverlap,
+  pointInPolygon,
+  polygonArea,
+} from '../../src/geometry/overlap'
 import { applyTransform, identity } from '../../src/geometry/transforms'
 import { findShape } from '../../src/geometry/shapes'
 import { checkCongruence, EPSILON_STACK } from '../../src/geometry/compare'
@@ -45,14 +51,14 @@ describe('intersection polygons', () => {
   it('identical squares give the whole square back', () => {
     const inter = intersectPolygons(UNIT_SQUARE, UNIT_SQUARE)
     expect(inter).toBeTruthy()
-    expect(polygonArea(inter!)).toBeCloseTo(10000, 4)
+    expect(intersectionArea(inter)).toBeCloseTo(10000, 4)
   })
 
   it('half-overlapping squares give half the area', () => {
     const shifted = UNIT_SQUARE.map((p) => ({ x: p.x + 50, y: p.y }))
     const inter = intersectPolygons(UNIT_SQUARE, shifted)
     expect(inter).toBeTruthy()
-    expect(polygonArea(inter!)).toBeCloseTo(5000, 4)
+    expect(intersectionArea(inter)).toBeCloseTo(5000, 4)
   })
 
   it('apart squares do not intersect', () => {
@@ -69,14 +75,14 @@ describe('intersection polygons', () => {
     ]
     const inter = intersectPolygons(UNIT_SQUARE, small)
     expect(inter).toBeTruthy()
-    expect(polygonArea(inter!)).toBeCloseTo(2500, 4)
+    expect(intersectionArea(inter)).toBeCloseTo(2500, 4)
   })
 
   it('survives reversed winding on either input', () => {
     const shifted = UNIT_SQUARE.map((p) => ({ x: p.x + 50, y: p.y }))
     const a = intersectPolygons(UNIT_SQUARE, [...shifted].reverse())
     expect(a).toBeTruthy()
-    expect(polygonArea(a!)).toBeCloseTo(5000, 4)
+    expect(intersectionArea(a)).toBeCloseTo(5000, 4)
   })
 
   it('returns null for degenerate input instead of throwing', () => {

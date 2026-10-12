@@ -65,59 +65,70 @@ export function xit(name) {
 
 /** Chains shape the assertions an assertion library would provide. */
 export function expect(actual) {
+  return chain(actual, false)
+}
+
+/**
+ * One chain of matchers, optionally inverted.
+ *
+ * `.not` is here rather than written out at each call site because "this must
+ * NOT contain a phrase" is a real kind of claim about wording — it is how a spec
+ * says a screen must not deny something the child has not been shown yet. It was
+ * missing, and a missing matcher failed as `undefined is not a function` at the
+ * far end of a long expression, which reads as a bug in the thing under test
+ * rather than a gap in the harness.
+ */
+function chain(actual, negated) {
+  /** Throws unless the matcher held (or, when negated, failed to). */
+  function check(passed, message) {
+    if (passed === negated) throw new Error(message)
+  }
+
   return {
+    get not() {
+      return chain(actual, !negated)
+    },
     toBe(expected) {
-      if (!Object.is(actual, expected)) {
-        throw new Error(`expected ${format(expected)}, got ${format(actual)}`)
-      }
+      check(Object.is(actual, expected), `expected ${format(expected)}, got ${format(actual)}`)
     },
     toEqual(expected) {
       const a = JSON.stringify(actual)
       const b = JSON.stringify(expected)
-      if (a !== b) throw new Error(`expected ${b}, got ${a}`)
+      check(a === b, `expected ${b}, got ${a}`)
     },
     toBeTruthy() {
-      if (!actual) throw new Error(`expected truthy, got ${format(actual)}`)
+      check(!!actual, `expected truthy, got ${format(actual)}`)
     },
     toBeFalsy() {
-      if (actual) throw new Error(`expected falsy, got ${format(actual)}`)
+      check(!actual, `expected falsy, got ${format(actual)}`)
     },
     toBeCloseTo(expected, digits = 2) {
       const tolerance = Math.pow(10, -digits) / 2
-      if (Math.abs(actual - expected) > tolerance) {
-        throw new Error(`expected ${expected} +/-${tolerance}, got ${actual}`)
-      }
+      check(
+        Math.abs(actual - expected) <= tolerance,
+        `expected ${expected} +/-${tolerance}, got ${actual}`,
+      )
     },
     toBeGreaterThan(expected) {
-      if (!(actual > expected)) {
-        throw new Error(`expected > ${format(expected)}, got ${format(actual)}`)
-      }
+      check(actual > expected, `expected > ${format(expected)}, got ${format(actual)}`)
     },
     toBeGreaterThanOrEqual(expected) {
-      if (!(actual >= expected)) {
-        throw new Error(`expected >= ${format(expected)}, got ${format(actual)}`)
-      }
+      check(actual >= expected, `expected >= ${format(expected)}, got ${format(actual)}`)
     },
     toBeLessThanOrEqual(expected) {
-      if (!(actual <= expected)) {
-        throw new Error(`expected <= ${format(expected)}, got ${format(actual)}`)
-      }
+      check(actual <= expected, `expected <= ${format(expected)}, got ${format(actual)}`)
     },
     toBeLessThan(expected) {
-      if (!(actual < expected)) {
-        throw new Error(`expected < ${format(expected)}, got ${format(actual)}`)
-      }
+      check(actual < expected, `expected < ${format(expected)}, got ${format(actual)}`)
     },
     toContain(expected) {
       const has = Array.isArray(actual)
         ? actual.includes(expected)
         : typeof actual === 'string' && actual.includes(expected)
-      if (!has) throw new Error(`expected to contain ${format(expected)}`)
+      check(has, `expected ${negated ? 'not to contain ' : 'to contain '}${format(expected)}`)
     },
     toHaveLength(expected) {
-      if (actual?.length !== expected) {
-        throw new Error(`expected length ${expected}, got ${actual?.length}`)
-      }
+      check(actual?.length === expected, `expected length ${expected}, got ${actual?.length}`)
     },
     toThrow() {
       let threw = false
@@ -126,7 +137,7 @@ export function expect(actual) {
       } catch {
         threw = true
       }
-      if (!threw) throw new Error('expected function to throw')
+      check(threw, 'expected function to throw')
     },
   }
 }

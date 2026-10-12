@@ -10,29 +10,27 @@
 import { CorrespondenceScene } from '../components/CorrespondenceScene'
 import { Toast } from '../components/Toast'
 import { DonePanel } from '../components/DonePanel'
-import { donePanelFor } from '../components/corrText'
+import { correspondenceDonePanelFor } from '../components/corrText'
 import { CORRESPONDENCE_PAIRS } from '../geometry/correspondenceShapes'
 import { useCorrespondence } from './useCorrespondence'
-import { useToast } from './useToast'
+import { useStageMessage } from './useStageMessage'
 
 export function CorrespondenceStage({ onBack }: { onBack: () => void }) {
   const c = useCorrespondence()
   const last = c.pairIndex + 1 >= CORRESPONDENCE_PAIRS.length
-  const done = donePanelFor()
+  const done = correspondenceDonePanelFor()
 
   /*
-   * The same arrangement as the congruence board: everything that just happened
-   * arrives in the middle and leaves again, and the one standing instruction sits
-   * at the bottom of the screen where it is read once and left alone.
+   * The same rule as the congruence board, in the same place: every answer is
+   * answered. A corner found, a wrong corner, a side landing on its partner — all
+   * of it crosses the board and then leaves. Only the standing instruction is
+   * different, and that sits at the bottom.
    *
-   * `misses` is the nonce that re-arms the popup. Two wrong taps produce the same
-   * words, so keying on the words alone would mean the hint said its piece once
-   * and then stayed silent for every attempt after it.
+   * `attempts` counts taps, and it is what re-arms the popup: two wrong taps
+   * produce the same words, so keying on the words alone would leave the child
+   * still stuck and told nothing.
    */
-  const toast = useToast(
-    !c.done && c.message.tone !== 'neutral' ? c.message.text : null,
-    c.misses,
-  )
+  const toast = useStageMessage(c.message, c.attempts)
 
   return (
     <div className="mode">
@@ -44,16 +42,10 @@ export function CorrespondenceStage({ onBack }: { onBack: () => void }) {
       </header>
 
       {/*
-       * The only thing ever said over the board: a match, a miss, or a part that
-       * has just landed exactly on its partner.
+       * Every answer, answered: a pair found, a wrong one, a part that has just
+       * landed exactly on its partner.
        */}
-      {toast && !c.done && (
-        <Toast
-          tone={c.message.tone === 'success' ? 'success' : 'hint'}
-          icon={c.message.icon}
-          text={toast}
-        />
-      )}
+      {toast && <Toast {...toast} />}
 
       <nav className="corr-pairs" aria-label="도형 고르기">
         {CORRESPONDENCE_PAIRS.map((p, i) => (
@@ -114,7 +106,7 @@ export function CorrespondenceStage({ onBack }: { onBack: () => void }) {
              * same line in its bottom toolbar, so this is where it belongs in both
              * units: read once, then left alone, with nothing over the shapes.
              */}
-            <p className="stage1-hint corr-instruction">{c.instruction}</p>
+            {c.instruction && <p className="stage1-hint corr-instruction">{c.instruction}</p>}
             <ol className="corr-dots" aria-label="진행">
               {Array.from({ length: c.corners }).map((_, i) => (
                 <li

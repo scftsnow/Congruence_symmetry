@@ -15,7 +15,7 @@
  * reading.
  */
 
-import type { BannerTone } from './tone'
+import type { Message } from './tone'
 
 /** The three passes, in the textbook's order, then the demonstration. */
 export type Phase = 'points' | 'sides' | 'angles' | 'compare'
@@ -27,6 +27,27 @@ const ASK: Record<Pass, string> = {
   points: '왼쪽에서 빛나는 점을 오른쪽에서 찾아 눌러요',
   sides: '왼쪽에서 빛나는 변을 오른쪽에서 찾아 눌러요',
   angles: '왼쪽에서 빛나는 각을 오른쪽에서 찾아 눌러요',
+}
+
+/**
+ * Said the moment a pair is found, so no tap on this screen is silent.
+ *
+ * The congruence board answers every stack the child makes, right or wrong. This
+ * one used to answer only the wrong ones and the demonstration, so finding a point
+ * correctly produced a ring and a burst of stars and nothing else — and stars
+ * cannot say which of 대응점, 대응변 and 대응각 was just found, which is the whole
+ * vocabulary of the unit.
+ */
+const FOUND: Record<Pass, string> = {
+  points: '대응점을 찾았어!',
+  sides: '대응변을 찾았어!',
+  angles: '대응각을 찾았어!',
+}
+
+/** What was just found, in the unit's own words. */
+export function foundFor(phase: Phase): Message | null {
+  if (phase === 'compare') return null
+  return { tone: 'success', icon: '⭐', text: FOUND[phase as Pass] }
 }
 
 /**
@@ -58,7 +79,7 @@ export const SECOND_SHAPE = '두 번째 도형'
  * looping round to the first one — which left the unit with no ending at all. It
  * is now its own sentence, and the note names what the whole unit was for.
  */
-export function donePanelFor(): {
+export function correspondenceDonePanelFor(): {
   title: Array<{ text: string; strong?: boolean }>
   note: string
   homeLabel: string
@@ -79,22 +100,14 @@ export function donePanelFor(): {
  * sits under the board instead: above the shapes is a place the child is not
  * looking at, and the congruence board already keeps its instruction in its
  * bottom toolbar, so both units say it from the same place.
- */
-export function instructionFor(phase: Phase): string {
-  return ASK[phase as Pass]
-}
-
-/**
- * Not a Banner, because nothing is drawn in a strip any more.
  *
- * The screen decides where words go — a success and a miss arrive over the board,
- * the standing instruction sits at the bottom — and this file only decides what
- * is said.
+ * Nothing during the demonstration. A part is travelling and the popup is saying
+ * what it just showed; a standing line under it would compete with the sentence
+ * that carries the lesson.
  */
-export interface Message {
-  tone: BannerTone
-  icon: string
-  text: string
+export function instructionFor(phase: Phase): string | null {
+  if (phase === 'compare') return null
+  return ASK[phase as Pass]
 }
 
 /**
@@ -117,7 +130,7 @@ const MOVING = { side: '대응변을 옮겨 보고 있어요', angle: '대응각
 const LANDED = { side: '대응변의 길이가 같아요', angle: '대응각의 크기가 같아요' }
 
 /** The one sentence on screen, decided from where the child has got to. */
-export function messageFor(input: {
+export function correspondenceMessageFor(input: {
   phase: Phase
   /** true while a miss is being explained */
   wrong: boolean

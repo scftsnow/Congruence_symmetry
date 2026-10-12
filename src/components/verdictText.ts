@@ -25,13 +25,7 @@
 
 import type { VerdictResult } from '../geometry/verdict'
 import { isMatch } from '../geometry/verdict'
-import type { BannerTone } from './tone'
-
-export interface Banner {
-  tone: BannerTone
-  icon: string
-  parts: Array<{ text: string; strong?: boolean }>
-}
+import type { Message } from './tone'
 
 /**
  * The words for the end of the congruence board.
@@ -41,7 +35,7 @@ export interface Banner {
  * size. It is not praise and it is not a score. A child who cleared the board
  * should be able to say what they learned, and "잘했어요" does not let them.
  */
-export function donePanelFor(): {
+export function congruenceDonePanelFor(): {
   title: Array<{ text: string; strong?: boolean }>
   note: string
   homeLabel: string
@@ -55,12 +49,12 @@ export function donePanelFor(): {
   }
 }
 
-export function messageFor(
+export function congruenceMessageFor(
   verdict: VerdictResult | null,
   turned: boolean,
   count: number,
   target: number,
-): Banner {
+): Message {
   if (count >= target) {
     return {
       tone: 'success',
@@ -108,6 +102,30 @@ export function messageFor(
         { text: '이건 ' },
         { text: '모양이 달라', strong: true },
         { text: ' — 합동이 아니야' },
+      ],
+    }
+  }
+
+  /*
+   * Released, but not onto anything.
+   *
+   * This used to fall through to the standing instruction in the strip along the
+   * top. With the strip gone it fell through to nothing, so a child who dragged a
+   * shape across the board and let go of it in open space was met with silence —
+   * which reads as the app not having noticed, rather than as "try that again".
+   *
+   * Deliberately not "합동이 아니야". A shape on its own is not a shape that fails
+   * to be congruent; nothing has been compared yet. It says the drop did not land
+   * on anything, and what to do instead.
+   */
+  if (verdict?.verdict === 'apart') {
+    return {
+      tone: 'hint',
+      icon: '👆',
+      parts: [
+        { text: '아직 ' },
+        { text: '겹쳐지지 않았어', strong: true },
+        { text: ' — 다른 도형 위에 놓아봐' },
       ],
     }
   }

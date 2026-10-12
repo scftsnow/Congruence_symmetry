@@ -25,7 +25,8 @@ import {
   sideTransform,
 } from '../../src/geometry/correspondence'
 import { CORRESPONDENCE_PAIRS } from '../../src/geometry/correspondenceShapes'
-import { messageFor } from '../../src/components/corrText'
+import { correspondenceMessageFor, foundFor } from '../../src/components/corrText'
+import { congruenceMessageFor } from '../../src/components/verdictText'
 import { isSimplePolygon, polygonArea } from '../../src/geometry/overlap'
 import { applyTransform, identity } from '../../src/geometry/transforms'
 import type { Point } from '../../src/geometry/types'
@@ -156,7 +157,7 @@ describe('every shape has parts the child can tell apart', () => {
    * So the claim arrives when the part lands, and stays long enough to read.
    */
   describe('the comparison says what it shows', () => {
-    const landedSide = messageFor({
+    const landedSide = correspondenceMessageFor({
       phase: 'compare',
       wrong: false,
       done: false,
@@ -164,7 +165,7 @@ describe('every shape has parts the child can tell apart', () => {
       flyingAngle: false,
       landed: true,
     })
-    const landedAngle = messageFor({
+    const landedAngle = correspondenceMessageFor({
       phase: 'compare',
       wrong: false,
       done: false,
@@ -219,6 +220,40 @@ describe('every shape has parts the child can tell apart', () => {
     const hook = source('src/modes/useCorrespondence.ts')
     expect(/justFound/.test(hook)).toBeTruthy()
     expect(/STAR_MS/.test(hook)).toBeTruthy()
+  })
+
+  it('says which of the three was found, in the unit\'s own words', () => {
+    /*
+     * Stars cannot say which of 대응점, 대응변 and 대응각 was just found, and those
+     * three words are the entire vocabulary of the unit. A bare "맞아요" would
+     * confirm the tap without teaching the name.
+     */
+    expect(foundFor('points')?.text).toBe('대응점을 찾았어!')
+    expect(foundFor('sides')?.text).toBe('대응변을 찾았어!')
+    expect(foundFor('angles')?.text).toBe('대응각을 찾았어!')
+    expect(foundFor('compare')).toBe(null)
+    for (const phase of ['points', 'sides', 'angles'] as const) {
+      expect(foundFor(phase)?.tone).toBe('success')
+    }
+  })
+
+  it('answers a drop that missed, not only a drop that was wrong', () => {
+    /*
+     * 'apart' used to fall through to the standing instruction, and with the strip
+     * gone it fell through to nothing — so a child who dragged a shape across the
+     * board and let go of it in open space was met with silence, which reads as the
+     * app not having noticed rather than as "try that again".
+     */
+    const apart = congruenceMessageFor(
+      { verdict: 'apart', solution: null, coverage: 0, coincident: false },
+      false,
+      0,
+      5,
+    )
+    expect(apart.tone).toBe('hint')
+    expect(apart.parts?.map((p) => p.text).join('')).toBe('아직 겹쳐지지 않았어 — 다른 도형 위에 놓아봐')
+    // and it does not claim the shape is not congruent: nothing was compared
+    expect(apart.parts?.map((p) => p.text).join('')).not.toContain('합동이 아니야')
   })
 
   it('has no outline that crosses itself', () => {

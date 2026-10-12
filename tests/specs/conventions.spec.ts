@@ -466,6 +466,37 @@ describe('a file holds one thing', () => {
     }
   })
 
+  it('no two modules export the same name', () => {
+    /*
+     * corrText.ts and verdictText.ts both exported `messageFor`. The bundler
+     * inlines every module into one scope, so the second declaration shadowed the
+     * first — and a test that imported one of them under an alias was silently
+     * calling the other. It reported "neutral" for a message that says "hint",
+     * and nothing threw.
+     *
+     * Two modules with the same export name is a collision waiting to happen, and
+     * the only thing that can see it is a test.
+     */
+    const exported = new Map<string, string[]>()
+    for (const file of sourceFiles) {
+      if (!/\.(ts|tsx)$/.test(file)) continue
+      const body = read(file)
+      for (const [, name] of body.matchAll(/^export (?:async )?function (\w+)/gm)) {
+        if (!exported.has(name)) exported.set(name, [])
+        exported.get(name)!.push(rel(file))
+      }
+      for (const [, name] of body.matchAll(/^export (?:const|let|type|interface) (\w+)/gm)) {
+        if (!exported.has(name)) exported.set(name, [])
+        exported.get(name)!.push(rel(file))
+      }
+    }
+
+    const clashes = [...exported.entries()]
+      .filter(([, files]) => new Set(files).size > 1)
+      .map(([name, files]) => `${name} in ${[...new Set(files)].join(' and ')}`)
+    expect(clashes.join(', ') || 'ok').toBe('ok')
+  })
+
   it('every component is used by something', () => {
     /*
      * ResultBanner.tsx survived the removal of the screen it belonged to. It was
@@ -532,13 +563,44 @@ describe('a file holds one thing', () => {
     expect(styles().includes('.banner')).toBeFalsy()
   })
 
-  it('a repeated miss is answered every time, not only the first', () => {
+  it('a repeated answer is answered every time, not only the first', () => {
     // Two misses in a row produce the same words, so a popup keyed on the text
     // alone would find nothing changed and stay silent — and the child is still
     // stuck. Both screens therefore pass a counter that moves on every attempt.
-    expect(/misses/.test(read('src/modes/useCorrespondence.ts'))).toBeTruthy()
+    expect(/attempts/.test(read('src/modes/useCorrespondence.ts'))).toBeTruthy()
     expect(/attempts/.test(read('src/modes/CongruenceStage.tsx'))).toBeTruthy()
-    expect(/nonce/.test(read('src/modes/useToast.ts'))).toBeTruthy()
+
+    /*
+     * And the counter has to be one of the effect's dependencies, which is the
+     * whole mechanism. Matching the word anywhere in the file would pass on a
+     * comment or a parameter that nothing reads, which is the shape of the bug
+     * being guarded against: a name that looks like a fix but changes nothing.
+     */
+    const hook = read('src/modes/useStageMessage.ts')
+    expect(/\}, \[[^\]]*\battempts\b[^\]]*\]\)/.test(hook)).toBeTruthy()
+  })
+
+  it('one rule decides where a message goes, and both units use it', () => {
+    /*
+     * This used to be written in each screen: work out whether the message
+     * deserved the board, give it the right tone, retire it after a while. In two
+     * places it was the same four decisions, and the correspondence screen had
+     * drifted — it sent successes to the popup and left hints in a strip that no
+     * longer existed, so a wrong tap there was met with silence.
+     */
+    const hook = read('src/modes/useStageMessage.ts')
+    expect(hook.includes('isPopup')).toBeTruthy()
+    expect(hook.includes('POPUP_MS')).toBeTruthy()
+    for (const stage of [
+      'src/modes/CongruenceStage.tsx',
+      'src/modes/CorrespondenceStage.tsx',
+    ]) {
+      const code = read(stage)
+      expect(code.includes('useStageMessage')).toBeTruthy()
+      // and neither screen re-decides it for itself
+      expect(/tone === 'success'/.test(code)).toBeFalsy()
+      expect(/tone !== 'neutral'/.test(code)).toBeFalsy()
+    }
   })
 
   it('the star burst scales about its own centre', () => {
@@ -559,6 +621,43 @@ describe('a file holds one thing', () => {
     const fixed = /\.done\s*\{[^}]*position:\s*fixed/.test(ui)
     expect(fixed).toBeTruthy()
     expect(read('src/components/DonePanel.tsx').includes('role="dialog"')).toBeTruthy()
+  })
+})
+
+/*
+ * The harness is the only thing standing between a broken number and a green
+ * build, so it is held to the same standard as the code.
+ */
+describe('the assertion harness can still fail', () => {
+  it('does not accept NaN as close to anything', () => {
+    /*
+     * This one cost four false greens. `toBeCloseTo` read
+     *
+     *     if (Math.abs(actual - expected) > tolerance) throw
+     *
+     * and `NaN > anything` is false, so a spec handed a NaN sailed through. Four
+     * checks in the overlap spec were calling `polygonArea` on the list of pieces
+     * that `intersectPolygons` returns, so they had been comparing NaN to 10000
+     * and passing since they were written. The arithmetic was inverted to `<=`
+     * and they started failing for the right reason.
+     *
+     * Written the other way round — decide it passed, then throw if not — NaN
+     * cannot get through, and that is the only reason the bug is visible now.
+     */
+    let threw = false
+    try {
+      expect(NaN).toBeCloseTo(10000, 4)
+    } catch {
+      threw = true
+    }
+    expect(threw).toBe(true)
+  })
+
+  it('still accepts the values it is meant to accept', () => {
+    expect(10000).toBeCloseTo(10000, 4)
+    expect(0.1 + 0.2).toBeCloseTo(0.3, 4)
+    // and .not has to exist, or a negated claim reads as a passing one
+    expect('합동이 아니야').not.toContain('대응변')
   })
 })
 

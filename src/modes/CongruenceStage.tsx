@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Congruence stage — one board, one act.
  *
  * The child drags a shape onto another and stops there. The system judges the
@@ -17,13 +17,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useBoard } from './useBoard'
 import type { BoardShape } from './useBoard'
-import { BoardShapeView } from '../components/BoardShapeView'
-import { Grid } from '../components/BoardGrid'
-import { PairMark } from '../components/PairMark'
-import { StackedOverlay } from '../components/StackedOverlay'
 import { Toast } from '../components/Toast'
 import { Celebration } from '../components/Celebration'
 import { DonePanel } from '../components/DonePanel'
+import { PairMark } from '../components/PairMark'
+import { StackedOverlay } from '../components/StackedOverlay'
+import { Grid } from '../components/BoardGrid'
+import { BoardShapeView } from '../components/BoardShapeView'
 import { congruenceDonePanelFor, congruenceMessageFor } from '../components/verdictText'
 import { useStageMessage } from './useStageMessage'
 
@@ -35,11 +35,13 @@ interface CongruenceStageProps {
 }
 
 export function CongruenceStage({ onBack }: CongruenceStageProps) {
-  const board = useBoard()
   const svgRef = useRef<SVGSVGElement | null>(null)
   const [justFound, setJustFound] = useState(false)
   /** true only after the child lets go, so a mere touch never turns a shape */
   const [released, setReleased] = useState(false)
+  // The board judges only once the child has let go, so the verdict waits for
+  // the release flag below rather than running live under the finger.
+  const board = useBoard(released)
   /** one per release; re-arms the popup so a repeated miss still says something */
   const [attempts, setAttempts] = useState(0)
   /**
@@ -126,7 +128,12 @@ export function CongruenceStage({ onBack }: CongruenceStageProps) {
    * another one, so a shape lifted and set back down in its own place, or one
    * moved near its partner but not onto it, leaves everything alone.
    */
+  const count = board.foundCount
   const verdict = board.verdict
+
+  const cleared = count >= board.target
+  const message = congruenceMessageFor(verdict, turned, count, board.target)
+  const toast = useStageMessage(cleared ? NEUTRAL : message, attempts)
 
   useEffect(() => {
     if (!released) return
@@ -138,8 +145,6 @@ export function CongruenceStage({ onBack }: CongruenceStageProps) {
     setTurned(true)
     board.applyTurn(board.held, verdict.solution)
   }, [released, verdict, board])
-
-  const count = board.foundCount
   useEffect(() => {
     if (count === 0) return
     setJustFound(true)
@@ -148,27 +153,7 @@ export function CongruenceStage({ onBack }: CongruenceStageProps) {
   }, [count])
 
   const held = board.heldItem
-  const cleared = count >= board.target
   const done = congruenceDonePanelFor()
-
-  /*
-   * Everything said goes through the popup in the middle of the board.
-   *
-   * The strip along the top is gone. What it said was already said twice — the
-   * toolbar at the bottom carries the instruction and the header carries the
-   * count — so it was a third copy of the same two facts, in a place the child
-   * was not looking at.
-   *
-   * `attempts` counts releases. It is the nonce that re-arms the popup, so a
-   * second wrong stack gets the same sentence again. Keyed on the words alone the
-   * hint would have faded after the first attempt and stayed silent through the
-   * next three, which is the one thing a hint must never do.
-   *
-   * Every release is answered: a match, a drop on the wrong partner, a drop on a
-   * smaller one, and a drop in open space all say something.
-   */
-  const message = congruenceMessageFor(verdict, turned, count, board.target)
-  const toast = useStageMessage(cleared ? NEUTRAL : message, attempts)
 
   return (
     <div className="mode">
@@ -178,16 +163,20 @@ export function CongruenceStage({ onBack }: CongruenceStageProps) {
         </button>
         <h2 className="mode__title">합동인 도형 찾기</h2>
         <div className="star-counter" aria-label={`찾은 개수 ${count}`}>
-          ⭐ {count} / {board.target}
+          {count} / {board.target}
         </div>
       </header>
 
       {/*
-       * The only thing that is ever said over the board: a match, or a miss, or
-       * the board being finished. The standing instruction is at the bottom of the
-       * screen in the toolbar, where it can be read once and then left alone.
+       * Never while the finger is down.
+       *
+       * The verdict is already gated on release, but the toast outlives the
+       * release that made it: it stays up for its reading time, and a child who
+       * picks up the next shape inside that window would otherwise carry the old
+       * popup into the new drag. Gating the render on `dragging` makes "popup on
+       * let-go, never mid-drag" true no matter how the timers line up.
        */}
-      {toast && <Toast {...toast} />}
+      {toast && !dragging && <Toast {...toast} />}
 
       <div className="canvas-wrap">
         <svg
@@ -216,10 +205,7 @@ export function CongruenceStage({ onBack }: CongruenceStageProps) {
           ))}
 
           {held && <StackedOverlay held={held} items={board.items} />}
-
-          {justFound && (
-            <Celebration x={board.canvas.width / 2} y={board.canvas.height / 2} />
-          )}
+          {justFound && <Celebration x={board.canvas.width / 2} y={board.canvas.height / 2} />}
         </svg>
       </div>
 

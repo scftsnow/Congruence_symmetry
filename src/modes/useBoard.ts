@@ -15,7 +15,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { findMatches, pairKey, shapePoints, transformOf } from '../geometry/pairs'
 import { polygonCentroid, touching } from '../geometry/overlap'
-import { APART, judge, turnedItem, type Turn, type VerdictResult } from '../geometry/verdict'
+import { APART, judge, turnedItem, type Turn } from '../geometry/verdict'
 import {
   buildBoard,
   CANVAS_H,
@@ -29,7 +29,7 @@ import type { Point } from '../geometry/types'
 export { buildBoard, CANVAS_H, CANVAS_W, TARGET_PAIRS, transformOf, shapePoints, pairKey, LABELS }
 export type { BoardShape }
 
-export function useBoard() {
+export function useBoard(released: boolean) {
   const [items, setItems] = useState<BoardShape[]>(() => buildBoard())
   const [held, setHeld] = useState<string | null>(null)
   const [confirmed, setConfirmed] = useState<string[]>([])
@@ -48,6 +48,39 @@ export function useBoard() {
   const applyTurn = useCallback((id: string, turn: Turn) => {
     setItems((prev) => prev.map((i) => (i.id === id ? turnedItem(i, turn) : i)))
   }, [])
+
+  const heldItem = held ? items.find((i) => i.id === held) : undefined
+
+  /**
+   * Judge the current stack.
+   *
+   * The `released` flag is a direct dependency: the memo recomputes when the
+   * child lets go (false → true) and returns null on every move while the
+   * finger is down (released stays false, so every recompute exits here).
+   * A gate the memo does not depend on would never re-run.
+   */
+  const verdict = useMemo(() => {
+    if (!released) return null
+    if (!heldItem) return null
+    const heldPoints = shapePoints(heldItem)
+
+    const heldAt = polygonCentroid(heldPoints)
+
+    let best: { points: Point[]; near: number } | null = null
+    for (const other of items) {
+      if (other.id === heldItem.id) continue
+      const otherPoints = shapePoints(other)
+      if (!touching(heldPoints, otherPoints)) continue
+
+      // Where several shapes are in reach at once, the nearest is the one meant.
+      const otherAt = polygonCentroid(otherPoints)
+      const near = Math.hypot(heldAt.x - otherAt.x, heldAt.y - otherAt.y)
+      if (!best || near < best.near) best = { points: otherPoints, near }
+    }
+
+    if (!best) return APART()
+    return judge(best.points, heldPoints, CANVAS_W)
+  }, [released, heldItem, items])
 
   const pairs = useMemo(() => findMatches(items, CANVAS_W), [items])
 
@@ -70,44 +103,6 @@ export function useBoard() {
     setConfirmed([])
     setSeenKeys('')
   }
-
-  const heldItem = held ? items.find((i) => i.id === held) : undefined
-
-  /**
-   * Judge the current stack.
-   *
-   * Only a shape the child has actually laid on top of another is under
-   * discussion. The partner used to be chosen by outline alone, which put
-   * every pair's partner on the board whether or not the two were anywhere
-   * near each other, so picking a shape up and letting go again turned it in
-   * mid-air. It also meant a shape with no partner at all was judged against
-   * itself, and a shape stacked on nothing reported itself fully contained
-   * and claimed a match.
-   *
-   * Where several shapes are touched at once, the one covered most is the one
-   * the child meant.
-   */
-  const verdict: VerdictResult | null = useMemo(() => {
-    if (!heldItem) return null
-    const heldPoints = shapePoints(heldItem)
-
-    const heldAt = polygonCentroid(heldPoints)
-
-    let best: { points: Point[]; near: number } | null = null
-    for (const other of items) {
-      if (other.id === heldItem.id) continue
-      const otherPoints = shapePoints(other)
-      if (!touching(heldPoints, otherPoints)) continue
-
-      // Where several shapes are in reach at once, the nearest is the one meant.
-      const otherAt = polygonCentroid(otherPoints)
-      const near = Math.hypot(heldAt.x - otherAt.x, heldAt.y - otherAt.y)
-      if (!best || near < best.near) best = { points: otherPoints, near }
-    }
-
-    if (!best) return APART()
-    return judge(best.points, heldPoints, CANVAS_W)
-  }, [heldItem, items])
 
   return {
     items,

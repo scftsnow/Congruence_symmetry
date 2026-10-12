@@ -83,6 +83,34 @@ describe('a touch alone does not turn a shape', () => {
   })
 })
 
+// ── the verdict is computed once, on the let-go ──────────
+describe('the verdict waits for the let-go', () => {
+  function source(path: string): string {
+    return readFileSync(join(process.cwd(), path), 'utf8')
+  }
+
+  it('the hook is told whether the child has let go', () => {
+    // Without the flag the memo cannot know a drag from a drop.
+    const hook = source('src/modes/useBoard.ts')
+    expect(/function useBoard\(\s*released\b/.test(hook)).toBeTruthy()
+  })
+
+  it('the gate comes before the judgement, not after it', () => {
+    // A gate after the judge call would still have computed the verdict.
+    const hook = source('src/modes/useBoard.ts')
+    const gate = hook.indexOf('if (!released) return null')
+    expect(gate > -1 ? 'ok' : 'no release gate in the verdict memo').toBe('ok')
+    expect(hook.indexOf('return judge(') > gate ? 'ok' : 'the gate is after the judgement').toBe('ok')
+  })
+
+  it('release is one of the memo dependencies', () => {
+    // A gate the memo does not depend on is a gate that never re-runs:
+    // without `released` in the list the memo would not recompute on let-go.
+    const hook = source('src/modes/useBoard.ts')
+    expect(hook.includes('[released, heldItem, items]')).toBeTruthy()
+  })
+})
+
 // ── the board must not give the answer away ──────────────
 describe('the layout does not spell out the pairs', () => {
   it('no genuine pair sits side by side', () => {

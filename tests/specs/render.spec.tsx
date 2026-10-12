@@ -20,10 +20,10 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import App from '../../src/App'
 import { CongruenceStage } from '../../src/modes/CongruenceStage'
 import { CorrespondenceStage } from '../../src/modes/CorrespondenceStage'
-import { buildBoard } from '../../src/modes/useBoard'
+import { buildBoard, useBoard } from '../../src/modes/useBoard'
 import { DonePanel } from '../../src/components/DonePanel'
 import { Toast } from '../../src/components/Toast'
-import { congruenceDonePanelFor } from '../../src/components/verdictText'
+import { congruenceDonePanelFor, congruenceMessageFor } from '../../src/components/verdictText'
 import { correspondenceDonePanelFor as corrDonePanelFor } from '../../src/components/corrText'
 
 function source(path: string): string {
@@ -134,6 +134,58 @@ describe('congruence board renders', () => {
     const parts = source('src/components/BoardShapeView.tsx')
     expect(parts.includes('touchAction')).toBeTruthy()
     expect(/touch-action:\s*none/.test(source('src/styles/ui.css'))).toBeTruthy()
+  })
+})
+
+// ── the popup waits for the let-go ─────────────────────────
+//
+// The verdict memo depends on `items`, which moves on every pointer move, so
+// it used to recompute live: the hint appeared the moment a shape was picked
+// up, and the success the moment it passed over a partner — both while the
+// child was still holding it. The verdict is now gated on release, so the
+// popup is a reaction to the drop, not a running commentary on the drag.
+
+describe('the popup waits for the let-go', () => {
+  /*
+   * Drives the hook into the mid-drag state — a shape held and laid exactly on
+   * its partner, which is what a press followed by a drag leaves behind —
+   * without a DOM. Each update is conditional, so the render converges.
+   */
+  function HeldOnPartner({ released }: { released: boolean }) {
+    const board = useBoard(released)
+    if (!board.held) {
+      // items carry an id of their own (s-가, s-나, …); the shape id is a field
+      board.setHeld(board.items.find((i) => i.shape.id === 'tri-scalene-2')!.id)
+    } else {
+      const held = board.heldItem!
+      const partner = board.items.find((i) => i.shape.id === 'tri-scalene')!
+      if (held.x !== partner.x || held.y !== partner.y) {
+        board.move(held.id, partner.x, partner.y)
+      }
+    }
+    const message = congruenceMessageFor(board.verdict, false, board.foundCount, board.target)
+    return <div>{message.tone}</div>
+  }
+
+  it('says nothing while the shape is held over a partner', () => {
+    const html = renderToStaticMarkup(<HeldOnPartner released={false} />)
+    expect(html.includes('success')).toBeFalsy()
+    expect(html.includes('neutral')).toBeTruthy()
+  })
+
+  it('celebrates the stack once the child lets go', () => {
+    const html = renderToStaticMarkup(<HeldOnPartner released={true} />)
+    expect(html.includes('success')).toBeTruthy()
+  })
+
+  it('never renders the popup while a finger is down', () => {
+    // The verdict gate is not enough on its own: the popup outlives the release
+    // that made it, so a child who picks up the next shape inside its reading
+    // time would otherwise carry the old message into the new drag. The screen
+    // therefore refuses to draw it while dragging, whatever the hook says.
+    const stage = source('src/modes/CongruenceStage.tsx')
+    expect(stage.includes('!dragging')).toBeTruthy()
+    expect(/toast && !dragging && <Toast/.test(stage)).toBeTruthy()
   })
 })
 

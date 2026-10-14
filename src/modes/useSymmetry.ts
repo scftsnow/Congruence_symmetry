@@ -15,12 +15,9 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { SYMMETRY_ITEMS, SYMM_CENTER } from '../geometry/symmetryShapes'
+import { SYMMETRY_ITEMS } from '../geometry/symmetryShapes'
 import {
-  axisMatches,
-  isLineSymmetric,
-  lineHitsRect,
-  paddedBox,
+  judgeAxis,
   snapAxisToGrid,
   type Axis,
 } from '../geometry/symmetry'
@@ -76,15 +73,6 @@ export interface SymmetryState {
 }
 
 /** The judgement runs in the shape's own frame, so screen layout never enters it. */
-function judgeDrawn(vertices: Point[], axis: Axis): 'off' | 'miss' | 'hit' {
-  const sub = (p: Point): Point => ({ x: p.x - SYMM_CENTER.x, y: p.y - SYMM_CENTER.y })
-  const pts = vertices.map(sub)
-  const line: Axis = { a: sub(axis.a), b: sub(axis.b) }
-  if (!lineHitsRect(line, paddedBox(pts, 10))) return 'off'
-  if (!isLineSymmetric(pts) || axisMatches(line, pts)) return 'hit'
-  return 'miss'
-}
-
 export function useSymmetry(): SymmetryState {
   const [shapeIndex, setShapeIndex] = useState(0)
   const [axis, setAxis] = useState<Axis | null>(null)
@@ -148,7 +136,7 @@ export function useSymmetry(): SymmetryState {
 
     timer.current = window.setTimeout(() => {
       setFolded(true)
-      const outcome = judgeDrawn(shape.shape.vertices, line)
+      const outcome = judgeAxis(shape.shape.vertices, line)
       if (outcome === 'hit') {
         // The fold is the proof either way: a match lands exactly, and on the
         // last shape the mismatch IS the answer rather than a failure.

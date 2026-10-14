@@ -39,6 +39,7 @@
 import type { Point } from './types'
 import { polygonCentroid } from './overlap'
 import { reflectAcrossLine } from './transforms'
+import { SYMM_CENTER } from './symmetryShapes'
 
 /** A straight line, as two snapped points on it. */
 export interface Axis {
@@ -203,6 +204,24 @@ export function isAxisSymmetric(points: Point[], axis: Axis): boolean {
 /** Is there any line that folds this shape onto itself. */
 export function isLineSymmetric(points: Point[]): boolean {
   return findAxes(points).length > 0
+}
+
+/**
+ * Judge a drawn screen axis against local vertices.
+ *
+ * The conversion happens exactly once, here, and that onceness is the point.
+ * An earlier version subtracted the centre from vertices that were already
+ * local, shifting the shape a whole screen away — every drawn line then missed
+ * a shape that was nowhere near it, and every correct answer was met with "draw
+ * it on the shape". Screen layout enters the judgement in this one subtraction
+ * and nowhere else.
+ */
+export function judgeAxis(vertices: Point[], axis: Axis): 'off' | 'miss' | 'hit' {
+  const sub = (p: Point): Point => ({ x: p.x - SYMM_CENTER.x, y: p.y - SYMM_CENTER.y })
+  const line: Axis = { a: sub(axis.a), b: sub(axis.b) }
+  if (!lineHitsRect(line, paddedBox(vertices, 10))) return 'off'
+  if (!isLineSymmetric(vertices) || axisMatches(line, vertices)) return 'hit'
+  return 'miss'
 }
 
 /**

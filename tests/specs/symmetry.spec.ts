@@ -31,6 +31,7 @@ import {
   foldTransform,
   isAxisSymmetric,
   isLineSymmetric,
+  judgeAxis,
   lineHitsRect,
   paddedBox,
   snapAxisToGrid,
@@ -208,6 +209,21 @@ describe('an axis counts only when the fold would land', () => {
     expect(CENTER_TOLERANCE <= 25 ? 'ok' : 'centre tolerance admits neighbours').toBe('ok')
     expect(ANGLE_TOLERANCE < 22.5 ? 'ok' : 'angle tolerance admits neighbours').toBe('ok')
   })
+
+  it('judges a screen axis against local vertices, shifting once', () => {
+    // The exact browser scenario: the finger draws in screen coordinates while
+    // the outline lives in its own frame. Shifting the vertices as well as the
+    // line moved the shape a whole screen away, so every correct answer was met
+    // with "draw it on the shape" — and no unit test caught it, because every
+    // check until this one spoke a single frame.
+    const tri = SYMMETRY_ITEMS[0].shape.vertices
+    const downTheMiddle: Axis = { a: { x: 550, y: 150 }, b: { x: 550, y: 450 } }
+    expect(judgeAxis(tri, downTheMiddle)).toBe('hit')
+    const sideways: Axis = { a: { x: 400, y: 300 }, b: { x: 700, y: 300 } }
+    expect(judgeAxis(tri, sideways)).toBe('miss')
+    const farAway: Axis = { a: { x: 1000, y: 1000 }, b: { x: 1100, y: 1000 } }
+    expect(judgeAxis(tri, farAway)).toBe('off')
+  })
 })
 
 // ── the fold lands ────────────────────────────────────────
@@ -301,6 +317,14 @@ describe('the fold moves one half onto the other', () => {
     const { stay, fold } = splitByAxis(tri, far)
     expect(stay.length === 0 ? 'ok' : 'kept a half of nothing').toBe('ok')
     expect(fold.length === tri.length ? 'ok' : 'dropped the shape').toBe('ok')
+  })
+
+  it('never draws the paper twice', () => {
+    // The full outline must give way to the halves the moment an axis exists.
+    // Drawing it underneath as well showed the moving half twice — where it was
+    // and where it was going — which read as the paper splitting in two.
+    const scene = source('src/components/SymmetryScene.tsx')
+    expect(scene.includes('!axis ?') ? 'ok' : 'full outline always drawn').toBe('ok')
   })
 })
 

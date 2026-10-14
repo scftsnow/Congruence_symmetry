@@ -4,20 +4,16 @@
  * Kept out of the screen so the sequence can be exercised without React, which is
  * the only way to check the parts that are easy to get wrong by eye: that a tap
  * without a drag never judges, that a redraw replaces the old axis, and that a
- * wrong axis unfolds while a right one stays folded.
- *
- * WHY THE CHILD DRAWS AND THE SYSTEM FOLDS
- * ----------------------------------------
- * The direction of the line IS the answer here, so the system must not choose
- * it — unlike the congruence board, where direction was the system's problem.
- * What the system does instead is fold along whatever was drawn, so the child
- * watches the claim succeed or fail rather than being told about it.
+ * wrong axis unfolds while a right one stays folded. The line's direction IS
+ * the answer here, so the system must not choose it — it folds along whatever
+ * was drawn instead, and the child watches the claim land or miss.
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { SYMMETRY_ITEMS } from '../geometry/symmetryShapes'
 import {
   judgeAxis,
+  matchScreenAxis,
   snapAxisToGrid,
   type Axis,
 } from '../geometry/symmetry'
@@ -36,6 +32,8 @@ const FOLD_MS = 700
 const HINT_MS = 1800
 /** how long the stars stay up after a correct find, as in the other units */
 const STAR_MS = 1500
+/** how long a non-final find stays folded: without reopening, no second line could ever be drawn */
+const UNFOLD_MS = 1500
 
 export interface SymmetryState {
   shapeIndex: number
@@ -50,14 +48,10 @@ export interface SymmetryState {
   folded: boolean
   /** true just after something worth celebrating */
   justFound: boolean
-  /**
-   * how many lines have been drawn, right or wrong
-   *
-   * Not shown. It exists so the popup can tell a repeated answer from the first
-   * one: the sentence is the same every time, and without something that changed
-   * the second miss would be met with silence.
-   */
+  /** how many lines have been drawn: the nonce that re-arms the popup for repeats */
   attempts: number
+  /** the drawn lines that already counted, still on screen as found axes */
+  foundLines: Axis[]
   /** this shape is settled, right or proven otherwise */
   resolved: boolean
   instruction: string
@@ -72,18 +66,20 @@ export interface SymmetryState {
   nextShape: () => void
 }
 
-/** The judgement runs in the shape's own frame, so screen layout never enters it. */
 export function useSymmetry(): SymmetryState {
   const [shapeIndex, setShapeIndex] = useState(0)
   const [axis, setAxis] = useState<Axis | null>(null)
   const [draft, setDraft] = useState<{ p: Point; q: Point } | null>(null)
   const [folding, setFolding] = useState(false)
   const [folded, setFolded] = useState(false)
-  const [wrongKind, setWrongKind] = useState<'off' | 'miss' | null>(null)
+  const [wrongKind, setWrongKind] = useState<'off' | 'miss' | 'dup' | null>(null)
   const [justFound, setJustFound] = useState(false)
   const [attempts, setAttempts] = useState(0)
   const [resolved, setResolved] = useState(false)
   const [foundCount, setFoundCount] = useState(0)
+  /** which true axes have been found, by index into findAxes */
+  const [foundIdx, setFoundIdx] = useState<number[]>([])
+  const [foundLines, setFoundLines] = useState<Axis[]>([])
   const timer = useRef<number | null>(null)
 
   const shape = SYMMETRY_ITEMS[shapeIndex]
@@ -107,6 +103,8 @@ export function useSymmetry(): SymmetryState {
     setWrongKind(null)
     setJustFound(false)
     setResolved(false)
+    setFoundIdx([])
+    setFoundLines([])
   }, [])
 
   const beginDraw = useCallback(
@@ -137,16 +135,32 @@ export function useSymmetry(): SymmetryState {
     timer.current = window.setTimeout(() => {
       setFolded(true)
       const outcome = judgeAxis(shape.shape.vertices, line)
-      if (outcome === 'hit') {
-        // The fold is the proof either way: a match lands exactly, and on the
-        // last shape the mismatch IS the answer rather than a failure.
+      // A shape with several axes needs every one of them: one right answer
+      // settles one axis, and only the last one settles the shape. A repeat of
+      // an axis already found is not wrong, only done — it unfolds with its own
+      // hint, which names no count, because the found lines staying on screen
+      // already show how far along this is.
+      const idx =
+        outcome === 'hit' && shape.axes > 0 ? matchScreenAxis(shape.shape.vertices, line) : -1
+      const isNew = shape.axes === 0 || (idx >= 0 && !foundIdx.includes(idx))
+      if (outcome === 'hit' && isNew) {
+        setFoundIdx((prev) => (idx >= 0 ? [...prev, idx] : prev))
+        setFoundLines((prev) => [...prev, line])
         setJustFound(true)
-        setResolved(true)
-        setFoundCount((n) => n + 1)
         timer.current = window.setTimeout(() => setJustFound(false), STAR_MS)
+        if (shape.axes === 0 || foundIdx.length + 1 >= shape.axes) {
+          setResolved(true)
+          setFoundCount((n) => n + 1)
+        } else {
+          timer.current = window.setTimeout(() => {
+            setFolding(false)
+            setFolded(false)
+            setAxis(null)
+          }, UNFOLD_MS)
+        }
         return
       }
-      setWrongKind(outcome)
+      setWrongKind(outcome === 'hit' ? 'dup' : outcome)
       timer.current = window.setTimeout(() => {
         setWrongKind(null)
         setFolding(false)
@@ -154,7 +168,7 @@ export function useSymmetry(): SymmetryState {
         setAxis(null)
       }, HINT_MS)
     }, FOLD_MS)
-  }, [draft, folding, resolved, shape])
+  }, [draft, folding, resolved, shape, foundIdx])
 
   const startShape = useCallback((index: number) => resetShape(index), [resetShape])
 
@@ -164,12 +178,12 @@ export function useSymmetry(): SymmetryState {
 
   const symmetric = shape.axes > 0
   const message: Message =
-    justFound && resolved
-      ? symmetric
-        ? symmetryFoundFor()
-        : symmetryNoAxisFor()
+    justFound
+      ? resolved && !symmetric
+        ? symmetryNoAxisFor()
+        : symmetryFoundFor()
       : wrongKind
-        ? symmetryHintFor(wrongKind === 'off')
+        ? symmetryHintFor(wrongKind)
         : { tone: 'neutral' as const, icon: '', text: '' }
 
   return {
@@ -182,6 +196,7 @@ export function useSymmetry(): SymmetryState {
     justFound,
     attempts,
     resolved,
+    foundLines,
     instruction: symmetryInstructionFor(),
     done,
     message,

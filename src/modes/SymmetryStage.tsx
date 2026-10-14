@@ -50,6 +50,7 @@ export function SymmetryStage({ onBack }: { onBack: () => void }) {
           draft={s.draft}
           folded={s.folded}
           justFound={s.justFound}
+          foundLines={s.foundLines}
           onDrawStart={s.beginDraw}
           onDrawMove={s.moveDraw}
           onDrawEnd={s.endDraw}

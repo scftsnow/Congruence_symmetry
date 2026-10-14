@@ -39,6 +39,7 @@ export function SymmetryScene({
   draft,
   folded,
   justFound,
+  foundLines,
   onDrawStart,
   onDrawMove,
   onDrawEnd,
@@ -52,6 +53,8 @@ export function SymmetryScene({
   folded: boolean
   /** true just after something worth celebrating */
   justFound: boolean
+  /** axes already found on this shape, staying on screen */
+  foundLines: Axis[]
   onDrawStart: (p: Point) => void
   onDrawMove: (p: Point) => void
   onDrawEnd: () => void
@@ -131,6 +134,24 @@ export function SymmetryScene({
         )
       )}
 
+      {/*
+       * Axes already found stay on screen. They are the progress display: no
+       * count is ever spoken — the sentences name no numbers — so what has
+       * been found has to be visible rather than tallied.
+       */}
+      {foundLines.map((line, i) => {
+        const shownLine = extendAxisToRect(line, W, H)
+        return (
+          <line
+            key={`found-${i}`}
+            className="sym-axis sym-axis--found"
+            x1={shownLine.a.x}
+            y1={shownLine.a.y}
+            x2={shownLine.b.x}
+            y2={shownLine.b.y}
+          />
+        )
+      })}
       {shown && (
         <line
           className="sym-axis"

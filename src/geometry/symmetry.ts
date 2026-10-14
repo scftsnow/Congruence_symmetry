@@ -225,20 +225,47 @@ export function judgeAxis(vertices: Point[], axis: Axis): 'off' | 'miss' | 'hit'
 }
 
 /**
+ * Which true axis a drawn screen axis counts as, or -1.
+ *
+ * Same conversion as judgeAxis, then the index. The hook asks this only after
+ * a hit, so the -1 here means "a right answer on a shape with no axes" — the
+ * asymmetric shape, whose every fold is the conclusion rather than a find.
+ */
+export function matchScreenAxis(vertices: Point[], axis: Axis): number {
+  if (!isLineSymmetric(vertices)) return -1
+  const sub = (p: Point): Point => ({ x: p.x - SYMM_CENTER.x, y: p.y - SYMM_CENTER.y })
+  return matchAxisIndex({ a: sub(axis.a), b: sub(axis.b) }, vertices)
+}
+
+/**
+ * Which true axis a drawn line counts as, or -1.
+ *
+ * A shape with several axes needs every one of them found, so "right" is not
+ * enough — the hook has to know WHICH right answer just arrived, and whether
+ * it is new. The index is into findAxes, whose seed order is fixed, so the
+ * same shape always numbers its axes the same way.
+ */
+export function matchAxisIndex(drawn: Axis, points: Point[]): number {
+  const center = polygonCentroid(points)
+  if (distanceToLine(center, drawn) > CENTER_TOLERANCE) return -1
+  const angle = axisAngle(drawn)
+  const axes = findAxes(points)
+  for (let i = 0; i < axes.length; i++) {
+    let diff = Math.abs(axisAngle(axes[i]) - angle)
+    if (diff > 90) diff = 180 - diff
+    if (diff <= ANGLE_TOLERANCE) return i
+  }
+  return -1
+}
+
+/**
  * Does a drawn axis count as one of the true ones.
  *
  * Direction within tolerance of a true axis, and the shape's middle within
  * tolerance of the drawn line. Both are needed; either alone folds nothing.
  */
 export function axisMatches(drawn: Axis, points: Point[]): boolean {
-  const center = polygonCentroid(points)
-  if (distanceToLine(center, drawn) > CENTER_TOLERANCE) return false
-  const angle = axisAngle(drawn)
-  return findAxes(points).some((trueAxis) => {
-    let diff = Math.abs(axisAngle(trueAxis) - angle)
-    if (diff > 90) diff = 180 - diff
-    return diff <= ANGLE_TOLERANCE
-  })
+  return matchAxisIndex(drawn, points) >= 0
 }
 
 /**

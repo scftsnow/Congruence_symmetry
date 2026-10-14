@@ -52,17 +52,23 @@ export function symmetryNoAxisFor(): Message {
 /**
  * What to say after a miss.
  *
- * Two misses, two different sentences. A line that misses the shape entirely is
- * not a wrong answer but a gesture that never became one — the axis of a bounded
- * shape always meets it — so it gets its own hint rather than the generic one.
+ * Three misses, three sentences. A line that misses the shape entirely is
+ * not a wrong answer but a gesture that never became one — the axis of a
+ * bounded shape always meets it — so it gets its own hint rather than the
+ * generic one. And a line that repeats an axis already found is not wrong
+ * either, only done: it says so and asks for another, without counting
+ * anything, because the count of axes stays out of the sentences.
  */
-export function symmetryHintFor(offShape: boolean): Message {
+export function symmetryHintFor(kind: 'off' | 'miss' | 'dup'): Message {
   return {
     tone: 'hint',
     icon: '💡',
-    text: offShape
-      ? '선을 도형 위에 그어 보세요'
-      : '아직이네요. 접었을 때 완전히 겹치는 선을 찾아보세요',
+    text:
+      kind === 'off'
+        ? '선을 도형 위에 그어 보세요'
+        : kind === 'dup'
+          ? '이 축은 이미 찾았어요. 다른 선을 그어 보세요'
+          : '아직이네요. 접었을 때 완전히 겹치는 선을 찾아보세요',
   }
 }
 

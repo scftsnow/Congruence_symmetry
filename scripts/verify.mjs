@@ -236,7 +236,7 @@ for (const [label, s] of [
   ['symmetry no-axis', symm.noAxis],
   ['symmetry conclusion', symm.conclusion],
   ...symm.shapeNotes.map((n) => ['symmetry shape', n]),
-  ...[symm.hintOff, symm.hintMiss].map((n) => ['symmetry hint', n]),
+  ...[symm.hintOff, symm.hintMiss, symm.hintDup].map((n) => ['symmetry hint', n]),
 ]) {
   ok(label, bundle.includes(s), s)
 }
@@ -254,6 +254,7 @@ ok('symmetry no-axis', symmSrc.includes(y.noAxis), y.noAxis)
 ok('symmetry conclusion', symmSrc.includes(y.conclusion), y.conclusion)
 ok('symmetry hint off shape', symmSrc.includes(y.hintOff), y.hintOff)
 ok('symmetry hint miss', symmSrc.includes(y.hintMiss), y.hintMiss)
+ok('symmetry hint duplicate', symmSrc.includes(y.hintDup), y.hintDup)
 for (const n of y.shapeNotes) ok('symmetry shape', symmShapesSrc.includes(n), n)
 // No figure is quoted anywhere in the unit, and no turn control reappears.
 ok('symmetry quotes no degree', !/[0-9]+\s*도/.test(symmSrc))

@@ -33,6 +33,7 @@ import {
   isLineSymmetric,
   judgeAxis,
   lineHitsRect,
+  matchAxisIndex,
   paddedBox,
   snapAxisToGrid,
   splitByAxis,
@@ -224,6 +225,21 @@ describe('an axis counts only when the fold would land', () => {
     const farAway: Axis = { a: { x: 1000, y: 1000 }, b: { x: 1100, y: 1000 } }
     expect(judgeAxis(tri, farAway)).toBe('off')
   })
+
+  it('names which true axis a line counts as', () => {
+    // "Right" is not enough once a shape has several axes: the hook has to know
+    // whether the arrival is new. Each true axis answers with its own index,
+    // and anything else answers -1.
+    const rect = SYMMETRY_ITEMS[1].shape.vertices
+    const axes = findAxes(rect)
+    expect(axes.length).toBe(2)
+    const first = matchAxisIndex(axes[0], rect)
+    const second = matchAxisIndex(axes[1], rect)
+    expect(first !== second ? 'ok' : 'both axes share an index').toBe('ok')
+    expect(first >= 0 && second >= 0 ? 'ok' : 'a true axis unrecognised').toBe('ok')
+    const sideways: Axis = { a: { x: -200, y: -200 }, b: { x: 200, y: -160 } }
+    expect(matchAxisIndex(sideways, rect)).toBe(-1)
+  })
 })
 
 // ── the fold lands ────────────────────────────────────────
@@ -368,6 +384,29 @@ describe('the child draws, the system folds', () => {
     expect(source('src/modes/SymmetryStage.tsx').includes('useState')).toBeFalsy()
     expect(source('src/components/SymmetryScene.tsx').includes('useState')).toBeFalsy()
     expect(source('src/components/SymmetryScene.tsx').includes('useEffect')).toBeFalsy()
+  })
+
+  it('keeps every found axis until the shape is settled', () => {
+    // One right answer settles one axis, and only the last one settles the
+    // shape. A hook that resolved on the first hit would let the square pass
+    // with one line drawn — and a repeat of that line would have nothing to
+    // say, since "found" would already be over.
+    const hook = source('src/modes/useSymmetry.ts')
+    expect(hook.includes('foundIdx')).toBeTruthy()
+    expect(hook.includes('foundLines')).toBeTruthy()
+    expect(/foundIdx\.length \+ 1 >= shape\.axes/.test(hook) ? 'ok' : 'resolves on first hit').toBe('ok')
+    const scene = source('src/components/SymmetryScene.tsx')
+    expect(scene.includes('foundLines')).toBeTruthy()
+    expect(scene.includes('sym-axis--found')).toBeTruthy()
+  })
+
+  it('answers a repeated axis without counting', () => {
+    // Drawing the same line twice is neither right nor wrong, only done. The
+    // hint says so and asks for another — and names no count, because the found
+    // lines staying on screen already show how far along this is.
+    const words = source('src/components/symmText.ts')
+    expect(words.includes('이미 찾았어요')).toBeTruthy()
+    expect(/이미 찾았어요[^]*[0-9]/.test(words) ? 'counts in the hint' : 'ok').toBe('ok')
   })
 
   it('reaches the unit from the home list', () => {

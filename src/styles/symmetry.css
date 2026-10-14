@@ -93,6 +93,18 @@
   pointer-events: none;
 }
 
+/*
+ * An axis already found, staying on screen.
+ *
+ * Settled answers are drawn in the success teal rather than the asking orange:
+ * orange is the line under discussion, teal is what has been proved. Same job
+ * as the teal pair marks on the congruence board.
+ */
+.sym-axis--found {
+  stroke: #2a9d8f;
+  stroke-width: 5;
+}
+
 .sym-draft {
   stroke: #8d99ae;
   stroke-width: 6;

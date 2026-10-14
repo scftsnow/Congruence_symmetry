@@ -5,22 +5,23 @@
  * shape that folds along that line. Nothing here is decided — the hook owns the
  * axis, the fold and the verdict, and this only draws what it is handed.
  *
- * THE FOLD IS A MIRROR IN MOTION
+ * THE FOLD IS ONE HALF IN MOTION
  * ------------------------------
- * The folding copy is the whole shape with a CSS transform that interpolates
- * its across-axis scale from 1 to -1. Halfway it lies flat on the axis; at the
- * end it is the mirror image. That is what makes the motion read as paper
- * folding rather than as one picture fading into another — and it is why the
- * landing proves the claim: on a true axis the copy settles exactly onto the
- * base shape, and on any other line it visibly does not.
+ * The folding copy is the half on one side of the axis, with a CSS transform
+ * that interpolates its across-axis scale from 1 to -1. Halfway it lies flat on
+ * the axis; at the end it is the mirror image. The other half never moves, and
+ * it is the still half that makes the motion read as paper folding rather than
+ * as one picture flipping over. The landing proves the claim: on a true axis the
+ * travelling half settles exactly onto the still one, and on any other line it
+ * visibly does not.
  *
  * The axis is drawn edge to edge, not as the segment the finger drew. A segment
  * would make "the axis" look like something with ends, and its ends are wherever
  * the finger stopped, which is nothing to do with the answer.
  */
 
-import { useRef } from 'react'
-import { extendAxisToRect, foldTransform } from '../geometry/symmetry'
+import { useMemo, useRef } from 'react'
+import { extendAxisToRect, foldTransform, splitByAxis } from '../geometry/symmetry'
 import type { Axis } from '../geometry/symmetry'
 import { SYMM_CENTER } from '../geometry/symmetryShapes'
 import { applyTransform, identity } from '../geometry/transforms'
@@ -56,8 +57,20 @@ export function SymmetryScene({
   onDrawEnd: () => void
 }) {
   const svgRef = useRef<SVGSVGElement | null>(null)
-  const placed = applyTransform(shape.vertices, identity(SYMM_CENTER.x, SYMM_CENTER.y))
+  const placed = useMemo(
+    () => applyTransform(shape.vertices, identity(SYMM_CENTER.x, SYMM_CENTER.y)),
+    [shape],
+  )
   const shown = axis ? extendAxisToRect(axis, W, H) : null
+  /*
+   * One half stays, the other folds.
+   *
+   * Folding the whole outline squashed both halves toward the axis at once,
+   * which read as the shape flipping over rather than as paper folding. Paper
+   * has a half that does not move, and it is the still half that makes the
+   * travelling half read as travelling.
+   */
+  const halves = useMemo(() => (axis ? splitByAxis(placed, axis) : null), [axis, placed])
 
   const toCanvas = (clientX: number, clientY: number): Point => {
     const svg = svgRef.current
@@ -90,12 +103,15 @@ export function SymmetryScene({
 
       <path className="sym-shape" d={pointsToPath(placed)} fill={shape.color} />
 
-      {axis && (
+      {axis && halves && halves.stay.length >= 3 && (
+        <path className="sym-shape" d={pointsToPath(halves.stay)} fill={shape.color} />
+      )}
+      {axis && halves && halves.fold.length >= 3 && (
         <g
           className="sym-fold"
           style={{ transform: foldTransform(axis, folded ? -1 : 1) }}
         >
-          <path className="sym-shape sym-shape--fold" d={pointsToPath(placed)} fill={shape.color} />
+          <path className="sym-shape sym-shape--fold" d={pointsToPath(halves.fold)} fill={shape.color} />
         </g>
       )}
 

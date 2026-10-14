@@ -223,6 +223,65 @@ export function axisMatches(drawn: Axis, points: Point[]): boolean {
 }
 
 /**
+ * Split a shape into the two halves on either side of a line.
+ *
+ * Sutherland–Hodgman against a half-plane, which is exact for any simple
+ * subject because the clip region itself is convex. The concavity of the
+ * heart changes nothing here — unlike the overlap clipper, which needed
+ * triangle-against-triangle for two concave outlines meeting.
+ *
+ * One half stays, the other folds. Which one moves is fixed: the side the
+ * directed axis points away from. Either half would do visually, but it has
+ * to be deterministic, or the same drawn line would fold left one time and
+ * right the next.
+ *
+ * When the line misses the shape entirely there is nothing to split, so the
+ * whole outline is handed over as the moving half. Folding nothing for the
+ * length of the animation would read as the app freezing; folding the whole
+ * thing still shows the motion, and the verdict afterwards says the line
+ * never met the shape.
+ */
+export function splitByAxis(
+  points: Point[],
+  axis: Axis,
+): { stay: Point[]; fold: Point[] } {
+  const dx = axis.b.x - axis.a.x
+  const dy = axis.b.y - axis.a.y
+  const sideOf = (p: Point): number => dx * (p.y - axis.a.y) - dy * (p.x - axis.a.x)
+  const cross = (p: Point, q: Point): Point => {
+    const sp = sideOf(p)
+    const sq = sideOf(q)
+    const t = sp / (sp - sq)
+    return { x: p.x + t * (q.x - p.x), y: p.y + t * (q.y - p.y) }
+  }
+  const clip = (keepPositive: boolean): Point[] => {
+    const out: Point[] = []
+    const n = points.length
+    if (n === 0) return out
+    const inside = (p: Point): boolean =>
+      keepPositive ? sideOf(p) >= 0 : sideOf(p) <= 0
+    for (let i = 0; i < n; i++) {
+      const current = points[i]
+      const previous = points[(i - 1 + n) % n]
+      const currentInside = inside(current)
+      const previousInside = inside(previous)
+      if (currentInside) {
+        if (!previousInside) out.push(cross(previous, current))
+        out.push(current)
+      } else if (previousInside) {
+        out.push(cross(previous, current))
+      }
+    }
+    return out
+  }
+
+  const stay = clip(true)
+  const fold = clip(false)
+  if (stay.length < 3 || fold.length < 3) return { stay: [], fold: points }
+  return { stay, fold }
+}
+
+/**
  * Where a point lands partway through the fold.
  *
  * At s = 1 the point is where it started; at s = -1 it is mirrored. Between

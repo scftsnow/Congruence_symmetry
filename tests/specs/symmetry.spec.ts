@@ -34,6 +34,7 @@ import {
   lineHitsRect,
   paddedBox,
   snapAxisToGrid,
+  splitByAxis,
   type Axis,
 } from '../../src/geometry/symmetry'
 import { SYMMETRY_ITEMS, SYMM_CENTER } from '../../src/geometry/symmetryShapes'
@@ -44,7 +45,7 @@ import {
   symmetryInstructionFor,
   symmetryNoAxisFor,
 } from '../../src/components/symmText'
-import { isSimplePolygon, polygonArea } from '../../src/geometry/overlap'
+import { isSimplePolygon, measureOverlap, polygonArea } from '../../src/geometry/overlap'
 import { applyTransform, identity, reflectAcrossLine } from '../../src/geometry/transforms'
 import type { Point } from '../../src/geometry/types'
 import { readFileSync } from 'node:fs'
@@ -251,6 +252,55 @@ describe('the fold carries one half onto the other', () => {
     const shown = extendAxisToRect({ a: { x: 500, y: 250 }, b: { x: 600, y: 250 } }, 1100, 600)
     expect(shown.a.x === 0 && shown.b.x === 1100 ? 'ok' : 'not edge to edge').toBe('ok')
     expect(shown.a.y === 250 && shown.b.y === 250 ? 'ok' : 'left its height').toBe('ok')
+  })
+})
+
+// ── one half stays, the other folds ───────────────────────
+
+describe('the fold moves one half onto the other', () => {
+  it('splits every shape into halves that add back up', () => {
+    // Clipping must neither lose area nor invent it. Sutherland–Hodgman against
+    // a half-plane is exact, so the two halves have to sum to the whole.
+    for (const { item } of placed) {
+      const [axis] = findAxes(item.shape.vertices).length
+        ? findAxes(item.shape.vertices)
+        : [{ a: { x: 0, y: -200 }, b: { x: 0, y: 200 } }]
+      const { stay, fold } = splitByAxis(item.shape.vertices, axis)
+      const total = polygonArea(item.shape.vertices)
+      const sum = polygonArea(stay) + polygonArea(fold)
+      expect(Math.abs(sum - total) / total < 0.01 ? 'ok' : `${item.id} lost area`).toBe('ok')
+    }
+  })
+
+  it('cuts symmetric shapes into equal halves', () => {
+    for (const { item } of placed.slice(0, 4)) {
+      const [axis] = findAxes(item.shape.vertices)
+      const { stay, fold } = splitByAxis(item.shape.vertices, axis)
+      const ratio = polygonArea(fold) / polygonArea(stay)
+      expect(Math.abs(ratio - 1) < 0.02 ? 'ok' : `${item.id} halves ${ratio.toFixed(2)}`).toBe('ok')
+    }
+  })
+
+  it('lands the moving half exactly on the still one', () => {
+    // The visible proof: after the fold, the travelling half coincides with the
+    // half that never moved. Checked as geometry, not pixels.
+    for (const { item } of placed.slice(0, 4)) {
+      const [axis] = findAxes(item.shape.vertices)
+      const { stay, fold } = splitByAxis(item.shape.vertices, axis)
+      const landed = fold.map((p) => reflectAcrossLine(p, axis.a, axis.b))
+      expect(measureOverlap(landed, stay).contained ? 'ok' : `${item.id} mislands`).toBe('ok')
+    }
+  })
+
+  it('hands over the whole shape when the line misses it', () => {
+    // Folding nothing for the length of the animation would read as the app
+    // freezing. The whole outline moves instead, and the verdict afterwards
+    // says the line never met the shape.
+    const tri = placed[0].item.shape.vertices
+    const far: Axis = { a: { x: 1000, y: 1000 }, b: { x: 1100, y: 1000 } }
+    const { stay, fold } = splitByAxis(tri, far)
+    expect(stay.length === 0 ? 'ok' : 'kept a half of nothing').toBe('ok')
+    expect(fold.length === tri.length ? 'ok' : 'dropped the shape').toBe('ok')
   })
 })
 

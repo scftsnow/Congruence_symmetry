@@ -47,15 +47,20 @@ function scaled(vertices: Point[], factor: number): Point[] {
   return vertices.map((p) => ({ x: p.x * factor, y: p.y * factor }))
 }
 
-/** shapes.ts 이등변삼각형, grown to fill the board */
-const ISO_TRIANGLE: Point[] = scaled(
-  [
-    { x: 0, y: -62 },
-    { x: 62, y: 48 },
-    { x: -62, y: 48 },
-  ],
-  1.8,
-)
+/**
+ * A tall, narrow isosceles triangle: one unmistakable vertical axis.
+ *
+ * Deliberately NOT shapes.ts's triangle. That one scales to sides of
+ * 227, 227 and 223 — close enough to equilateral that it reads as having
+ * three axes, of which only the vertical one can be drawn on the eight-way
+ * grid. A child who sees either of the other two would be marked wrong for a
+ * reasonable idea. This one (250, 250, 140) suggests exactly one line.
+ */
+const ISO_TRIANGLE: Point[] = [
+  { x: 0, y: -130 },
+  { x: 70, y: 110 },
+  { x: -70, y: 110 },
+]
 
 /** shapes.ts 직사각형 */
 const RECTANGLE: Point[] = scaled(

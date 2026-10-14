@@ -10,7 +10,7 @@
 import { SymmetryScene } from '../components/SymmetryScene'
 import { Toast } from '../components/Toast'
 import { DonePanel } from '../components/DonePanel'
-import { symmetryDonePanelFor } from '../components/symmText'
+import { SYMM_DENY_LABEL, symmetryDonePanelFor } from '../components/symmText'
 import { SYMMETRY_ITEMS } from '../geometry/symmetryShapes'
 import { useSymmetry } from './useSymmetry'
 import { useStageMessage } from './useStageMessage'
@@ -89,6 +89,16 @@ export function SymmetryStage({ onBack }: { onBack: () => void }) {
              * same place, so all three say it from there.
              */}
             <p className="stage1-hint sym-instruction">{s.instruction}</p>
+            {/*
+             * The "there is none" answer, on every shape.
+             *
+             * Only on the last shape would leak which shape has no axis, so it
+             * stands everywhere and is judged everywhere: right once, wrong
+             * everywhere else. Its words live in symmText, like all wording.
+             */}
+            <button type="button" className="mini-btn" onClick={s.denyClaim}>
+              {SYMM_DENY_LABEL}
+            </button>
             <ol className="sym-dots" aria-label="진행">
               {SYMMETRY_ITEMS.map((item, i) => (
                 <li

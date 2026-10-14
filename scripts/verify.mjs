@@ -233,10 +233,12 @@ for (const [label, s] of [
   ['symmetry title', symm.title],
   ['symmetry instruction', symm.instruction],
   ['symmetry found', symm.found],
+  ['symmetry more axes', symm.foundMore],
   ['symmetry no-axis', symm.noAxis],
   ['symmetry conclusion', symm.conclusion],
   ...symm.shapeNotes.map((n) => ['symmetry shape', n]),
-  ...[symm.hintOff, symm.hintMiss, symm.hintDup].map((n) => ['symmetry hint', n]),
+  ...[symm.hintOff, symm.hintMiss, symm.hintDup, symm.denyHint].map((n) => ['symmetry hint', n]),
+  ['symmetry deny label', symm.denyLabel],
 ]) {
   ok(label, bundle.includes(s), s)
 }
@@ -250,11 +252,17 @@ ok('symmetry title', symmStageSrc.includes(y.title), y.title)
 ok('symmetry unit row', appSrc.includes(y.unitRow), y.unitRow)
 ok('symmetry instruction', symmSrc.includes(y.instruction), y.instruction)
 ok('symmetry found', symmSrc.includes(y.found), y.found)
+ok('symmetry more axes', symmSrc.includes(y.foundMore), y.foundMore)
 ok('symmetry no-axis', symmSrc.includes(y.noAxis), y.noAxis)
 ok('symmetry conclusion', symmSrc.includes(y.conclusion), y.conclusion)
 ok('symmetry hint off shape', symmSrc.includes(y.hintOff), y.hintOff)
 ok('symmetry hint miss', symmSrc.includes(y.hintMiss), y.hintMiss)
 ok('symmetry hint duplicate', symmSrc.includes(y.hintDup), y.hintDup)
+ok('symmetry deny hint', symmSrc.includes(y.denyHint), y.denyHint)
+ok('symmetry deny label', symmSrc.includes(y.denyLabel), y.denyLabel)
+// The deny button stands on every shape, or its presence would leak which one
+// has no axis.
+ok('symmetry deny button on every shape', symmStageSrc.includes('denyClaim'), 'denyClaim')
 for (const n of y.shapeNotes) ok('symmetry shape', symmShapesSrc.includes(n), n)
 // No figure is quoted anywhere in the unit, and no turn control reappears.
 ok('symmetry quotes no degree', !/[0-9]+\s*도/.test(symmSrc))

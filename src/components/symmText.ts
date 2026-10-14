@@ -35,6 +35,18 @@ export function symmetryFoundFor(): Message {
 }
 
 /**
+ * Said when a find was right but the shape is not finished.
+ *
+ * A square settles only when every axis is found, so the child has to be told
+ * there is more to do — otherwise the right line reads as the end of it and the
+ * shape never moves on. The sentence asks rather than counts: how many are
+ * left is shown by the teal lines already on the board, never spoken.
+ */
+export function symmetryMoreFor(): Message {
+  return { tone: 'success', icon: '⭐', text: '좋아요! 다른 대칭축도 있는지 찾아보세요' }
+}
+
+/**
  * Said when the fold lands and nothing coincides.
  *
  * This is the whole lesson of the last shape: the mismatch IS the answer, not a
@@ -52,14 +64,16 @@ export function symmetryNoAxisFor(): Message {
 /**
  * What to say after a miss.
  *
- * Three misses, three sentences. A line that misses the shape entirely is
+ * Four misses, four sentences. A line that misses the shape entirely is
  * not a wrong answer but a gesture that never became one — the axis of a
  * bounded shape always meets it — so it gets its own hint rather than the
- * generic one. And a line that repeats an axis already found is not wrong
+ * generic one. A line that repeats an axis already found is not wrong
  * either, only done: it says so and asks for another, without counting
- * anything, because the count of axes stays out of the sentences.
+ * anything, because the count of axes stays out of the sentences. And
+ * claiming "there is none" is judged like any other answer: right on the
+ * one shape with no axis, wrong everywhere else.
  */
-export function symmetryHintFor(kind: 'off' | 'miss' | 'dup'): Message {
+export function symmetryHintFor(kind: 'off' | 'miss' | 'dup' | 'deny'): Message {
   return {
     tone: 'hint',
     icon: '💡',
@@ -68,9 +82,19 @@ export function symmetryHintFor(kind: 'off' | 'miss' | 'dup'): Message {
         ? '선을 도형 위에 그어 보세요'
         : kind === 'dup'
           ? '이 축은 이미 찾았어요. 다른 선을 그어 보세요'
-          : '아직이네요. 접었을 때 완전히 겹치는 선을 찾아보세요',
+          : kind === 'deny'
+            ? '접으면 겹치는 선이 있어요. 찾아보세요'
+            : '아직이네요. 접었을 때 완전히 겹치는 선을 찾아보세요',
   }
 }
+
+/**
+ * The label of the "there is none" answer.
+ *
+ * It lives here rather than in the markup so the screen never hardcodes
+ * wording — the same rule that keeps every other sentence out of JSX.
+ */
+export const SYMM_DENY_LABEL = '대칭축이 없어요'
 
 /**
  * The words for the end of the unit.

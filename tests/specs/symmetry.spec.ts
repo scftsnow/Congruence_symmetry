@@ -409,6 +409,38 @@ describe('the child draws, the system folds', () => {
     expect(/이미 찾았어요[^]*[0-9]/.test(words) ? 'counts in the hint' : 'ok').toBe('ok')
   })
 
+  it('"there is none" is an answer, judged like any other', () => {
+    // Asking for a line on the one shape with no axis would make any scribble
+    // pass. So "there is none" stands as a claim of its own: right once, wrong
+    // everywhere else. It stands on every shape, or its presence would leak
+    // which shape has no axis.
+    const stage = source('src/modes/SymmetryStage.tsx')
+    expect(stage.includes('denyClaim')).toBeTruthy()
+    expect(stage.includes('SYMM_DENY_LABEL')).toBeTruthy()
+    expect(stage.includes('대칭축이 없어요') ? 'wording hardcoded in markup' : 'ok').toBe('ok')
+    const hook = source('src/modes/useSymmetry.ts')
+    expect(hook.includes('denyClaim')).toBeTruthy()
+    expect(hook.includes("'deny'")).toBeTruthy()
+    const words = source('src/components/symmText.ts')
+    expect(words.includes('접으면 겹치는 선이 있어요. 찾아보세요')).toBeTruthy()
+    expect(words.includes('대칭축이 없어요')).toBeTruthy()
+  })
+
+  it('asks for more axes after a find, and counts none of them', () => {
+    // The wrong line said "this is the axis" on the first hit, so a correct
+    // answer read as the end of the shape and the square never moved on. The
+    // unfinished find asks for more, and the teal lines already on the board are
+    // the progress — no count is ever spoken.
+    const hook = source('src/modes/useSymmetry.ts')
+    expect(hook.includes('symmetryMoreFor')).toBeTruthy()
+    expect(/\? resolved[\s\S]{0,200}: symmetryMoreFor\(\)/.test(hook) ? 'ok' : 'unreachable').toBe(
+      'ok',
+    )
+    const words = source('src/components/symmText.ts')
+    expect(words.includes('다른 대칭축도 있는지 찾아보세요')).toBeTruthy()
+    expect(/찾아보세요[^]*[0-9]/.test(words) ? 'counts axes aloud' : 'ok').toBe('ok')
+  })
+
   it('reaches the unit from the home list', () => {
     const app = source('src/App.tsx')
     expect(app.includes('SymmetryStage')).toBe(true)

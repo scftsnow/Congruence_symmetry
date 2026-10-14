@@ -101,18 +101,34 @@ export function SymmetryScene({
     >
       <Grid width={W} height={H} />
 
-      <path className="sym-shape" d={pointsToPath(placed)} fill={shape.color} />
-
-      {axis && halves && halves.stay.length >= 3 && (
-        <path className="sym-shape" d={pointsToPath(halves.stay)} fill={shape.color} />
-      )}
-      {axis && halves && halves.fold.length >= 3 && (
-        <g
-          className="sym-fold"
-          style={{ transform: foldTransform(axis, folded ? -1 : 1) }}
-        >
-          <path className="sym-shape sym-shape--fold" d={pointsToPath(halves.fold)} fill={shape.color} />
-        </g>
+      {/*
+       * One paper, never two.
+       *
+       * The full outline is drawn only while no axis exists. The moment a line
+       * is drawn it is replaced by its two halves: the still one and the one
+       * about to travel. Drawing the full shape underneath as well would show
+       * the moving half twice — once where it was and once where it is going —
+       * which reads as the paper splitting in two. At s = 1 the halves recompose
+       * the whole exactly, so the swap itself is invisible.
+       */}
+      {!axis ? (
+        <path className="sym-shape" d={pointsToPath(placed)} fill={shape.color} />
+      ) : (
+        halves && (
+          <>
+            {halves.stay.length >= 3 && (
+              <path className="sym-shape" d={pointsToPath(halves.stay)} fill={shape.color} />
+            )}
+            {halves.fold.length >= 3 && (
+              <g
+                className="sym-fold"
+                style={{ transform: foldTransform(axis, folded ? -1 : 1) }}
+              >
+                <path className="sym-shape sym-shape--fold" d={pointsToPath(halves.fold)} fill={shape.color} />
+              </g>
+            )}
+          </>
+        )
       )}
 
       {shown && (

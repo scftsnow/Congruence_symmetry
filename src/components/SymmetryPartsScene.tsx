@@ -149,6 +149,7 @@ export function SymmetryPartsScene({
         landed={landed}
         move={foldTransform({ a: axis.a, b: axis.b }, -1)}
         wedge={WEDGE}
+        swap
       />
 
       {/* the taps, and only the ones belonging to the pass in progress */}

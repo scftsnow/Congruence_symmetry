@@ -121,7 +121,7 @@ export function CorrespondenceScene({
       )}
 
       {/* keyed by flyStep so a finished part never travels back to where it left */}
-      <CorrFly key={flyStep} part={fly} landed={landed} wedge={WEDGE} />
+      <CorrFly key={flyStep} part={fly} landed={landed} wedge={WEDGE} swap />
 
       {/* the taps, and only the ones belonging to the pass in progress */}
       {phase === 'points' &&

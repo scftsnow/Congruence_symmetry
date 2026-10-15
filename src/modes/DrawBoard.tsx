@@ -14,6 +14,9 @@ import type { SymmetryBoard } from '../geometry/symmetryShapes'
 import { useSymmetryDraw } from './useSymmetryDraw'
 import { useStageMessage } from './useStageMessage'
 
+/** how long a popup stays up here: placing takes looking, so longer than elsewhere */
+const DRAW_POPUP_MS = 2600
+
 type DrawBoard = Extract<SymmetryBoard, { kind: 'draw' }>
 
 export function DrawBoard({ board, onSettled, onNext, nextLabel }: {
@@ -23,7 +26,7 @@ export function DrawBoard({ board, onSettled, onNext, nextLabel }: {
   nextLabel: string
 }) {
   const d = useSymmetryDraw(board, onSettled)
-  const toast = useStageMessage(d.message, d.attempts)
+  const toast = useStageMessage(d.message, d.attempts, DRAW_POPUP_MS)
 
   return (
     <>
@@ -37,6 +40,7 @@ export function DrawBoard({ board, onSettled, onNext, nextLabel }: {
           justFound={d.justFound}
           demo={d.demo}
           walk={d.walk}
+          flying={d.flying}
           onPlace={d.placeAt}
         />
       </div>
@@ -46,20 +50,21 @@ export function DrawBoard({ board, onSettled, onNext, nextLabel }: {
             {nextLabel}
           </button>
         ) : (
-          <>
-            <p className="stage1-hint sym-instruction">{d.instruction}</p>
-            <ol className="sym-dots" aria-label="진행">
-              {d.links.map((_, i) => (
-                <li key={i} className="sym-dot sym-dot--done" />
-              ))}
-              {Array.from({ length: d.waiting }).map((_, i) => (
-                <li
-                  key={`w${i}`}
-                  className={i === 0 ? 'sym-dot sym-dot--now' : 'sym-dot'}
-                />
-              ))}
-            </ol>
-          </>
+          /*
+           * Dots only, no standing line: what to do arrives as a popup for every
+           * point awaited, and a second telling of it underneath would compete.
+           */
+          <ol className="sym-dots" aria-label="진행">
+            {d.links.map((_, i) => (
+              <li key={i} className="sym-dot sym-dot--done" />
+            ))}
+            {Array.from({ length: d.waiting }).map((_, i) => (
+              <li
+                key={`w${i}`}
+                className={i === 0 ? 'sym-dot sym-dot--now' : 'sym-dot'}
+              />
+            ))}
+          </ol>
         )}
       </div>
     </>

@@ -27,6 +27,7 @@ export function SymmetryDrawScene({
   justFound,
   demo,
   walk,
+  flying,
   onPlace,
 }: {
   /** the half the child is given, with the axis as its straight edge */
@@ -41,6 +42,8 @@ export function SymmetryDrawScene({
   demo: { from: Point; foot: Point; to: Point }
   /** where the walk has got to: corner, foot, mirror, then placing */
   walk: number
+  /** the point now flying across, from its given corner to its mirror spot */
+  flying: { from: Point; to: Point } | null
   onPlace: (p: Point) => void
 }) {
   const svgRef = useRef<SVGSVGElement | null>(null)
@@ -143,6 +146,23 @@ export function SymmetryDrawScene({
           </g>
         )
       })}
+
+      {/* the point now flying across to its mirror spot */}
+      {flying && (
+        <g
+          className="sym-trip"
+          style={
+            {
+              '--x0': `${flying.from.x}px`,
+              '--y0': `${flying.from.y}px`,
+              '--x1': `${flying.to.x}px`,
+              '--y1': `${flying.to.y}px`,
+            } as React.CSSProperties
+          }
+        >
+          <circle className="sym-placed" r={13} />
+        </g>
+      )}
 
       {justFound && <Celebration x={550} y={300} />}
     </svg>

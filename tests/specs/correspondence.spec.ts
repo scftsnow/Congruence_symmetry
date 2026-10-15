@@ -200,10 +200,11 @@ describe('every shape has parts the child can tell apart', () => {
 
     it('keeps the claim up long enough to read', () => {
       // It arrived and left in the same instant the fit became visible, which is
-      // the one moment the child is definitely looking.
-      const hook = source('src/modes/useCorrespondence.ts')
-      expect(/HOLD_MS/.test(hook)).toBeTruthy()
-      expect(/PAUSE_MS \+ FLY_MS \+ HOLD_MS/.test(hook)).toBeTruthy()
+      // the one moment the child is definitely looking. The timing now lives in the
+      // shared pass, because the symmetry unit runs the same demonstration.
+      const pass = source('src/modes/useCorrPass.ts')
+      expect(/HOLD_MS/.test(pass)).toBeTruthy()
+      expect(/PAUSE_MS \+ FLY_MS \+ HOLD_MS/.test(pass)).toBeTruthy()
     })
   })
 
@@ -217,9 +218,11 @@ describe('every shape has parts the child can tell apart', () => {
     expect(scene.includes('<Celebration')).toBeTruthy()
     // and it fires from the answer, not from the step: the step runs 0,1,2,0,1,2
     // and only two of those six moves are a correct answer
-    const hook = source('src/modes/useCorrespondence.ts')
-    expect(/justFound/.test(hook)).toBeTruthy()
-    expect(/STAR_MS/.test(hook)).toBeTruthy()
+    const pass = source('src/modes/useCorrPass.ts')
+    expect(/justFound/.test(pass)).toBeTruthy()
+    expect(/STAR_MS/.test(pass)).toBeTruthy()
+    // both units run the one pass rather than a copy each
+    expect(source('src/modes/useSymmetryParts.ts').includes('useCorrPass')).toBeTruthy()
   })
 
   it('says which of the three was found, in the unit\'s own words', () => {

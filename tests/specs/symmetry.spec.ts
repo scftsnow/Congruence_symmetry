@@ -41,10 +41,12 @@ import {
 } from '../../src/geometry/symmetry'
 import { SYMMETRY_ITEMS, SYMM_CENTER } from '../../src/geometry/symmetryShapes'
 import {
+  symmetryAxisDonePanelFor,
   symmetryDonePanelFor,
   symmetryFoundFor,
   symmetryHintFor,
   symmetryInstructionFor,
+  symmetryNoAxisDonePanelFor,
   symmetryNoAxisFor,
 } from '../../src/components/symmText'
 import { isSimplePolygon, measureOverlap, polygonArea } from '../../src/geometry/overlap'
@@ -358,14 +360,14 @@ describe('the child draws, the system folds', () => {
   })
 
   it('has no rotate or flip control', () => {
-    const stage = source('src/modes/SymmetryStage.tsx')
+    const stage = source('src/modes/AxisBoard.tsx')
     expect(stage.includes('onRotate')).toBeFalsy()
     expect(stage.includes('onFlip')).toBeFalsy()
     expect(stage.includes('rotateBy')).toBeFalsy()
   })
 
   it('shows no lengths and no angles in figures', () => {
-    const stage = source('src/modes/SymmetryStage.tsx')
+    const stage = source('src/modes/AxisBoard.tsx')
     const geo = source('src/geometry/symmetry.ts')
     expect(stage.includes('sideLength')).toBeFalsy()
     expect(stage.includes('angleSize')).toBeFalsy()
@@ -373,15 +375,32 @@ describe('the child draws, the system folds', () => {
     expect(geo.includes('angleSize')).toBeFalsy()
   })
 
-  it('keeps the wording out of the screen markup', () => {
-    const stage = source('src/modes/SymmetryStage.tsx')
-    expect(stage.includes('대칭축')).toBeFalsy()
+  it('keeps the wording out of the board markup', () => {
+    // Every board of the unit, not just one: the wording lives in symmText and
+    // symmPartsText, and the JSX never spells a sentence. Row titles stay in the
+    // stage shells, where titles have always lived.
+    for (const screen of [
+      'src/modes/AxisBoard.tsx',
+      'src/modes/PartsBoard.tsx',
+      'src/modes/FactsBoard.tsx',
+      'src/modes/DrawBoard.tsx',
+    ]) {
+      expect(source(screen).includes('대칭축')).toBeFalsy()
+    }
     expect(source('src/components/symmText.ts').includes('대칭축')).toBe(true)
   })
 
   it('holds the state in a hook and the drawing in a component', () => {
     expect(source('src/modes/useSymmetry.ts')).toBeTruthy()
-    expect(source('src/modes/SymmetryStage.tsx').includes('useState')).toBeFalsy()
+    for (const shell of [
+      'src/modes/SymmetryAxisStage.tsx',
+      'src/modes/SymmetryPartsStage.tsx',
+      'src/modes/SymmetryFactsStage.tsx',
+      'src/modes/SymmetryNoAxisStage.tsx',
+      'src/modes/SymmetryDrawStage.tsx',
+    ]) {
+      expect(source(shell).includes('useState')).toBeFalsy()
+    }
     expect(source('src/components/SymmetryScene.tsx').includes('useState')).toBeFalsy()
     expect(source('src/components/SymmetryScene.tsx').includes('useEffect')).toBeFalsy()
   })
@@ -414,7 +433,7 @@ describe('the child draws, the system folds', () => {
     // pass. So "there is none" stands as a claim of its own: right once, wrong
     // everywhere else. It stands on every shape, or its presence would leak
     // which shape has no axis.
-    const stage = source('src/modes/SymmetryStage.tsx')
+    const stage = source('src/modes/AxisBoard.tsx')
     expect(stage.includes('denyClaim')).toBeTruthy()
     expect(stage.includes('SYMM_DENY_LABEL')).toBeTruthy()
     expect(stage.includes('대칭축이 없어요') ? 'wording hardcoded in markup' : 'ok').toBe('ok')
@@ -441,10 +460,26 @@ describe('the child draws, the system folds', () => {
     expect(/찾아보세요[^]*[0-9]/.test(words) ? 'counts axes aloud' : 'ok').toBe('ok')
   })
 
-  it('reaches the unit from the home list', () => {
+  it('reaches each row from the home list', () => {
     const app = source('src/App.tsx')
-    expect(app.includes('SymmetryStage')).toBe(true)
-    expect(app.includes("'symmetry'")).toBe(true)
+    for (const stage of [
+      'SymmetryAxisStage',
+      'SymmetryPartsStage',
+      'SymmetryFactsStage',
+      'SymmetryNoAxisStage',
+      'SymmetryDrawStage',
+    ]) {
+      expect(app.includes(stage)).toBe(true)
+    }
+    for (const screen of [
+      "'symmetry-axis'",
+      "'symmetry-parts'",
+      "'symmetry-facts'",
+      "'symmetry-noaxis'",
+      "'symmetry-draw'",
+    ]) {
+      expect(app.includes(screen)).toBe(true)
+    }
     expect(/unit-list__item--locked[\s\S]{0,400}symmetry/.test(app)).toBeFalsy()
   })
 })
@@ -455,6 +490,21 @@ describe('the ending names the kind, not the shape', () => {
     expect(done.title.map((p) => p.text).join('')).toBe('선대칭도형을 모두 찾았어!')
     expect(done.note).toBe('하나의 직선을 따라 접었을 때 완전히 겹치는 도형이 선대칭도형이야')
     expect(/[0-9]/.test(done.note) ? 'counts in the lesson' : 'ok').toBe('ok')
+  })
+
+  it('ends the axis row on the figures, not the lines', () => {
+    // The row finds symmetric figures by drawing their axes, so its ending names
+    // the figures: the axis was the way, never the goal.
+    const done = symmetryAxisDonePanelFor()
+    expect(done.title.map((p) => p.text).join('')).toBe('선대칭도형을 모두 찾았어!')
+    expect(done.note).toBe('하나의 직선을 따라 접었을 때 완전히 겹치는 도형이 선대칭도형이야')
+  })
+
+  it('ends the no-axis row on the discovery, not the failure', () => {
+    const done = symmetryNoAxisDonePanelFor()
+    expect(done.title.map((p) => p.text).join('')).toBe('축이 없는 도형도 찾았어!')
+    expect(/[0-9]/.test(done.note) ? 'counts in the lesson' : 'ok').toBe('ok')
+    expect(done.homeLabel).toBe('첫 화면으로')
   })
 })
 

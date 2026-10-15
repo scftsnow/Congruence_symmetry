@@ -38,6 +38,7 @@
  */
 
 import type { Point, Shape } from './types'
+import type { Line } from './symmetryParts'
 
 function shape(id: string, name: string, color: string, vertices: Point[]): Shape {
   return { id, name, kind: 'custom', color, vertices }
@@ -112,6 +113,29 @@ const SCALENE: Point[] = [
   { x: -105, y: 140 },
 ]
 
+/**
+ * An irregular hexagon, symmetric about a vertical axis.
+ *
+ * The shape the parts board asks about, because its parts must come in pairs and
+ * each pair must be findable: six corners in three mirrored pairs, and six sides
+ * in three mirrored pairs, with nothing sitting on the axis. A corner on the axis
+ * is its own mirror image, and one of those teaches a different thing — it is
+ * what the axis board means when the fold leaves a point where it was.
+ *
+ * No corner is left unpaired, and no two pairs look alike either: the top pair
+ * is nearly level with its partner, the middle pair is the widest apart and the
+ * bottom pair is the shortest, so "which one faces this one across the line" is
+ * a real question rather than a guess.
+ */
+const HEXAGON: Point[] = [
+  { x: -70, y: -140 },
+  { x: 130, y: -40 },
+  { x: 70, y: 130 },
+  { x: -70, y: 130 },
+  { x: -130, y: -40 },
+  { x: 70, y: -140 },
+]
+
 export interface SymmetryItem {
   id: string
   shape: Shape
@@ -145,3 +169,100 @@ export const SYMMETRY_ITEMS: SymmetryItem[] = [
   { id: 'sym-square', shape: shape('sym-square', '정사각형', '#8ecae6', SQUARE), axes: 4, note: '정사각형' },
   { id: 'sym-scalene', shape: shape('sym-scalene', '부등변삼각형', '#cdb4db', SCALENE), axes: 0, note: '부등변삼각형' },
 ]
+
+/* ── the rest of the unit ────────────────────────────────
+ *
+ * Finding the axis is only the first half of what the textbook asks of 선대칭.
+ * After it come the parts of the figure — 대응점, 대응변, 대응각 — then the two
+ * facts about them, then drawing one. So the unit is a run of boards of
+ * different kinds rather than a list of shapes, and the shape alone no longer
+ * says what the child is being asked.
+ */
+
+const VERTICAL: Line = {
+  a: { x: SYMM_CENTER.x, y: SYMM_CENTER.y - 250 },
+  b: { x: SYMM_CENTER.x, y: SYMM_CENTER.y + 250 },
+}
+
+const HEX_SHAPE = shape('sym-hex', '육각형', '#bde0fe', HEXAGON)
+const HEART_SHAPE = shape('sym-heart2', '하트', '#ff8fa3', HEART)
+
+/**
+ * The boards of the unit, in the textbook's order.
+ *
+ * Four ask for a line to be drawn, and then four ask something else about a
+ * figure that already has one: the parts that face each other across it, the two
+ * facts about those parts, and finally the drawing of one from the other side.
+ *
+ * The hexagon comes first of the new boards because every corner of it has a
+ * partner, so 대응점 is a question with an answer; the heart carries the two
+ * facts, where its two corners standing on the axis are exactly the ones that
+ * have no partner and so cannot be joined to anything; and the heart again
+ * closes the unit, because a half of a heart is the most obvious drawing of all.
+ */
+export type SymmetryBoard =
+  | { kind: 'axis'; item: SymmetryItem }
+  | { kind: 'parts'; id: string; shape: Shape; axis: Line; note: string }
+  | { kind: 'facts'; id: string; shape: Shape; axis: Line; note: string }
+  | { kind: 'draw'; id: string; shape: Shape; axis: Line; note: string; half: Point[]; place: number[] }
+
+export const SYMM_BOARDS: SymmetryBoard[] = [
+  { kind: 'axis', item: SYMMETRY_ITEMS[0] },
+  { kind: 'axis', item: SYMMETRY_ITEMS[1] },
+  { kind: 'axis', item: SYMMETRY_ITEMS[2] },
+  { kind: 'axis', item: SYMMETRY_ITEMS[3] },
+  { kind: 'parts', id: 'sym-parts', shape: HEX_SHAPE, axis: VERTICAL, note: '육각형' },
+  { kind: 'facts', id: 'sym-facts', shape: HEART_SHAPE, axis: VERTICAL, note: '하트' },
+  { kind: 'axis', item: SYMMETRY_ITEMS[4] },
+  {
+    kind: 'draw',
+    id: 'sym-draw',
+    shape: HEART_SHAPE,
+    axis: VERTICAL,
+    note: '하트',
+    /**
+     * The right half of the heart, which is the part the child is given.
+     *
+     * The two corners it starts and ends on stand ON the axis, so they are their
+     * own mirror images and need no partner; the three between them are the ones
+     * to be found, and they are the ones with somewhere to go.
+     */
+    half: [
+      { x: 0, y: -16.8 },
+      { x: 12, y: -36 },
+      { x: 37.2, y: -51 },
+      { x: 54, y: -6 },
+      { x: 0, y: 45 },
+    ].map((p) => ({ x: p.x * 1.8, y: p.y * 1.8 })),
+    place: [5, 6, 7],
+  },
+]
+
+/* ── the rows on the home screen ─────────────────────────
+ *
+ * One unit in the textbook, five doors on the home screen: finding the axis,
+ * finding what faces what across it, the two facts about it together, the figure
+ * with no axis, and the drawing that closes the unit. Each row runs its own
+ * boards and ends its own way, so a child who finished the axes yesterday starts
+ * today's pairs without walking through yesterday again — and so the home screen
+ * says what each row asks, which one flat list of eight never could.
+ */
+
+/** 3번: 대칭축으로 선대칭도형 찾기 — the four shapes with axes */
+export const SYMM_AXIS_BOARDS: SymmetryBoard[] = SYMM_BOARDS.filter(
+  (b) => b.kind === 'axis' && b.item.id !== 'sym-scalene',
+)
+
+/** 4번: 대응점·대응변·대응각 찾기 — the one figure whose parts face each other */
+export const SYMM_PARTS_BOARDS: SymmetryBoard[] = SYMM_BOARDS.filter((b) => b.kind === 'parts')
+
+/** 5번: 선대칭도형의 성질 — the two facts together (교과서 5·6번 묶음) */
+export const SYMM_FACTS_BOARDS: SymmetryBoard[] = SYMM_BOARDS.filter((b) => b.kind === 'facts')
+
+/** 6번: 대칭축이 없는 도형 — the one figure with no axis, its own question */
+export const SYMM_NOAXIS_BOARDS: SymmetryBoard[] = SYMM_BOARDS.filter(
+  (b) => b.kind === 'axis' && b.item.id === 'sym-scalene',
+)
+
+/** 7번: 선대칭도형 그리기 — the drawing the facts make possible, last */
+export const SYMM_DRAW_BOARDS: SymmetryBoard[] = SYMM_BOARDS.filter((b) => b.kind === 'draw')

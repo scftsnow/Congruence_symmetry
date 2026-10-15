@@ -112,3 +112,118 @@
   stroke-dasharray: 14 12;
   pointer-events: none;
 }
+
+/*
+ * The axis when it is given rather than asked for.
+ *
+ * On the parts, facts and drawing boards the line is not the answer — it was
+ * found or handed over already — so it is drawn in the settled teal rather than
+ * the asking orange. Same distinction the found-axis line makes one board
+ * earlier: orange is what is being decided, teal is what stands.
+ */
+.sym-axis--given {
+  stroke: #2a9d8f;
+  stroke-width: 4;
+  stroke-dasharray: none;
+}
+
+/*
+ * The corners of the figure, and the one being asked for.
+ *
+ * Small and dark, because they are the shape and not the question. The corner
+ * the child must reach for next is drawn in the asking orange and a little
+ * larger, so it reads without a sentence on the board.
+ */
+.sym-corner {
+  fill: #1d3557;
+  pointer-events: none;
+}
+
+.sym-corner--wait {
+  fill: #e76f51;
+  r: 14;
+}
+
+.sym-placed {
+  fill: #2a9d8f;
+  stroke: #ffffff;
+  stroke-width: 3;
+  pointer-events: none;
+}
+
+/*
+ * Everything the child has just proved, in the settled teal.
+ *
+ * One group for all of it, because all of it means the same thing: a claim the
+ * unit has made good, rather than a thing being asked. The marks inside are the
+ * lesson — the square for 수직, the ticks for 같은 길이 — and none of them
+ * carries a number, because a number here is one the child could not have made.
+ */
+.sym-proved {
+  pointer-events: none;
+}
+
+.sym-join,
+.sym-span {
+  stroke: #2a9d8f;
+  stroke-width: 5;
+  stroke-linecap: round;
+}
+
+.sym-right,
+.sym-tick {
+  stroke: #2a9d8f;
+  stroke-width: 4;
+  fill: none;
+  stroke-linecap: round;
+}
+
+.sym-tick {
+  stroke-width: 5;
+}
+
+/*
+ * The finished figure, once the last point is in.
+ *
+ * It is drawn under the half the child was given, so the two halves meet along
+ * the axis rather than overlapping unevenly — and it appears only at the end,
+ * because before then it is the answer painted underneath the question.
+ */
+.sym-shape--whole {
+  fill-opacity: 0.55;
+}
+
+/*
+ * The run of boards across the unit.
+ *
+ * One dot per board rather than one per step, because the steps inside a board
+ * already have their own dots. A board can also be opened from here: the earlier
+ * ones hold their marks, so a child who wants to look at a pair again can.
+ */
+.sym-boards {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 14px;
+}
+
+.sym-board {
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: 3px solid var(--color-line);
+  border-radius: 50%;
+  background: var(--color-surface);
+  cursor: pointer;
+}
+
+.sym-board--done {
+  border-color: var(--color-success);
+  background: var(--color-success);
+}
+
+.sym-board--now {
+  border-color: #e76f51;
+  background: #e76f51;
+  transform: scale(1.3);
+}

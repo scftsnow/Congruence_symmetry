@@ -1,7 +1,7 @@
 /**
  * App shell.
  *
- * Two units so far, in the textbook's order: 합동 first, then what a match
+ * Three units so far, in the textbook's order: 합동 first, then what a match
  * actually pairs up, then the lines that fold a shape onto itself. The congruence stage is one board — the child drags a shape
  * onto another and the system turns or flips it until they coincide, with no
  * shape-picker step and no separate "find" and "stack" screens, because proving
@@ -16,14 +16,30 @@
  * board. It has its own shapes and its own question, and bolting it onto a board
  * the child has already worked through would make two different activities share
  * one set of rules.
+ *
+ * Line symmetry is three rows rather than one for the same reason: finding the
+ * axis, finding what faces what across it, and the two facts about it are three
+ * different questions, and one door for all three never said which was inside.
  */
 
 import { useState } from 'react'
 import { CongruenceStage } from './modes/CongruenceStage'
 import { CorrespondenceStage } from './modes/CorrespondenceStage'
-import { SymmetryStage } from './modes/SymmetryStage'
+import { SymmetryAxisStage } from './modes/SymmetryAxisStage'
+import { SymmetryPartsStage } from './modes/SymmetryPartsStage'
+import { SymmetryFactsStage } from './modes/SymmetryFactsStage'
+import { SymmetryNoAxisStage } from './modes/SymmetryNoAxisStage'
+import { SymmetryDrawStage } from './modes/SymmetryDrawStage'
 
-type Screen = 'home' | 'congruence' | 'correspondence' | 'symmetry'
+type Screen =
+  | 'home'
+  | 'congruence'
+  | 'correspondence'
+  | 'symmetry-axis'
+  | 'symmetry-parts'
+  | 'symmetry-facts'
+  | 'symmetry-noaxis'
+  | 'symmetry-draw'
 
 export default function App() {
   const [screen, setScreen] = useState<Screen>('home')
@@ -36,8 +52,24 @@ export default function App() {
     return <CorrespondenceStage onBack={() => setScreen('home')} />
   }
 
-  if (screen === 'symmetry') {
-    return <SymmetryStage onBack={() => setScreen('home')} />
+  if (screen === 'symmetry-axis') {
+    return <SymmetryAxisStage onBack={() => setScreen('home')} />
+  }
+
+  if (screen === 'symmetry-parts') {
+    return <SymmetryPartsStage onBack={() => setScreen('home')} />
+  }
+
+  if (screen === 'symmetry-facts') {
+    return <SymmetryFactsStage onBack={() => setScreen('home')} />
+  }
+
+  if (screen === 'symmetry-noaxis') {
+    return <SymmetryNoAxisStage onBack={() => setScreen('home')} />
+  }
+
+  if (screen === 'symmetry-draw') {
+    return <SymmetryDrawStage onBack={() => setScreen('home')} />
   }
 
   return (
@@ -86,17 +118,69 @@ export default function App() {
               <button
                 type="button"
                 className="unit-open"
-                onClick={() => setScreen('symmetry')}
+                onClick={() => setScreen('symmetry-axis')}
               >
                 <span className="unit-list__badge">3</span>
                 <span>
-                  <strong>선대칭</strong>
-                  <em>접으면 겹치는 도형과 대칭축 찾기</em>
+                  <strong>선대칭도형 찾기</strong>
+                  <em>접으면 겹치는 선을 직접 그어 찾기</em>
+                </span>
+              </button>
+            </li>
+            <li className="unit-list__item unit-list__item--active">
+              <button
+                type="button"
+                className="unit-open"
+                onClick={() => setScreen('symmetry-parts')}
+              >
+                <span className="unit-list__badge">4</span>
+                <span>
+                  <strong>선대칭도형의 대응점·대응변·대응각</strong>
+                  <em>대칭축을 사이에 두고 마주 보는 짝 찾기</em>
+                </span>
+              </button>
+            </li>
+            <li className="unit-list__item unit-list__item--active">
+              <button
+                type="button"
+                className="unit-open"
+                onClick={() => setScreen('symmetry-facts')}
+              >
+                <span className="unit-list__badge">5</span>
+                <span>
+                  <strong>선대칭도형의 성질</strong>
+                  <em>마주 보는 점을 이으면 수직, 거리는 같음</em>
+                </span>
+              </button>
+            </li>
+            <li className="unit-list__item unit-list__item--active">
+              <button
+                type="button"
+                className="unit-open"
+                onClick={() => setScreen('symmetry-noaxis')}
+              >
+                <span className="unit-list__badge">6</span>
+                <span>
+                  <strong>대칭축이 없는 도형</strong>
+                  <em>어떻게 접어도 겹치지 않는 도형 찾기</em>
+                </span>
+              </button>
+            </li>
+            <li className="unit-list__item unit-list__item--active">
+              <button
+                type="button"
+                className="unit-open"
+                onClick={() => setScreen('symmetry-draw')}
+              >
+                <span className="unit-list__badge">7</span>
+                <span>
+                  <strong>선대칭도형 그리기</strong>
+                  <em>반대쪽 점을 완성하기</em>
                 </span>
               </button>
             </li>
             <li className="unit-list__item unit-list__item--locked">
-              <span className="unit-list__badge">4</span>
+              <span className="unit-list__badge">8</span>
               <span>
                 <strong>점대칭</strong>
                 <em>돌려서 겹치는 중심</em>

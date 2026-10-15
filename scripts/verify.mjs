@@ -183,7 +183,16 @@ ok('every unit row is a real button', (appSrc.match(/className="unit-open"/g) ||
  */
 ok('congruence ends with a way home', stageSrc.includes('DonePanel'))
 ok('correspondence ends with a way home', read('src/modes/CorrespondenceStage.tsx').includes('DonePanel'))
-ok('symmetry ends with a way home', read('src/modes/SymmetryStage.tsx').includes('DonePanel'))
+// every symmetry row ends its own way, with the sentence its row was for
+for (const stage of [
+  'src/modes/SymmetryAxisStage.tsx',
+  'src/modes/SymmetryPartsStage.tsx',
+  'src/modes/SymmetryFactsStage.tsx',
+  'src/modes/SymmetryNoAxisStage.tsx',
+  'src/modes/SymmetryDrawStage.tsx',
+]) {
+  ok(`symmetry row ends with a way home (${stage})`, read(stage).includes('DonePanel'), 'DonePanel')
+}
 ok('the ending lives in one component', existsSync(join(root, 'src/components/DonePanel.tsx')))
 ok('home label', read('src/components/verdictText.ts').includes(ui.homeLabel), ui.homeLabel)
 ok('congruence ending names the lesson', read('src/components/verdictText.ts').includes(ui.congruenceNote), ui.congruenceNote)
@@ -245,11 +254,27 @@ for (const [label, s] of [
 
 // The symmetry unit's sentences live in symmText.ts apart from the screen.
 const symmSrc = read('src/components/symmText.ts')
-const symmStageSrc = read('src/modes/SymmetryStage.tsx')
+const symmPartsSrc = read('src/components/symmPartsText.ts')
+const symmAxisSrc = read('src/modes/AxisBoard.tsx')
 const symmShapesSrc = read('src/geometry/symmetryShapes.ts')
+const symmStages = [
+  read('src/modes/SymmetryAxisStage.tsx'),
+  read('src/modes/SymmetryPartsStage.tsx'),
+  read('src/modes/SymmetryFactsStage.tsx'),
+  read('src/modes/SymmetryNoAxisStage.tsx'),
+  read('src/modes/SymmetryDrawStage.tsx'),
+]
 const y = expected.symmetry
-ok('symmetry title', symmStageSrc.includes(y.title), y.title)
-ok('symmetry unit row', appSrc.includes(y.unitRow), y.unitRow)
+// one row per question on the home screen, each row opening its own stage
+for (const [label, s, stage] of [
+  ['symmetry axis row', y.axisRow, 0],
+  ['symmetry parts row', y.partsRow, 1],
+  ['symmetry facts row', y.factsRow, 2],
+  ['symmetry no-axis row', y.noaxisRow, 3],
+  ['symmetry draw row', y.drawRow, 4],
+]) {
+  ok(label, appSrc.includes(s) && symmStages[stage].includes(s), s)
+}
 ok('symmetry instruction', symmSrc.includes(y.instruction), y.instruction)
 ok('symmetry found', symmSrc.includes(y.found), y.found)
 ok('symmetry more axes', symmSrc.includes(y.foundMore), y.foundMore)
@@ -260,17 +285,49 @@ ok('symmetry hint miss', symmSrc.includes(y.hintMiss), y.hintMiss)
 ok('symmetry hint duplicate', symmSrc.includes(y.hintDup), y.hintDup)
 ok('symmetry deny hint', symmSrc.includes(y.denyHint), y.denyHint)
 ok('symmetry deny label', symmSrc.includes(y.denyLabel), y.denyLabel)
-// The deny button stands on every shape, or its presence would leak which one
-// has no axis.
-ok('symmetry deny button on every shape', symmStageSrc.includes('denyClaim'), 'denyClaim')
+ok('symmetry axis done', y.axisDone.every((s) => symmSrc.includes(s)), y.axisDone.join(''))
+ok('symmetry no-axis done', y.noaxisDone.every((s) => symmSrc.includes(s)), y.noaxisDone.join(''))
+ok('symmetry no-axis note', symmSrc.includes(y.noaxisNote), y.noaxisNote)
+// The deny button stands on every axis board, or its presence would leak which
+// figure has no axis.
+ok('symmetry deny button on every shape', symmAxisSrc.includes('denyClaim'), 'denyClaim')
 for (const n of y.shapeNotes) ok('symmetry shape', symmShapesSrc.includes(n), n)
+
+// The rows after the axis, and every sentence they can say. Done titles arrive
+// as fragment arrays, because DonePanel titles are styled spans, never one string.
+for (const [label, s] of [
+  ...y.partsAsk.map((n) => ['symmetry parts ask', n]),
+  ...y.partsFound.map((n) => ['symmetry parts found', n]),
+  ...y.partsHint.map((n) => ['symmetry parts hint', n]),
+  ['symmetry parts done', y.partsDone],
+  ['symmetry parts note', y.partsNote],
+  ...Object.values(y.factsAsk).map((n) => ['symmetry facts ask', n]),
+  ...Object.values(y.factsMiss).map((n) => ['symmetry facts hint', n]),
+  ...Object.values(y.factsFact).map((n) => ['symmetry facts said', n]),
+  ['symmetry facts done', y.factsDone],
+  ...Object.values(y.drawAsk).map((n) => ['symmetry draw ask', n]),
+  ['symmetry draw missed', y.drawMissed],
+  ['symmetry draw said', y.drawDone.found],
+  ['symmetry draw said', y.drawDone.next],
+  ['symmetry draw said', y.drawDone.all],
+]) {
+  const parts = Array.isArray(s) ? s : [s]
+  ok(label, parts.every((p) => symmPartsSrc.includes(p)), parts.join(''))
+}
+// the eight boards, and the two marks that carry the facts
+ok('symmetry has eight boards', /SYMM_BOARDS: SymmetryBoard\[\] = \[[\s\S]*\]\n/.test(symmShapesSrc))
+const symmCss = read('src/styles/symmetry.css')
+for (const c of ['.sym-right', '.sym-tick', '.sym-span', '.sym-join', '.sym-board']) {
+  ok(`symmetry style ${c}`, symmCss.includes(c), c)
+}
 // No figure is quoted anywhere in the unit, and no turn control reappears.
 ok('symmetry quotes no degree', !/[0-9]+\s*도/.test(symmSrc))
 ok('symmetry quotes no length', !/[0-9]+\s*(cm|mm|px)/.test(symmSrc))
 const symmHookSrc = read('src/modes/useSymmetry.ts')
+const symmRowSrc = symmStages.join('\n') + read('src/modes/AxisBoard.tsx')
 ok(
   'symmetry has no rotate or flip control',
-  !/onRotate|onFlip|rotateBy/.test(symmStageSrc) && !/onRotate|onFlip|rotateBy/.test(symmHookSrc),
+  !/onRotate|onFlip|rotateBy/.test(symmRowSrc) && !/onRotate|onFlip|rotateBy/.test(symmHookSrc),
 )
 
 // No angle is ever named. "돌려서 겹쳤어" reports that the system turned the

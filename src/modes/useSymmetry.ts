@@ -1,21 +1,21 @@
 /**
- * The symmetry pass — where the child is, and whether the fold proved anything.
+ * One axis board — where the child is on this shape, and whether the fold proved
+ * anything.
  *
  * Kept out of the screen so the sequence can be exercised without React: that a
  * tap without a drag never judges, that a redraw replaces the old axis, and that
  * a wrong axis unfolds while a right one stays folded. The line's direction IS
  * the answer, so the system must not choose it — it folds along whatever was
  * drawn, and the child watches the claim land or miss.
+ *
+ * The board is passed in rather than counted here, because the unit is a run of
+ * boards of different kinds and the run is what knows which one is up. The hook
+ * is remounted per board, so this shape's state is never another shape's.
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { SYMMETRY_ITEMS } from '../geometry/symmetryShapes'
-import {
-  judgeAxis,
-  matchScreenAxis,
-  snapAxisToGrid,
-  type Axis,
-} from '../geometry/symmetry'
+import type { SymmetryItem } from '../geometry/symmetryShapes'
+import { judgeAxis, matchScreenAxis, snapAxisToGrid, type Axis } from '../geometry/symmetry'
 import type { Point } from '../geometry/types'
 import {
   symmetryFoundFor,
@@ -36,8 +36,7 @@ const STAR_MS = 1500
 const UNFOLD_MS = 1500
 
 export interface SymmetryState {
-  shapeIndex: number
-  shape: (typeof SYMMETRY_ITEMS)[number]
+  shape: SymmetryItem
   /** the snapped axis under discussion, if one has been drawn */
   axis: Axis | null
   /** the finger's line before it snaps, while it is being drawn */
@@ -55,21 +54,15 @@ export interface SymmetryState {
   /** this shape is settled, right or proven otherwise */
   resolved: boolean
   instruction: string
-  done: boolean
   message: Message
-  foundCount: number
-  total: number
   beginDraw: (p: Point) => void
   moveDraw: (p: Point) => void
   endDraw: () => void
   /** claim "there is none": right once, wrong everywhere else, so it leaks nothing */
   denyClaim: () => void
-  startShape: (index: number) => void
-  nextShape: () => void
 }
 
-export function useSymmetry(): SymmetryState {
-  const [shapeIndex, setShapeIndex] = useState(0)
+export function useSymmetry(item: SymmetryItem, onSettled: () => void): SymmetryState {
   const [axis, setAxis] = useState<Axis | null>(null)
   const [draft, setDraft] = useState<{ p: Point; q: Point } | null>(null)
   const [folding, setFolding] = useState(false)
@@ -78,33 +71,19 @@ export function useSymmetry(): SymmetryState {
   const [justFound, setJustFound] = useState(false)
   const [attempts, setAttempts] = useState(0)
   const [resolved, setResolved] = useState(false)
-  const [foundCount, setFoundCount] = useState(0)
   /** which true axes have been found, by index into findAxes */
   const [foundIdx, setFoundIdx] = useState<number[]>([])
   const [foundLines, setFoundLines] = useState<Axis[]>([])
   const timer = useRef<number | null>(null)
 
-  const shape = SYMMETRY_ITEMS[shapeIndex]
-  const total = SYMMETRY_ITEMS.length
-  const done = foundCount >= total
-
   useEffect(() => () => {
     if (timer.current) window.clearTimeout(timer.current)
   }, [])
 
-  const resetShape = useCallback((index: number) => {
-    if (timer.current) window.clearTimeout(timer.current)
-    setShapeIndex(index)
-    setAxis(null)
-    setDraft(null)
-    setFolding(false)
-    setFolded(false)
-    setWrongKind(null)
-    setJustFound(false)
-    setResolved(false)
-    setFoundIdx([])
-    setFoundLines([])
-  }, [])
+  const settle = useCallback(() => {
+    setResolved(true)
+    onSettled()
+  }, [onSettled])
 
   const beginDraw = useCallback((p: Point) => {
     if (folding || resolved) return
@@ -125,6 +104,7 @@ export function useSymmetry(): SymmetryState {
       setAxis(null)
     }, after)
   }, [])
+
   const endDraw = useCallback(() => {
     // A tap is not an attempt: judging it would answer a question never asked.
     const line = draft ? snapAxisToGrid(draft.p, draft.q) : null
@@ -134,6 +114,7 @@ export function useSymmetry(): SymmetryState {
     setAxis(line)
     setAttempts((n) => n + 1)
     setFolding(true)
+    const shape = item
 
     timer.current = window.setTimeout(() => {
       setFolded(true)
@@ -149,37 +130,29 @@ export function useSymmetry(): SymmetryState {
         setJustFound(true)
         timer.current = window.setTimeout(() => setJustFound(false), STAR_MS)
         if (shape.axes === 0 || foundIdx.length + 1 >= shape.axes) {
-          setResolved(true)
-          setFoundCount((n) => n + 1)
+          settle()
         } else reopen(UNFOLD_MS)
         return
       }
       setWrongKind(outcome === 'hit' ? 'dup' : outcome)
       reopen(HINT_MS)
     }, FOLD_MS)
-  }, [draft, folding, resolved, shape, foundIdx])
-
-  const startShape = useCallback((index: number) => resetShape(index), [resetShape])
+  }, [draft, folding, resolved, foundIdx, item, reopen, settle])
 
   const denyClaim = useCallback(() => {
     if (folding || resolved) return
     setAttempts((n) => n + 1)
-    if (shape.axes === 0) {
+    if (item.axes === 0) {
       setJustFound(true)
-      setResolved(true)
-      setFoundCount((n) => n + 1)
+      settle()
       timer.current = window.setTimeout(() => setJustFound(false), STAR_MS)
       return
     }
     setWrongKind('deny')
     reopen(HINT_MS)
-  }, [folding, resolved, shape])
+  }, [folding, resolved, item.axes, reopen, settle])
 
-  const nextShape = useCallback(() => {
-    resetShape(Math.min(shapeIndex + 1, total - 1))
-  }, [resetShape, shapeIndex, total])
-
-  const symmetric = shape.axes > 0
+  const symmetric = item.axes > 0
   // A find says one thing when it settles the shape, another when axes remain; the
   // teal lines on the board show how many, never the sentence.
   const message: Message = justFound
@@ -193,8 +166,7 @@ export function useSymmetry(): SymmetryState {
       : { tone: 'neutral' as const, icon: '', text: '' }
 
   return {
-    shapeIndex,
-    shape,
+    shape: item,
     axis,
     draft,
     folding,
@@ -204,15 +176,10 @@ export function useSymmetry(): SymmetryState {
     resolved,
     foundLines,
     instruction: symmetryInstructionFor(),
-    done,
     message,
-    foundCount,
-    total,
     beginDraw,
     moveDraw,
     endDraw,
     denyClaim,
-    startShape,
-    nextShape,
   }
 }

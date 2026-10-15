@@ -20,7 +20,11 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import App from '../../src/App'
 import { CongruenceStage } from '../../src/modes/CongruenceStage'
 import { CorrespondenceStage } from '../../src/modes/CorrespondenceStage'
-import { SymmetryStage } from '../../src/modes/SymmetryStage'
+import { SymmetryAxisStage } from '../../src/modes/SymmetryAxisStage'
+import { SymmetryPartsStage } from '../../src/modes/SymmetryPartsStage'
+import { SymmetryFactsStage } from '../../src/modes/SymmetryFactsStage'
+import { SymmetryNoAxisStage } from '../../src/modes/SymmetryNoAxisStage'
+import { SymmetryDrawStage } from '../../src/modes/SymmetryDrawStage'
 import { buildBoard, useBoard } from '../../src/modes/useBoard'
 import { DonePanel } from '../../src/components/DonePanel'
 import { Toast } from '../../src/components/Toast'
@@ -67,9 +71,18 @@ describe('home screen renders', () => {
    */
   it('opens each unit from its own row', () => {
     const rows = html.match(/<button[^>]*class="unit-open"/g) || []
-    expect(rows.length >= 3 ? 'ok' : rows.length + ' rows').toBe('ok')
+    expect(rows.length >= 5 ? 'ok' : rows.length + ' rows').toBe('ok')
     expect(html.includes(expected.home.corrUnitTitle)).toBeTruthy()
-    expect(html.includes(expected.symm.stageTitle)).toBeTruthy()
+    // line symmetry is five rows: finding, parts, facts, no-axis, drawing
+    for (const title of [
+      expected.symm.axisTitle,
+      expected.symm.partsTitle,
+      expected.symm.factsTitle,
+      expected.symm.noaxisTitle,
+      expected.symm.drawTitle,
+    ]) {
+      expect(html.includes(title)).toBeTruthy()
+    }
   })
 
   it('has no second way into a unit', () => {
@@ -358,17 +371,21 @@ describe('correspondence stage renders', () => {
   })
 
   it('will mark a pair the moment one is found', () => {
-    // The layers have to be rendered from a found count rather than a phase, or
+    // The layers have to be rendered from a found set rather than a phase, or
     // the mark cannot appear until the pass is over. Checked in the source
-    // because the state that drives it lives in the hook.
+    // because the state that drives it lives in the hook. The marks themselves
+    // are shared with the line-symmetry board, so they take index sets: side by
+    // side the set is always a prefix, folded over an axis it is the pairs found
+    // so far — and never a word about which phase is running.
+    const marks = source('src/components/CorrMarks.tsx')
+    expect(marks.includes('points: number[]')).toBeTruthy()
+    expect(marks.includes('sides: number[]')).toBeTruthy()
+    expect(marks.includes('angles: number[]')).toBeTruthy()
+    expect(/phase/.test(marks) ? 'the marks decide by phase' : 'ok').toBe('ok')
     const scene = source('src/components/CorrespondenceScene.tsx')
-    expect(scene.includes('foundPoints')).toBeTruthy()
-    expect(scene.includes('foundSides')).toBeTruthy()
-    expect(scene.includes('foundAngles')).toBeTruthy()
-    // and the marks must be sliced to that count, not gated on the phase
-    expect(scene.includes('corr.vertices.slice(0, foundPoints)')).toBeTruthy()
-    expect(scene.includes('corr.sides.slice(0, foundSides)')).toBeTruthy()
-    expect(scene.includes("phase !== 'points' &&\n        corr.vertices.map")).toBeFalsy()
+    expect(scene.includes('range(')).toBeTruthy()
+    const folded = source('src/components/SymmetryPartsScene.tsx')
+    expect(folded.includes('asked.slice(0, step)')).toBeTruthy()
   })
 
   it('gives every target a corner to aim at', () => {
@@ -520,11 +537,15 @@ describe('a success is in the middle, not at the top', () => {
     for (const stage of [
       'src/modes/CongruenceStage.tsx',
       'src/modes/CorrespondenceStage.tsx',
-      'src/modes/SymmetryStage.tsx',
+      // the symmetry unit's boards each say it, so the rule is checked on all of them
+      'src/modes/AxisBoard.tsx',
+      'src/modes/PartsBoard.tsx',
+      'src/modes/FactsBoard.tsx',
+      'src/modes/DrawBoard.tsx',
     ]) {
       const code = source(stage)
       expect(code.includes('<Toast')).toBeTruthy()
-      // and neither screen re-decides which tone goes where
+      // and no screen re-decides which tone goes where
       expect(/tone === 'success'/.test(code)).toBeFalsy()
       expect(/tone !== 'neutral'/.test(code)).toBeFalsy()
     }
@@ -541,7 +562,7 @@ describe('a success is in the middle, not at the top', () => {
     for (const stage of [
       'src/modes/CongruenceStage.tsx',
       'src/modes/CorrespondenceStage.tsx',
-      'src/modes/SymmetryStage.tsx',
+      'src/modes/AxisBoard.tsx',
     ]) {
       expect(source(stage).includes('banner')).toBeFalsy()
     }
@@ -586,43 +607,60 @@ describe('a success is in the middle, not at the top', () => {
 // on its first render produces no markup and no error the bundle checks can
 // see — which is exactly what this guards, now that three screens mount.
 
-describe('symmetry stage renders', () => {
-  const html = renderToStaticMarkup(<SymmetryStage onBack={() => {}} />)
+describe('symmetry rows render', () => {
+  const axis = renderToStaticMarkup(<SymmetryAxisStage onBack={() => {}} />)
+  const parts = renderToStaticMarkup(<SymmetryPartsStage onBack={() => {}} />)
+  const facts = renderToStaticMarkup(<SymmetryFactsStage onBack={() => {}} />)
+  const noaxis = renderToStaticMarkup(<SymmetryNoAxisStage onBack={() => {}} />)
+  const draw = renderToStaticMarkup(<SymmetryDrawStage onBack={() => {}} />)
 
   it('produces markup', () => {
-    expect(html.length > 1200 ? 'ok' : html.length + ' bytes').toBe('ok')
+    for (const [name, html] of Object.entries({ axis, parts, facts, noaxis, draw })) {
+      expect(html.length > 1200 ? 'ok' : name + ': ' + html.length + ' bytes').toBe('ok')
+    }
   })
 
   it('shows its title', () => {
-    expect(html.includes(expected.symm.stageTitle)).toBeTruthy()
+    expect(axis.includes(expected.symm.axisTitle)).toBeTruthy()
+    expect(parts.includes(expected.symm.partsTitle)).toBeTruthy()
+    expect(facts.includes(expected.symm.factsTitle)).toBeTruthy()
+    expect(noaxis.includes(expected.symm.noaxisTitle)).toBeTruthy()
+    expect(draw.includes(expected.symm.drawTitle)).toBeTruthy()
   })
 
   it('draws one shape and the standing instruction', () => {
-    expect((html.match(/class="sym-shape"/g) || []).length).toBe(1)
-    expect(html.includes(expected.symm.instruction)).toBeTruthy()
+    expect((axis.match(/class="sym-shape"/g) || []).length).toBe(1)
+    expect(axis.includes(expected.symm.instruction)).toBeTruthy()
   })
 
   it('draws no axis before one has been drawn', () => {
     // The axis layer must start empty: a line on screen before the finger has
     // moved would be an answer the child never gave.
-    expect(html.includes('sym-axis')).toBeFalsy()
-    expect(html.includes('sym-draft')).toBeFalsy()
-    expect(html.includes('sym-fold')).toBeFalsy()
+    expect(axis.includes('sym-axis')).toBeFalsy()
+    expect(axis.includes('sym-draft')).toBeFalsy()
+    expect(axis.includes('sym-fold')).toBeFalsy()
   })
 
-  it('shows progress through the five shapes', () => {
-    // The list itself is class="sym-dots", so the match requires the closing
-    // quote or a space — otherwise the container counts as a sixth dot.
-    expect((html.match(/class="sym-dot( |")/g) || []).length).toBe(5)
+  it('shows progress through the row', () => {
+    /*
+     * One dot per BOARD of the row, not per shape: the steps inside a board
+     * keep their own dots. The list is class="sym-board", so the match requires
+     * the closing quote or a space — otherwise the container counts as one more.
+     */
+    expect((axis.match(/class="sym-board( |")/g) || []).length).toBe(4)
+    expect((facts.match(/class="sym-board( |")/g) || []).length).toBe(1)
+    expect((draw.match(/class="sym-board( |")/g) || []).length).toBe(1)
+    // and the run is the whole unit, in the textbook's order
+    expect(source('src/geometry/symmetryShapes.ts').includes('SYMM_BOARDS: SymmetryBoard[]')).toBeTruthy()
   })
 
   it('quotes no length and no angle size', () => {
-    expect(/[0-9]+\s*도/.test(html)).toBeFalsy()
-    expect(/[0-9]+\s*(cm|mm|px)/.test(html)).toBeFalsy()
+    expect(/[0-9]+\s*도/.test(axis)).toBeFalsy()
+    expect(/[0-9]+\s*(cm|mm|px)/.test(axis)).toBeFalsy()
   })
 
   it('has no turn control', () => {
-    expect(/onRotate|onFlip|돌리기|뒤집기/.test(html)).toBeFalsy()
+    expect(/onRotate|onFlip|돌리기|뒤집기/.test(axis)).toBeFalsy()
   })
 })
 

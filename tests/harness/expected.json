@@ -37,7 +37,11 @@
                             ]
             },
     "symm":  {
-                "stageTitle":  "선대칭",
+                "axisTitle":  "선대칭도형 찾기",
+                "partsTitle":  "선대칭도형의 대응점·대응변·대응각",
+                "factsTitle":  "선대칭도형의 성질",
+                "noaxisTitle":  "대칭축이 없는 도형",
+                "drawTitle":  "선대칭도형 그리기",
                 "instruction":  "도형 위에 접을 선을 손가락으로 그어 보세요",
                 "found":  "선대칭도형이에요! 이 선이 대칭축이에요",
                 "noAxis":  "선대칭도형이 아니에요",

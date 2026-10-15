@@ -49,9 +49,9 @@ export function symmetryMoreFor(): Message {
 /**
  * Said when the fold lands and nothing coincides.
  *
- * This is the whole lesson of the last shape: the mismatch IS the answer, not a
- * failure to find one. It is spoken as a discovery rather than a correction, so
- * the child does not go hunting for a line that is not there.
+ * This is the whole lesson of the figure with no axis: the mismatch IS the
+ * answer, not a failure to find one. It is spoken as a discovery rather than a
+ * correction, so the child does not go hunting for a line that is not there.
  */
 export function symmetryNoAxisFor(): Message {
   return {
@@ -97,6 +97,31 @@ export function symmetryHintFor(kind: 'off' | 'miss' | 'dup' | 'deny'): Message 
 export const SYMM_DENY_LABEL = '대칭축이 없어요'
 
 /**
+ * What the button that leaves a settled board says.
+ *
+ * The last board does not offer another problem, because there is none: it says
+ * so rather than leading a child back into a unit they have finished.
+ */
+export function symmetryNextLabelFor(last: boolean): string {
+  return last ? '결과 보기 →' : '다음 문제 보기 →'
+}
+
+/** The words for the end of the no-axis row. */
+export function symmetryNoAxisDonePanelFor(): {
+  title: Array<{ text: string; strong?: boolean }>
+  note: string
+  homeLabel: string
+  againLabel: string
+} {
+  return {
+    title: [{ text: '축이 없는 도형도 ' }, { text: '찾았어!', strong: true }],
+    note: '어떻게 접어도 겹치지 않는 도형은 선대칭도형이 아니야',
+    homeLabel: '첫 화면으로',
+    againLabel: '↺ 처음부터',
+  }
+}
+
+/**
  * The words for the end of the unit.
  *
  * The note is the definition in one sentence, and it names the two halves the
@@ -115,3 +140,26 @@ export function symmetryDonePanelFor(): {
     againLabel: '↺ 처음부터',
   }
 }
+
+/**
+ * The words for the end of the axis row.
+ *
+ * The row finds symmetric figures by drawing their axes, so its ending names the
+ * figures, not the lines: the axis was the way, never the goal. The note is the
+ * definition in one sentence.
+ */
+export function symmetryAxisDonePanelFor(): {
+  title: Array<{ text: string; strong?: boolean }>
+  note: string
+  homeLabel: string
+  againLabel: string
+} {
+  return {
+    title: [{ text: '선대칭도형을 ' }, { text: '모두 찾았어!', strong: true }],
+    note: '하나의 직선을 따라 접었을 때 완전히 겹치는 도형이 선대칭도형이야',
+    homeLabel: '첫 화면으로',
+    againLabel: '↺ 처음부터',
+  }
+}
+
+

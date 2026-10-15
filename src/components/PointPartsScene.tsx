@@ -18,6 +18,7 @@
 
 import { useMemo } from 'react'
 import { angleWedge } from '../geometry/correspondence'
+import { turnTransform } from '../geometry/pointSymmetry'
 import { reflectionCorrespondence } from '../geometry/symmetryParts'
 import { turnOf } from '../geometry/pointSymmetry'
 import type { MirrorPairs } from '../geometry/symmetryParts'
@@ -124,7 +125,14 @@ export function PointPartsScene({
       )}
 
       {/* keyed by flyStep so a finished part never travels back to where it left */}
-      <CorrFly key={flyStep} part={fly} landed={landed} wedge={WEDGE} swap />
+      <CorrFly
+        key={flyStep}
+        part={fly}
+        landed={landed}
+        move={turnTransform(center, 180)}
+        wedge={WEDGE}
+        swap
+      />
 
       {/* the taps, and only the ones belonging to the pass in progress */}
       {phase === 'points' &&

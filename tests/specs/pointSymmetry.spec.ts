@@ -234,6 +234,9 @@ describe('the four rows on the home screen', () => {
     expect(source('src/modes/usePointSymmetryParts.ts').includes('useCorrPass(')).toBeTruthy()
     expect(source('src/components/PointPartsScene.tsx').includes('<CorrMarks')).toBeTruthy()
     expect(source('src/components/PointPartsScene.tsx').includes('swap')).toBeTruthy()
+    // ... and the turn is about the middle, not about a corner: turning about a
+    // corner swings the part round a huge arc, while the middle keeps it tight.
+    expect(source('src/components/PointPartsScene.tsx').includes('turnTransform(center, 180)')).toBeTruthy()
   })
 
   it('settles every board kind, or the row never ends', () => {
@@ -252,6 +255,15 @@ describe('the four rows on the home screen', () => {
     const hook = source('src/modes/usePointSymmetryParts.ts')
     expect(hook.includes('pairs.points.map(([a]) => a)')).toBeTruthy()
     expect(hook.includes('pairs.sides.map(([a]) => a)')).toBeTruthy()
+  })
+
+  it('asks each pass with a popup first', () => {
+    // A line at the bottom is read once and then left alone, so the first
+    // question of a pass crosses the board as a popup too — and only the first,
+    // because every later step already knows what it is doing.
+    const hook = source('src/modes/usePointSymmetryParts.ts')
+    expect(hook.includes('pass.step === 0')).toBeTruthy()
+    expect(hook.includes("icon: '👉'")).toBeTruthy()
   })
 
   it('says which of the three was found, and counts none of them', () => {

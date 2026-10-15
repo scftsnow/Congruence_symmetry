@@ -74,7 +74,14 @@ const RECTANGLE: Point[] = scaled(
   1.6,
 )
 
-/** shapes.ts 하트 */
+/**
+ * shapes.ts 하트, 크게.
+ *
+ * The parts pentagon fills its board at about 350 by 310, and the heart used
+ * to sit next to that memory at barely half the presence. Same outline, larger
+ * scale: scaling every coordinate by one factor moves no direction and breaks no
+ * mirror, so the axis stays where it was and the answers stay answerable.
+ */
 const HEART: Point[] = scaled(
   [
     { x: 0, y: 45 },
@@ -86,7 +93,7 @@ const HEART: Point[] = scaled(
     { x: 37.2, y: -51 },
     { x: 54, y: -6 },
   ],
-  1.8,
+  2.6,
 )
 
 /** shapes.ts 정사각형 */
@@ -223,15 +230,11 @@ export const SYMM_BOARDS: SymmetryBoard[] = [
      *
      * The two corners it starts and ends on stand ON the axis, so they are their
      * own mirror images and need no partner; the three between them are the ones
-     * to be found, and they are the ones with somewhere to go.
+     * to be found, and they are the ones with somewhere to go. Sliced from the
+     * outline itself rather than re-declared, so the half can never drift from
+     * the shape it was cut from.
      */
-    half: [
-      { x: 0, y: -16.8 },
-      { x: 12, y: -36 },
-      { x: 37.2, y: -51 },
-      { x: 54, y: -6 },
-      { x: 0, y: 45 },
-    ].map((p) => ({ x: p.x * 1.8, y: p.y * 1.8 })),
+    half: [...HEART.slice(4), ...HEART.slice(0, 1)],
     place: [5, 6, 7],
   },
 ]

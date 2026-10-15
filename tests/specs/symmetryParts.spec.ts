@@ -31,7 +31,7 @@ import {
   SYMM_FACTS_BOARDS,
   SYMM_PARTS_BOARDS,
 } from '../../src/geometry/symmetryShapes'
-import { foldPoint, foldTransform } from '../../src/geometry/symmetry'
+import { foldPoint, foldTransform, SNAP_PITCH } from '../../src/geometry/symmetry'
 import {
   symmetryDrawDonePanelFor,
   symmetryDrawInstructionFor,
@@ -398,6 +398,27 @@ describe('the four rows on the home screen', () => {
     expect(symmetryFactsHintFor('dup').text).toContain('이미 이었어요')
     expect(symmetryFactsSuccessFor('square').text).toContain('수직으로 만나요')
     expect(symmetryFactsSuccessFor('equal').text).toContain('거리는 같아요')
+  })
+
+  it('stands every corner of the drawing on the lattice', () => {
+    // Placing means pointing exactly, and a corner between grid lines is one
+    // the child cannot point at. Screen coordinates come out as multiples of
+    // the grid pitch, symmetric about the axis.
+    const draw = SYMM_BOARDS[7]
+    const kind = draw.kind === 'draw' ? draw : null
+    const pts = [...(kind?.shape.vertices ?? []), ...(kind?.half ?? [])]
+    expect(pts.length > 0).toBe(true)
+    for (const p of pts) {
+      const sx = p.x + SYMM_CENTER.x
+      const sy = p.y + SYMM_CENTER.y
+      expect(sx % SNAP_PITCH === 0 && sy % SNAP_PITCH === 0 ? 'ok' : `off lattice: ${sx},${sy}`).toBe('ok')
+      expect(sx <= SYMM_CENTER.x + 150 && sx >= SYMM_CENTER.x - 150 ? 'ok' : 'wider than its board').toBe('ok')
+    }
+    // and the given half closes along the axis rather than across empty space
+    const half = kind?.half ?? []
+    const first = half[0]
+    const last = half[half.length - 1]
+    expect(first && last && first.x === 0 && last.x === 0 ? 'ok' : 'the half leaves the axis').toBe('ok')
   })
 
   it('snaps a placed point exactly onto the mirror image', () => {

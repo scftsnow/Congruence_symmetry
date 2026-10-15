@@ -36,6 +36,7 @@ export function DrawBoard({ board, onSettled, onNext, nextLabel }: {
           half={d.half}
           links={d.links}
           axis={d.axis}
+          color={board.shape.color}
           resolved={d.resolved}
           justFound={d.justFound}
           demo={d.demo}

@@ -193,6 +193,28 @@ const PENTA_SHAPE = shape('sym-penta', '오각형', '#bde0fe', PENTAGON)
 const HEART_SHAPE = shape('sym-heart2', '하트', '#ff8fa3', HEART)
 
 /**
+ * A pointed octagon, symmetric about a vertical axis.
+ *
+ * The shape the drawing board completes. Every corner stands on a lattice
+ * crossing — placing means pointing exactly, and a corner between grid lines is
+ * one the child cannot point at. Two corners stand on the axis itself, so the
+ * given half closes along the axis rather than across empty space, and the
+ * three off-axis corners on each side are the three points to place.
+ */
+const OCTAGON: Point[] = [
+  { x: 0, y: -150 },
+  { x: 100, y: -100 },
+  { x: 150, y: 0 },
+  { x: 100, y: 100 },
+  { x: 0, y: 150 },
+  { x: -100, y: 100 },
+  { x: -150, y: 0 },
+  { x: -100, y: -100 },
+]
+
+const OCT_SHAPE = shape('sym-oct', '팔각형', '#8ecae6', OCTAGON)
+
+/**
  * The boards of the unit, in the textbook's order.
  *
  * Four ask for a line to be drawn, and then four ask something else about a
@@ -202,8 +224,8 @@ const HEART_SHAPE = shape('sym-heart2', '하트', '#ff8fa3', HEART)
  * The pentagon comes first of the new boards because all but one of its corners
  * have a partner, so 대응점 is a question with answers; the heart carries the two
  * facts, where its two corners standing on the axis are exactly the ones that
- * have no partner and so cannot be joined to anything; and the heart again
- * closes the unit, because a half of a heart is the most obvious drawing of all.
+ * have no partner and so cannot be joined to anything; and the pointed octagon
+ * closes the unit, because completing it uses both facts at once.
  */
 export type SymmetryBoard =
   | { kind: 'axis'; item: SymmetryItem }
@@ -222,11 +244,11 @@ export const SYMM_BOARDS: SymmetryBoard[] = [
   {
     kind: 'draw',
     id: 'sym-draw',
-    shape: HEART_SHAPE,
+    shape: OCT_SHAPE,
     axis: VERTICAL,
-    note: '하트',
+    note: '팔각형',
     /**
-     * The right half of the heart, which is the part the child is given.
+     * The right half of the octagon, which is the part the child is given.
      *
      * The two corners it starts and ends on stand ON the axis, so they are their
      * own mirror images and need no partner; the three between them are the ones
@@ -234,8 +256,8 @@ export const SYMM_BOARDS: SymmetryBoard[] = [
      * outline itself rather than re-declared, so the half can never drift from
      * the shape it was cut from.
      */
-    half: [...HEART.slice(4), ...HEART.slice(0, 1)],
-    place: [5, 6, 7],
+    half: OCTAGON.slice(0, 5),
+    place: [1, 2, 3],
   },
 ]
 

@@ -23,6 +23,7 @@ export function SymmetryDrawScene({
   half,
   links,
   axis,
+  color,
   resolved,
   justFound,
   demo,
@@ -35,6 +36,7 @@ export function SymmetryDrawScene({
   /** each found point with the given one it mirrors */
   links: Array<{ given: Point; placed: Point }>
   axis: Line
+  color: string
   /** every point is in, so the whole figure is shown */
   resolved: boolean
   justFound: boolean
@@ -87,10 +89,10 @@ export function SymmetryDrawScene({
         <path
           className="sym-shape sym-shape--whole"
           d={pointsToPath([...links.map((l) => l.placed), ...half.slice().reverse()])}
-          fill="#ff8fa3"
+          fill={color}
         />
       )}
-      <path className="sym-shape" d={pointsToPath(half)} fill="#ff8fa3" />
+      <path className="sym-shape" d={pointsToPath(half)} fill={color} />
       <line className="sym-axis sym-axis--given" x1={axis.a.x} y1={axis.a.y} x2={axis.b.x} y2={axis.b.y} />
 
       {half.map((p, i) => (

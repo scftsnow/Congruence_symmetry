@@ -121,6 +121,9 @@ export function SymmetryDrawScene({
               x2={demo.foot.x}
               y2={demo.foot.y}
               style={{
+                /* hidden until its turn: it sits exactly on the leg being drawn,
+                 * and would cover the drawing with a finished line. */
+                opacity: walk >= 2 ? 1 : 0,
                 transform: walk >= 2 ? `translate(${carry.x}px, ${carry.y}px)` : undefined,
               }}
             />

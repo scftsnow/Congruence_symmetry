@@ -265,18 +265,21 @@ describe('the four rows on the home screen', () => {
   it('walks the first point before asking for any', () => {
     // Placing starts from a walk watched rather than a sentence read: the first
     // given corner draws its square leg, carries it across, and marks where it
-    // lands — with the method spoken over it — and no press counts until the
-    // walk is done.
+    // lands — one popup per leg, because the two legs are two different claims —
+    // and no press counts until the walk is done. Each leg takes three times as
+    // long as a mark appearing would, so the drawing is watched being drawn.
     const hook = source('src/modes/useSymmetryDraw.ts')
-    expect(hook.includes('SYMM_PARTS_HOW')).toBeTruthy()
+    expect(hook.includes('SYMM_PARTS_HOW_LEG')).toBeTruthy()
+    expect(hook.includes('SYMM_PARTS_HOW_CARRY')).toBeTruthy()
     expect(hook.includes('walk < 3')).toBeTruthy()
+    expect(hook.includes('WALK_MS = 3600')).toBeTruthy()
     // the walk demonstrates the topmost point, where the eye goes first
     expect(hook.includes('a.y < b.y')).toBeTruthy()
     expect(hook.includes('footOnAxis(givens[top]')).toBeTruthy()
     const scene = source('src/components/SymmetryDrawScene.tsx')
     expect(scene.includes('sym-carry')).toBeTruthy()
+    expect(scene.includes('sym-draw--slow')).toBeTruthy()
     expect(scene.includes('walking')).toBeTruthy()
-    expect(source('src/components/symmPartsText.ts').includes('수직으로 가다가')).toBeTruthy()
   })
 
   it('draws each joining segment instead of appearing it', () => {

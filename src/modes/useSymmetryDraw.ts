@@ -30,7 +30,8 @@ import {
   symmetryDrawInstructionFor,
   symmetryDrawMissedFor,
   symmetryDrawSuccessFor,
-  SYMM_PARTS_HOW,
+  SYMM_PARTS_HOW_CARRY,
+  SYMM_PARTS_HOW_LEG,
 } from '../components/symmPartsText'
 import type { Message } from '../components/tone'
 
@@ -45,7 +46,7 @@ const STAR_MS = 2000
 /** how long a placed point takes to fly across before it lands */
 const FLY_MS = 1400
 /** how long each leg of the example walk is looked at before moving on */
-const WALK_MS = 1200
+const WALK_MS = 3600
 /** how long the landed point is looked at before the placing starts */
 const SHOWN_MS = 2000
 
@@ -193,7 +194,7 @@ export function useSymmetryDraw(board: DrawBoard, onSettled: () => void): Symmet
       : justFound
         ? symmetryDrawSuccessFor(waiting)
         : walking
-          ? { tone: 'success', icon: '👉', text: SYMM_PARTS_HOW }
+          ? { tone: 'success', icon: '👉', text: walk < 2 ? SYMM_PARTS_HOW_LEG : SYMM_PARTS_HOW_CARRY }
           : !resolved && !flying
             ? /*
                * Which point is awaited, as a popup every time: with the bottom

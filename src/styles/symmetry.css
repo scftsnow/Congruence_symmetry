@@ -187,6 +187,12 @@
   pointer-events: none;
 }
 
+/* The same drawing, three times slower: the example leg is watched being drawn,
+ * not noticed having arrived. */
+.sym-draw--slow {
+  animation-duration: 1800ms;
+}
+
 .sym-right,
 .sym-tick {
   stroke: #2a9d8f;
@@ -210,7 +216,7 @@
   stroke: #2a9d8f;
   stroke-width: 5;
   stroke-linecap: round;
-  transition: transform 700ms cubic-bezier(0.34, 0.9, 0.3, 1);
+  transition: transform 2100ms cubic-bezier(0.34, 0.9, 0.3, 1);
   pointer-events: none;
 }
 

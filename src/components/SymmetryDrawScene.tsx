@@ -105,7 +105,8 @@ export function SymmetryDrawScene({
           )}
           {walk >= 1 && (
             <line
-              className="sym-join"
+              className="sym-join sym-draw sym-draw--slow"
+              pathLength={1}
               x1={demo.from.x}
               y1={demo.from.y}
               x2={demo.foot.x}

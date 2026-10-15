@@ -292,7 +292,8 @@ for (const n of y.shapeNotes) ok('symmetry shape', symmShapesSrc.includes(n), n)
 // as fragment arrays, because DonePanel titles are styled spans, never one string.
 for (const [label, s] of [
   ...y.partsAsk.map((n) => ['symmetry parts ask', n]),
-  ['symmetry parts how', y.partsHow],
+  ['symmetry parts how leg', y.partsHowLeg],
+  ['symmetry parts how carry', y.partsHowCarry],
   ...y.partsFound.map((n) => ['symmetry parts found', n]),
   ...y.partsHint.map((n) => ['symmetry parts hint', n]),
   ['symmetry parts done', y.partsDone],

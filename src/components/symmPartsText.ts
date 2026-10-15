@@ -38,10 +38,11 @@ export function symmetryPartsInstructionFor(phase: Phase): string | null {
   return PARTS_ASK[phase as Pass]
 }
 
-/* How to find a corresponding point, spoken while the first pair walks it: go
- * square to the axis, then on by the same distance again. */
-export const SYMM_PARTS_HOW =
-  '한 점에서 축에 수직으로 가다가, 점과 축 사이만큼 더 가면 거기가 대응점이에요'
+/* How to find a corresponding point, spoken while the first point walks it: first
+ * the square leg is drawn, then it is carried across. One sentence per leg,
+ * because the two legs are two different claims. */
+export const SYMM_PARTS_HOW_LEG = '한 점에서 대칭축에 수직인 선을 그어요'
+export const SYMM_PARTS_HOW_CARRY = '그 길이를 그대로 반대쪽으로 옮기면 거기가 대응점이에요'
 
 /** While a part is folding, and the moment it lands on its partner. */
 const PARTS_MOVING = { side: '대응변을 접어 보고 있어요', angle: '대응각을 접어 보고 있어요' }

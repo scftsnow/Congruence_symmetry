@@ -327,6 +327,70 @@ ok(
   !/onRotate|onFlip|rotateBy/.test(symmRowSrc) && !/onRotate|onFlip|rotateBy/.test(symmHookSrc),
 )
 
+// ── point symmetry: the same checks, about the other mirror ──
+const ptsymSrc = read('src/components/pointSymmText.ts')
+const ptsymPartsSrc = read('src/components/pointSymmPartsText.ts')
+const ptsymCenterSrc = read('src/modes/CenterBoard.tsx')
+const ptsymShapesSrc = read('src/geometry/pointSymmetryShapes.ts')
+const ptsymStages = [
+  read('src/modes/SymmetryPointAxisStage.tsx'),
+  read('src/modes/SymmetryPointPartsStage.tsx'),
+  read('src/modes/SymmetryPointFactsStage.tsx'),
+  read('src/modes/SymmetryPointDrawStage.tsx'),
+]
+const pt = expected.pointSymmetry
+for (const [label, s, stage] of [
+  ['point-symmetry axis row', pt.axisRow, 0],
+  ['point-symmetry parts row', pt.partsRow, 1],
+  ['point-symmetry facts row', pt.factsRow, 2],
+  ['point-symmetry draw row', pt.drawRow, 3],
+]) {
+  ok(label, appSrc.includes(s) && ptsymStages[stage].includes(s), s)
+}
+ok('point-symmetry instruction', ptsymSrc.includes(pt.instruction), pt.instruction)
+ok('point-symmetry found', ptsymSrc.includes(pt.found), pt.found)
+ok('point-symmetry no-center', ptsymSrc.includes(pt.noCenter), pt.noCenter)
+ok('point-symmetry conclusion', ptsymSrc.includes(pt.conclusion), pt.conclusion)
+ok('point-symmetry hint off figure', ptsymSrc.includes(pt.hintOff), pt.hintOff)
+ok('point-symmetry hint miss', ptsymSrc.includes(pt.hintMiss), pt.hintMiss)
+ok('point-symmetry deny hint', ptsymSrc.includes(pt.denyHint), pt.denyHint)
+ok('point-symmetry deny label', ptsymSrc.includes(pt.denyLabel), pt.denyLabel)
+ok('point-symmetry axis done', pt.axisDone.every((s) => ptsymSrc.includes(s)), pt.axisDone.join(''))
+// The deny button stands on every center board, or its presence would leak which
+// figure has no center.
+ok('point-symmetry deny button on every figure', ptsymCenterSrc.includes('denyClaim'), 'denyClaim')
+for (const n of pt.shapeNotes) ok('point-symmetry shape', ptsymShapesSrc.includes(n), n)
+
+// The rows after the center, and every sentence they can say.
+for (const [label, s] of [
+  ...pt.partsAsk.map((n) => ['point-symmetry parts ask', n]),
+  ...pt.partsFound.map((n) => ['point-symmetry parts found', n]),
+  ...pt.partsHint.map((n) => ['point-symmetry parts hint', n]),
+  ['point-symmetry parts done', pt.partsDone],
+  ['point-symmetry parts note', pt.partsNote],
+  ...Object.values(pt.factsAsk).map((n) => ['point-symmetry facts ask', n]),
+  ...Object.values(pt.factsMiss).map((n) => ['point-symmetry facts hint', n]),
+  ...Object.values(pt.factsFact).map((n) => ['point-symmetry facts said', n]),
+  ['point-symmetry facts done', pt.factsDone],
+  ...Object.values(pt.drawAsk).map((n) => ['point-symmetry draw ask', n]),
+  ['point-symmetry draw missed', pt.drawMissed],
+  ['point-symmetry draw said', pt.drawDone.found],
+  ['point-symmetry draw said', pt.drawDone.next],
+  ['point-symmetry draw said', pt.drawDone.all],
+]) {
+  const parts = Array.isArray(s) ? s : [s]
+  ok(label, parts.every((p) => ptsymPartsSrc.includes(p)), parts.join(''))
+}
+// the ten boards, and the marks that carry the facts
+ok('point-symmetry has ten boards', /POINT_SYMM_BOARDS: PointSymmetryBoard\[\] = \[[\s\S]*\]\n/.test(ptsymShapesSrc))
+for (const c of ['.sym-hub', '.sym-turn']) {
+  ok(`point-symmetry style ${c}`, symmCss.includes(c), c)
+}
+// No figure is quoted anywhere in the unit either.
+ok('point-symmetry quotes no degree', !/[0-9]+\s*도/.test(ptsymSrc))
+ok('point-symmetry quotes no length', !/[0-9]+\s*(cm|mm|px)/.test(ptsymSrc))
+ok('point-symmetry quotes no degree in parts', !/[0-9]+\s*도/.test(ptsymPartsSrc))
+
 // No angle is ever named. "돌려서 겹쳤어" reports that the system turned the
 // shape; saying 90 or 270 would hand over the answer to the next question.
 ok('no angle is named anywhere', !/[0-9]+\s*°/.test(wordsSrc) && !/[0-9]+\s*도/.test(wordsSrc))

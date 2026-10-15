@@ -29,6 +29,10 @@ import { SymmetryAxisStage } from './modes/SymmetryAxisStage'
 import { SymmetryPartsStage } from './modes/SymmetryPartsStage'
 import { SymmetryFactsStage } from './modes/SymmetryFactsStage'
 import { SymmetryDrawStage } from './modes/SymmetryDrawStage'
+import { SymmetryPointAxisStage } from './modes/SymmetryPointAxisStage'
+import { SymmetryPointPartsStage } from './modes/SymmetryPointPartsStage'
+import { SymmetryPointFactsStage } from './modes/SymmetryPointFactsStage'
+import { SymmetryPointDrawStage } from './modes/SymmetryPointDrawStage'
 
 type Screen =
   | 'home'
@@ -38,6 +42,10 @@ type Screen =
   | 'symmetry-parts'
   | 'symmetry-facts'
   | 'symmetry-draw'
+  | 'point-axis'
+  | 'point-parts'
+  | 'point-facts'
+  | 'point-draw'
 
 export default function App() {
   const [screen, setScreen] = useState<Screen>('home')
@@ -64,6 +72,22 @@ export default function App() {
 
   if (screen === 'symmetry-draw') {
     return <SymmetryDrawStage onBack={() => setScreen('home')} />
+  }
+
+  if (screen === 'point-axis') {
+    return <SymmetryPointAxisStage onBack={() => setScreen('home')} />
+  }
+
+  if (screen === 'point-parts') {
+    return <SymmetryPointPartsStage onBack={() => setScreen('home')} />
+  }
+
+  if (screen === 'point-facts') {
+    return <SymmetryPointFactsStage onBack={() => setScreen('home')} />
+  }
+
+  if (screen === 'point-draw') {
+    return <SymmetryPointDrawStage onBack={() => setScreen('home')} />
   }
 
   return (
@@ -160,12 +184,57 @@ export default function App() {
                 </span>
               </button>
             </li>
-            <li className="unit-list__item unit-list__item--locked">
-              <span className="unit-list__badge">7</span>
-              <span>
-                <strong>점대칭</strong>
-                <em>돌려서 겹치는 중심</em>
-              </span>
+            <li className="unit-list__item unit-list__item--active">
+              <button
+                type="button"
+                className="unit-open"
+                onClick={() => setScreen('point-axis')}
+              >
+                <span className="unit-list__badge">7</span>
+                <span>
+                  <strong>점대칭도형 찾기</strong>
+                  <em>반 바퀴 돌려 겹치는 점을 눌러 찾기</em>
+                </span>
+              </button>
+            </li>
+            <li className="unit-list__item unit-list__item--active">
+              <button
+                type="button"
+                className="unit-open"
+                onClick={() => setScreen('point-parts')}
+              >
+                <span className="unit-list__badge">8</span>
+                <span>
+                  <strong>점대칭도형의 대응점·대응변·대응각</strong>
+                  <em>대칭의 중심을 사이에 두고 마주 보는 짝 찾기</em>
+                </span>
+              </button>
+            </li>
+            <li className="unit-list__item unit-list__item--active">
+              <button
+                type="button"
+                className="unit-open"
+                onClick={() => setScreen('point-facts')}
+              >
+                <span className="unit-list__badge">9</span>
+                <span>
+                  <strong>점대칭도형의 성질</strong>
+                  <em>잇는 선분은 중심을 지나고 거리는 같음</em>
+                </span>
+              </button>
+            </li>
+            <li className="unit-list__item unit-list__item--active">
+              <button
+                type="button"
+                className="unit-open"
+                onClick={() => setScreen('point-draw')}
+              >
+                <span className="unit-list__badge">10</span>
+                <span>
+                  <strong>점대칭도형 그리기</strong>
+                  <em>반대쪽 점을 완성하기</em>
+                </span>
+              </button>
             </li>
           </ul>
         </section>

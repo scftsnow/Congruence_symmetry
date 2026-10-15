@@ -24,6 +24,10 @@ import { SymmetryAxisStage } from '../../src/modes/SymmetryAxisStage'
 import { SymmetryPartsStage } from '../../src/modes/SymmetryPartsStage'
 import { SymmetryFactsStage } from '../../src/modes/SymmetryFactsStage'
 import { SymmetryDrawStage } from '../../src/modes/SymmetryDrawStage'
+import { SymmetryPointAxisStage } from '../../src/modes/SymmetryPointAxisStage'
+import { SymmetryPointPartsStage } from '../../src/modes/SymmetryPointPartsStage'
+import { SymmetryPointFactsStage } from '../../src/modes/SymmetryPointFactsStage'
+import { SymmetryPointDrawStage } from '../../src/modes/SymmetryPointDrawStage'
 import { buildBoard, useBoard } from '../../src/modes/useBoard'
 import { DonePanel } from '../../src/components/DonePanel'
 import { Toast } from '../../src/components/Toast'
@@ -72,12 +76,21 @@ describe('home screen renders', () => {
     const rows = html.match(/<button[^>]*class="unit-open"/g) || []
     expect(rows.length >= 5 ? 'ok' : rows.length + ' rows').toBe('ok')
     expect(html.includes(expected.home.corrUnitTitle)).toBeTruthy()
-    // line symmetry is five rows: finding, parts, facts, no-axis, drawing
+    // line symmetry is four rows: finding, parts, facts, drawing
     for (const title of [
       expected.symm.axisTitle,
       expected.symm.partsTitle,
       expected.symm.factsTitle,
       expected.symm.drawTitle,
+    ]) {
+      expect(html.includes(title)).toBeTruthy()
+    }
+    // and so is point symmetry
+    for (const title of [
+      expected.ptsym.axisTitle,
+      expected.ptsym.partsTitle,
+      expected.ptsym.factsTitle,
+      expected.ptsym.drawTitle,
     ]) {
       expect(html.includes(title)).toBeTruthy()
     }
@@ -660,6 +673,49 @@ describe('symmetry rows render', () => {
 
   it('has no turn control', () => {
     expect(/onRotate|onFlip|돌리기|뒤집기/.test(axis)).toBeFalsy()
+  })
+})
+
+describe('point-symmetry rows render', () => {
+  const axis = renderToStaticMarkup(<SymmetryPointAxisStage onBack={() => {}} />)
+  const parts = renderToStaticMarkup(<SymmetryPointPartsStage onBack={() => {}} />)
+  const facts = renderToStaticMarkup(<SymmetryPointFactsStage onBack={() => {}} />)
+  const draw = renderToStaticMarkup(<SymmetryPointDrawStage onBack={() => {}} />)
+
+  it('produces markup', () => {
+    for (const [name, html] of Object.entries({ axis, parts, facts, draw })) {
+      expect(html.length > 900 ? 'ok' : name + ': ' + html.length + ' bytes').toBe('ok')
+    }
+  })
+
+  it('shows its title', () => {
+    expect(axis.includes(expected.ptsym.axisTitle)).toBeTruthy()
+    expect(parts.includes(expected.ptsym.partsTitle)).toBeTruthy()
+    expect(facts.includes(expected.ptsym.factsTitle)).toBeTruthy()
+    expect(draw.includes(expected.ptsym.drawTitle)).toBeTruthy()
+  })
+
+  it('draws one shape and the standing instruction', () => {
+    expect((axis.match(/class="sym-shape"/g) || []).length).toBe(1)
+    expect(axis.includes('대칭의 중심을 손가락으로 눌러 보세요')).toBeTruthy()
+  })
+
+  it('turns no copy before one has been tapped', () => {
+    // The turning layer must start empty: a copy on screen before the finger
+    // has moved would be an answer the child never gave.
+    expect(axis.includes('sym-turn')).toBeFalsy()
+    expect(axis.includes('sym-hub')).toBeFalsy()
+  })
+
+  it('shows progress through the row', () => {
+    expect((axis.match(/class="sym-board( |")/g) || []).length).toBe(5)
+    expect((facts.match(/class="sym-board( |")/g) || []).length).toBe(1)
+    expect((draw.match(/class="sym-board( |")/g) || []).length).toBe(1)
+  })
+
+  it('quotes no length and no angle size', () => {
+    expect(/[0-9]+\s*도/.test(axis)).toBeFalsy()
+    expect(/[0-9]+\s*(cm|mm|px)/.test(axis)).toBeFalsy()
   })
 })
 

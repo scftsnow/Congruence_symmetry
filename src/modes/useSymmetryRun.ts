@@ -1,18 +1,18 @@
 /**
- * Where the child is in one row of the line-symmetry unit.
+ * Where the child is in one row of a symmetry unit.
  *
- * Each of the three rows runs its own boards and ends its own way, so the run
- * is over the boards it is given rather than over the whole unit: what has to be
- * remembered between boards is the board and which of them are finished. That is
- * all this holds; the answering lives in the hook for whichever kind is up.
+ * Each row runs its own boards and ends its own way, so the run is over the
+ * boards it is given rather than over the whole unit: what has to be remembered
+ * between boards is the board and which of them are finished. That is all this
+ * holds; the answering lives in the hook for whichever kind is up. Generic over
+ * the board so both symmetry units run the same run.
  */
 
 import { useCallback, useState } from 'react'
-import type { SymmetryBoard } from '../geometry/symmetryShapes'
 
-export interface SymmetryRunState {
+export interface SymmetryRunState<Board> {
   boardIndex: number
-  board: SymmetryBoard
+  board: Board
   /** true on the board after the last */
   last: boolean
   /** which boards have been answered, so the dots can show it */
@@ -32,7 +32,7 @@ export interface SymmetryRunState {
   markSettled: () => void
 }
 
-export function useSymmetryRun(boards: SymmetryBoard[]): SymmetryRunState {
+export function useSymmetryRun<Board>(boards: Board[]): SymmetryRunState<Board> {
   const [boardIndex, setBoardIndex] = useState(0)
   const [settled, setSettled] = useState<boolean[]>(() => boards.map(() => false))
   const [round, setRound] = useState(0)

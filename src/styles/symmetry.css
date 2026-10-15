@@ -280,6 +280,36 @@
 }
 
 /*
+ * The middle under discussion. One teal dot rather than a line: a point has no
+ * direction to draw, so there is nothing here that could be the answer. The
+ * given middle stands paler, the proved one solid — the same distinction the
+ * axis boards draw between the asking orange and the settled teal.
+ */
+.sym-hub {
+  fill: #2a9d8f;
+  stroke: #ffffff;
+  stroke-width: 3;
+  pointer-events: none;
+}
+
+.sym-hub--given {
+  fill-opacity: 0.45;
+}
+
+/*
+ * The turn in motion.
+ *
+ * The transform is in CSS so the browser interpolates it, for the same reason
+ * the fold animates: recomputed coordinates would jump between frames with
+ * nothing to transition. 700ms is long enough to follow the copy on its way
+ * round and short enough not to wait for.
+ */
+.sym-turn {
+  transition: transform 700ms cubic-bezier(0.34, 0.9, 0.3, 1);
+  pointer-events: none;
+}
+
+/*
  * The run of boards across the unit.
  *
  * One dot per board rather than one per step, because the steps inside a board

@@ -102,10 +102,6 @@
   background: #e8f6fa;
 }
 
-.unit-list__item--locked {
-  opacity: 0.55;
-}
-
 .unit-list__badge {
   display: inline-flex;
   align-items: center;
@@ -117,10 +113,6 @@
   background: var(--color-primary);
   color: #fff;
   font-weight: 700;
-}
-
-.unit-list__item--locked .unit-list__badge {
-  background: #b8c4cf;
 }
 
 .unit-list__item strong {

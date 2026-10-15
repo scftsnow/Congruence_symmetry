@@ -65,7 +65,24 @@ export function mirroredOutline(vertices: Point[], line: Line): Point[] {
  * outlines it is being asked about.
  */
 export function lineCorrespondence(vertices: Point[], line: Line): Correspondence {
-  return correspondence(vertices, mirroredOutline(vertices, line))
+  return reflectionCorrespondence(vertices, (p) => mirrorOf(p, line))
+}
+
+/**
+ * The correspondence of a figure with its own mirror image, by any mirror.
+ *
+ * A reflection across a line and a half turn about a center are both mirrors —
+ * each applied twice is back where it started — so one function pairs both
+ * kinds of figure with their own image.
+ */
+export function reflectionCorrespondence(
+  vertices: Point[],
+  imageOf: (p: Point) => Point,
+): Correspondence {
+  return correspondence(
+    vertices,
+    vertices.map((p) => imageOf(p)),
+  )
 }
 
 /**
@@ -76,8 +93,20 @@ export function lineCorrespondence(vertices: Point[], line: Line): Correspondenc
  * axis board has to agree with the folding about it.
  */
 export function mirrorIndex(vertices: Point[], line: Line): number[] {
+  return partnerIndexOf(vertices, (p) => mirrorOf(p, line))
+}
+
+/**
+ * For every vertex, which vertex a mirror sends it to.
+ *
+ * The pairing of a line-symmetric figure is one case of this: the mirror is a
+ * reflection across a line. The pairing of a point-symmetric figure is the
+ * other: the mirror is a half turn about a center. One function serves both,
+ * because both ask the same question — where does this corner land.
+ */
+export function partnerIndexOf(vertices: Point[], imageOf: (p: Point) => Point): number[] {
   return vertices.map((p, k) => {
-    const image = mirrorOf(p, line)
+    const image = imageOf(p)
     let best = k
     let bestGap = MIRROR_TOLERANCE
     vertices.forEach((v, j) => {
@@ -109,21 +138,19 @@ export interface MirrorPairs {
   sides: Array<[number, number]>
 }
 
-export function mirrorPairs(vertices: Point[], line: Line): MirrorPairs {
-  const partners = mirrorIndex(vertices, line)
-  const n = vertices.length
+/**
+ * The pairs a partner list makes.
+ *
+ * A corner whose partner is itself and a side whose mirror is itself have no
+ * partner: a pair is two. Extracted because both mirrors — the line and the
+ * half turn — pair the same way once the partners are known.
+ */
+export function pairsFromPartners(partners: number[]): MirrorPairs {
+  const n = partners.length
   const points: Array<[number, number]> = []
   for (let i = 0; i < n; i++) {
     if (partners[i] > i) points.push([i, partners[i]])
   }
-  /*
-   * The partner of a side is found by looking, not by numbering. Mirroring
-   * reverses the winding, so the partner of the side from i to i+1 is the side
-   * whose ends are the partners of i and i+1 — and the only honest way to find
-   * it is to check every side's ends against those two. Numbering tricks put
-   * every side in a group of its own, which is how a first version of this
-   * quietly concluded that no side had a partner at all.
-   */
   const endsKey = (i: number) => [i, (i + 1) % n].sort((a, b) => a - b).join(',')
   const partnerSide = (i: number) => {
     const want = [partners[i], partners[(i + 1) % n]].sort((a, b) => a - b).join(',')
@@ -135,6 +162,10 @@ export function mirrorPairs(vertices: Point[], line: Line): MirrorPairs {
     if (j > i) sides.push([i, j])
   }
   return { points, sides }
+}
+
+export function mirrorPairs(vertices: Point[], line: Line): MirrorPairs {
+  return pairsFromPartners(mirrorIndex(vertices, line))
 }
 
 /** Where a square dropped from a point meets the line. */

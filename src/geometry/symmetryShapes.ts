@@ -215,6 +215,35 @@ const OCTAGON: Point[] = [
 const OCT_SHAPE = shape('sym-oct', '팔각형', '#8ecae6', OCTAGON)
 
 /**
+ * Two wide and tall hexagons, each symmetric about a vertical axis.
+ *
+ * The second and third drawings. Same lattice discipline as the octagon — every
+ * corner on a crossing, two corners on the axis so the given half closes along
+ * it — with different silhouettes, so completing the second is not retracing
+ * the first from memory. Two points to place each, where the octagon asks three.
+ */
+const HEX_WIDE: Point[] = [
+  { x: 0, y: -150 },
+  { x: 150, y: -50 },
+  { x: 100, y: 100 },
+  { x: 0, y: 150 },
+  { x: -100, y: 100 },
+  { x: -150, y: -50 },
+]
+
+const HEX_NARROW: Point[] = [
+  { x: 0, y: -150 },
+  { x: 100, y: -50 },
+  { x: 50, y: 100 },
+  { x: 0, y: 150 },
+  { x: -50, y: 100 },
+  { x: -100, y: -50 },
+]
+
+const HEX_WIDE_SHAPE = shape('sym-hexw', '육각형', '#a3d5a1', HEX_WIDE)
+const HEX_NARROW_SHAPE = shape('sym-hexn', '육각형', '#ffd166', HEX_NARROW)
+
+/**
  * The boards of the unit, in the textbook's order.
  *
  * Four ask for a line to be drawn, and then four ask something else about a
@@ -258,6 +287,24 @@ export const SYMM_BOARDS: SymmetryBoard[] = [
      */
     half: OCTAGON.slice(0, 5),
     place: [1, 2, 3],
+  },
+  {
+    kind: 'draw',
+    id: 'sym-draw-wide',
+    shape: HEX_WIDE_SHAPE,
+    axis: VERTICAL,
+    note: '육각형',
+    half: HEX_WIDE.slice(0, 4),
+    place: [1, 2],
+  },
+  {
+    kind: 'draw',
+    id: 'sym-draw-narrow',
+    shape: HEX_NARROW_SHAPE,
+    axis: VERTICAL,
+    note: '육각형',
+    half: HEX_NARROW.slice(0, 4),
+    place: [1, 2],
   },
 ]
 

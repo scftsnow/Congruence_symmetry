@@ -152,14 +152,14 @@ describe('the two facts about the axis', () => {
 })
 
 describe('the four rows on the home screen', () => {
-  it('runs the eight boards in the textbook\'s order', () => {
-    expect(SYMM_BOARDS.length).toBe(8)
+  it('runs the ten boards in the textbook\'s order', () => {
+    expect(SYMM_BOARDS.length).toBe(10)
     expect(SYMM_BOARDS.slice(0, 4).every((b) => b.kind === 'axis')).toBe(true)
     expect(SYMM_BOARDS[4].kind).toBe('parts')
     expect(SYMM_BOARDS[5].kind).toBe('facts')
     expect(SYMM_BOARDS[6].kind).toBe('axis')
-    // the drawing is last, because it is where the unit's facts are used
-    expect(SYMM_BOARDS[7].kind).toBe('draw')
+    // three drawings close the unit, because completing them uses both facts
+    expect(SYMM_BOARDS.slice(7).map((b) => b.kind)).toEqual(['draw', 'draw', 'draw'])
   })
 
   it('opens one row per question, not one door for all four', () => {
@@ -172,7 +172,7 @@ describe('the four rows on the home screen', () => {
     expect(SYMM_PARTS_BOARDS.every((b) => b.kind === 'parts')).toBe(true)
     expect(SYMM_FACTS_BOARDS.length).toBe(1)
     expect(SYMM_FACTS_BOARDS.every((b) => b.kind === 'facts')).toBe(true)
-    expect(SYMM_DRAW_BOARDS.length).toBe(1)
+    expect(SYMM_DRAW_BOARDS.length).toBe(3)
     expect(SYMM_DRAW_BOARDS.every((b) => b.kind === 'draw')).toBe(true)
     const app = source('src/App.tsx')
     for (const screen of [
@@ -405,25 +405,26 @@ describe('the four rows on the home screen', () => {
     expect(symmetryFactsSuccessFor('equal').text).toContain('거리는 같아요')
   })
 
-  it('stands every corner of the drawing on the lattice', () => {
+  it('stands every corner of each drawing on the lattice', () => {
     // Placing means pointing exactly, and a corner between grid lines is one
     // the child cannot point at. Screen coordinates come out as multiples of
-    // the grid pitch, symmetric about the axis.
-    const draw = SYMM_BOARDS[7]
-    const kind = draw.kind === 'draw' ? draw : null
-    const pts = [...(kind?.shape.vertices ?? []), ...(kind?.half ?? [])]
-    expect(pts.length > 0).toBe(true)
-    for (const p of pts) {
-      const sx = p.x + SYMM_CENTER.x
-      const sy = p.y + SYMM_CENTER.y
-      expect(sx % SNAP_PITCH === 0 && sy % SNAP_PITCH === 0 ? 'ok' : `off lattice: ${sx},${sy}`).toBe('ok')
-      expect(sx <= SYMM_CENTER.x + 150 && sx >= SYMM_CENTER.x - 150 ? 'ok' : 'wider than its board').toBe('ok')
+    // the grid pitch, symmetric about the axis — on all three drawings.
+    const draws = SYMM_BOARDS.filter((b) => b.kind === 'draw')
+    expect(draws.length).toBe(3)
+    for (const draw of draws) {
+      if (draw.kind !== 'draw') continue
+      const pts = [...draw.shape.vertices, ...draw.half]
+      expect(pts.length > 0).toBe(true)
+      for (const p of pts) {
+        const sx = p.x + SYMM_CENTER.x
+        const sy = p.y + SYMM_CENTER.y
+        expect(sx % SNAP_PITCH === 0 && sy % SNAP_PITCH === 0 ? 'ok' : `off lattice: ${sx},${sy}`).toBe('ok')
+      }
+      // and each given half closes along the axis rather than across empty space
+      const first = draw.half[0]
+      const last = draw.half[draw.half.length - 1]
+      expect(first && last && first.x === 0 && last.x === 0 ? 'ok' : 'the half leaves the axis').toBe('ok')
     }
-    // and the given half closes along the axis rather than across empty space
-    const half = kind?.half ?? []
-    const first = half[0]
-    const last = half[half.length - 1]
-    expect(first && last && first.x === 0 && last.x === 0 ? 'ok' : 'the half leaves the axis').toBe('ok')
   })
 
   it('snaps a placed point exactly onto the mirror image', () => {

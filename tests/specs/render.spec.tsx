@@ -648,7 +648,7 @@ describe('symmetry rows render', () => {
      */
     expect((axis.match(/class="sym-board( |")/g) || []).length).toBe(5)
     expect((facts.match(/class="sym-board( |")/g) || []).length).toBe(1)
-    expect((draw.match(/class="sym-board( |")/g) || []).length).toBe(1)
+    expect((draw.match(/class="sym-board( |")/g) || []).length).toBe(3)
     // and the run is the whole unit, in the textbook's order
     expect(source('src/geometry/symmetryShapes.ts').includes('SYMM_BOARDS: SymmetryBoard[]')).toBeTruthy()
   })

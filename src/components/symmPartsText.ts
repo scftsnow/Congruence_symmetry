@@ -101,22 +101,17 @@ export function symmetryPartsHintFor(phase: Pass): string {
  * the crossing, and a tick on each of two equal spans.
  */
 
-/** Where each step of the facts board is asking the child to draw. */
+/** Where the facts board is asking the child to draw: only the joining. */
 const FACTS_ASK: Record<string, string> = {
-  join: '서로 마주 보는 두 점을 손가락으로 이어 보세요',
-  span: '점에서 대칭축까지 손가락으로 이어 보세요',
-  partner: '마주 보는 점에서도 대칭축까지 이어 보세요',
+  join: '대응점을 손가락으로 이어 보세요',
 }
 
-export function symmetryFactsInstructionFor(stage: string): string {
-  return FACTS_ASK[stage]
+export function symmetryFactsInstructionFor(stage: string): string | null {
+  return FACTS_ASK[stage] ?? null
 }
 
 const FACTS_MISS: Record<string, string> = {
-  off: '선은 두 점을 이어 그어야 해요',
   pair: '아직이네요. 축을 사이에 두고 마주 보는 점을 이어보세요',
-  foot: '점은 대칭축을 향해 곧게 이어 보세요',
-  partner: '빛나는 점에서는 대칭축까지 이어 보세요',
 }
 
 export function symmetryFactsHintFor(kind: string): Message {
@@ -124,9 +119,9 @@ export function symmetryFactsHintFor(kind: string): Message {
 }
 
 const FACTS_FACT: Record<string, string> = {
-  join: '마주 보는 점을 잇는 선분은 대칭축과 수직이에요',
-  span: '점을 대칭축까지 이으면 수직이 되어요',
-  partner: '대칭점과 대칭축 사이의 거리는 같아요',
+  join: '대응점을 잘 이었어요',
+  square: '대응점을 연결한 선분은 대칭축과 수직으로 만나요',
+  equal: '대응점에서 대칭축까지의 거리는 같아요',
 }
 
 export function symmetryFactsSuccessFor(stage: string): Message {

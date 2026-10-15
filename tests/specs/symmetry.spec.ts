@@ -46,7 +46,6 @@ import {
   symmetryFoundFor,
   symmetryHintFor,
   symmetryInstructionFor,
-  symmetryNoAxisDonePanelFor,
   symmetryNoAxisFor,
 } from '../../src/components/symmText'
 import { isSimplePolygon, measureOverlap, polygonArea } from '../../src/geometry/overlap'
@@ -396,7 +395,6 @@ describe('the child draws, the system folds', () => {
       'src/modes/SymmetryAxisStage.tsx',
       'src/modes/SymmetryPartsStage.tsx',
       'src/modes/SymmetryFactsStage.tsx',
-      'src/modes/SymmetryNoAxisStage.tsx',
       'src/modes/SymmetryDrawStage.tsx',
     ]) {
       expect(source(shell).includes('useState')).toBeFalsy()
@@ -466,7 +464,6 @@ describe('the child draws, the system folds', () => {
       'SymmetryAxisStage',
       'SymmetryPartsStage',
       'SymmetryFactsStage',
-      'SymmetryNoAxisStage',
       'SymmetryDrawStage',
     ]) {
       expect(app.includes(stage)).toBe(true)
@@ -475,7 +472,6 @@ describe('the child draws, the system folds', () => {
       "'symmetry-axis'",
       "'symmetry-parts'",
       "'symmetry-facts'",
-      "'symmetry-noaxis'",
       "'symmetry-draw'",
     ]) {
       expect(app.includes(screen)).toBe(true)
@@ -498,13 +494,6 @@ describe('the ending names the kind, not the shape', () => {
     const done = symmetryAxisDonePanelFor()
     expect(done.title.map((p) => p.text).join('')).toBe('선대칭도형을 모두 찾았어!')
     expect(done.note).toBe('하나의 직선을 따라 접었을 때 완전히 겹치는 도형이 선대칭도형이야')
-  })
-
-  it('ends the no-axis row on the discovery, not the failure', () => {
-    const done = symmetryNoAxisDonePanelFor()
-    expect(done.title.map((p) => p.text).join('')).toBe('축이 없는 도형도 찾았어!')
-    expect(/[0-9]/.test(done.note) ? 'counts in the lesson' : 'ok').toBe('ok')
-    expect(done.homeLabel).toBe('첫 화면으로')
   })
 })
 

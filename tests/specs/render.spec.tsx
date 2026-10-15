@@ -23,7 +23,6 @@ import { CorrespondenceStage } from '../../src/modes/CorrespondenceStage'
 import { SymmetryAxisStage } from '../../src/modes/SymmetryAxisStage'
 import { SymmetryPartsStage } from '../../src/modes/SymmetryPartsStage'
 import { SymmetryFactsStage } from '../../src/modes/SymmetryFactsStage'
-import { SymmetryNoAxisStage } from '../../src/modes/SymmetryNoAxisStage'
 import { SymmetryDrawStage } from '../../src/modes/SymmetryDrawStage'
 import { buildBoard, useBoard } from '../../src/modes/useBoard'
 import { DonePanel } from '../../src/components/DonePanel'
@@ -78,7 +77,6 @@ describe('home screen renders', () => {
       expected.symm.axisTitle,
       expected.symm.partsTitle,
       expected.symm.factsTitle,
-      expected.symm.noaxisTitle,
       expected.symm.drawTitle,
     ]) {
       expect(html.includes(title)).toBeTruthy()
@@ -611,12 +609,11 @@ describe('symmetry rows render', () => {
   const axis = renderToStaticMarkup(<SymmetryAxisStage onBack={() => {}} />)
   const parts = renderToStaticMarkup(<SymmetryPartsStage onBack={() => {}} />)
   const facts = renderToStaticMarkup(<SymmetryFactsStage onBack={() => {}} />)
-  const noaxis = renderToStaticMarkup(<SymmetryNoAxisStage onBack={() => {}} />)
   const draw = renderToStaticMarkup(<SymmetryDrawStage onBack={() => {}} />)
 
   it('produces markup', () => {
-    for (const [name, html] of Object.entries({ axis, parts, facts, noaxis, draw })) {
-      expect(html.length > 1200 ? 'ok' : name + ': ' + html.length + ' bytes').toBe('ok')
+    for (const [name, html] of Object.entries({ axis, parts, facts, draw })) {
+      expect(html.length > 1000 ? 'ok' : name + ': ' + html.length + ' bytes').toBe('ok')
     }
   })
 
@@ -624,7 +621,6 @@ describe('symmetry rows render', () => {
     expect(axis.includes(expected.symm.axisTitle)).toBeTruthy()
     expect(parts.includes(expected.symm.partsTitle)).toBeTruthy()
     expect(facts.includes(expected.symm.factsTitle)).toBeTruthy()
-    expect(noaxis.includes(expected.symm.noaxisTitle)).toBeTruthy()
     expect(draw.includes(expected.symm.drawTitle)).toBeTruthy()
   })
 
@@ -647,7 +643,7 @@ describe('symmetry rows render', () => {
      * keep their own dots. The list is class="sym-board", so the match requires
      * the closing quote or a space — otherwise the container counts as one more.
      */
-    expect((axis.match(/class="sym-board( |")/g) || []).length).toBe(4)
+    expect((axis.match(/class="sym-board( |")/g) || []).length).toBe(5)
     expect((facts.match(/class="sym-board( |")/g) || []).length).toBe(1)
     expect((draw.match(/class="sym-board( |")/g) || []).length).toBe(1)
     // and the run is the whole unit, in the textbook's order

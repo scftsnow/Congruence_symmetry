@@ -1,9 +1,9 @@
 /**
- * The facts board — the segment joining a pair is square to the axis, and a point
- * and its image stand the same distance from it.
+ * The facts board — the two facts about the axis, in the textbook's order.
  *
- * Both facts on one board because they are one piece of reasoning, and because
- * the second is what makes the first true.
+ * The child joins one pair of corresponding points, and then the board shows
+ * what that joining proves: first the square, then the equal spans. Both facts
+ * on one board because they are one piece of reasoning.
  */
 
 import { SymmetryFactsScene } from '../components/SymmetryFactsScene'
@@ -31,11 +31,9 @@ export function FactsBoard({ board, onSettled, onNext, nextLabel }: {
           vertices={f.vertices}
           axis={board.axis}
           color={board.shape.color}
+          stage={f.stage}
           draft={f.draft}
           joined={f.joined}
-          spanned={f.spanned}
-          waitingOn={f.waitingOn}
-          resolved={f.resolved}
           justFound={f.justFound}
           onDrawStart={f.beginDraw}
           onDrawMove={f.moveDraw}
@@ -48,7 +46,12 @@ export function FactsBoard({ board, onSettled, onNext, nextLabel }: {
             {nextLabel}
           </button>
         ) : (
-          <p className="stage1-hint sym-instruction">{f.instruction}</p>
+          /*
+           * Nothing standing while watching: a part is appearing and the popup
+           * is saying what it just showed, and a line under it would compete
+           * with the sentence that carries the lesson.
+           */
+          f.instruction && <p className="stage1-hint sym-instruction">{f.instruction}</p>
         )}
       </div>
     </>

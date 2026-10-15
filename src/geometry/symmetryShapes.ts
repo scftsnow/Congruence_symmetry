@@ -114,26 +114,24 @@ const SCALENE: Point[] = [
 ]
 
 /**
- * An irregular hexagon, symmetric about a vertical axis.
+ * A symmetric pentagon, flat edge on top and apex at the bottom.
  *
  * The shape the parts board asks about, because its parts must come in pairs and
- * each pair must be findable: six corners in three mirrored pairs, and six sides
- * in three mirrored pairs, with nothing sitting on the axis. A corner on the axis
- * is its own mirror image, and one of those teaches a different thing — it is
- * what the axis board means when the fold leaves a point where it was.
+ * each pair must be findable: four corners in two mirrored pairs across the
+ * axis, and the fifth standing on the axis itself. That fifth corner is its own
+ * mirror image, so like the top and bottom edges of the old hexagon it has no
+ * partner and is never asked — a pair is two, on this board as everywhere.
  *
- * No corner is left unpaired, and no two pairs look alike either: the top pair
- * is nearly level with its partner, the middle pair is the widest apart and the
- * bottom pair is the shortest, so "which one faces this one across the line" is
- * a real question rather than a guess.
+ * No two pairs look alike either: the top pair sits level across the flat edge
+ * and the lower pair slants down to the apex, so "which one faces this one
+ * across the line" is a real question rather than a guess.
  */
-const HEXAGON: Point[] = [
-  { x: -70, y: -140 },
-  { x: 130, y: -40 },
-  { x: 70, y: 130 },
-  { x: -70, y: 130 },
-  { x: -130, y: -40 },
-  { x: 70, y: -140 },
+const PENTAGON: Point[] = [
+  { x: -150, y: -125 },
+  { x: 150, y: -125 },
+  { x: 175, y: 75 },
+  { x: 0, y: 185 },
+  { x: -175, y: 75 },
 ]
 
 export interface SymmetryItem {
@@ -184,7 +182,7 @@ const VERTICAL: Line = {
   b: { x: SYMM_CENTER.x, y: SYMM_CENTER.y + 250 },
 }
 
-const HEX_SHAPE = shape('sym-hex', '육각형', '#bde0fe', HEXAGON)
+const PENTA_SHAPE = shape('sym-penta', '오각형', '#bde0fe', PENTAGON)
 const HEART_SHAPE = shape('sym-heart2', '하트', '#ff8fa3', HEART)
 
 /**
@@ -194,8 +192,8 @@ const HEART_SHAPE = shape('sym-heart2', '하트', '#ff8fa3', HEART)
  * figure that already has one: the parts that face each other across it, the two
  * facts about those parts, and finally the drawing of one from the other side.
  *
- * The hexagon comes first of the new boards because every corner of it has a
- * partner, so 대응점 is a question with an answer; the heart carries the two
+ * The pentagon comes first of the new boards because all but one of its corners
+ * have a partner, so 대응점 is a question with answers; the heart carries the two
  * facts, where its two corners standing on the axis are exactly the ones that
  * have no partner and so cannot be joined to anything; and the heart again
  * closes the unit, because a half of a heart is the most obvious drawing of all.
@@ -211,7 +209,7 @@ export const SYMM_BOARDS: SymmetryBoard[] = [
   { kind: 'axis', item: SYMMETRY_ITEMS[1] },
   { kind: 'axis', item: SYMMETRY_ITEMS[2] },
   { kind: 'axis', item: SYMMETRY_ITEMS[3] },
-  { kind: 'parts', id: 'sym-parts', shape: HEX_SHAPE, axis: VERTICAL, note: '육각형' },
+  { kind: 'parts', id: 'sym-parts', shape: PENTA_SHAPE, axis: VERTICAL, note: '오각형' },
   { kind: 'facts', id: 'sym-facts', shape: HEART_SHAPE, axis: VERTICAL, note: '하트' },
   { kind: 'axis', item: SYMMETRY_ITEMS[4] },
   {
@@ -240,18 +238,16 @@ export const SYMM_BOARDS: SymmetryBoard[] = [
 
 /* ── the rows on the home screen ─────────────────────────
  *
- * One unit in the textbook, five doors on the home screen: finding the axis,
- * finding what faces what across it, the two facts about it together, the figure
- * with no axis, and the drawing that closes the unit. Each row runs its own
- * boards and ends its own way, so a child who finished the axes yesterday starts
- * today's pairs without walking through yesterday again — and so the home screen
- * says what each row asks, which one flat list of eight never could.
+ * One unit in the textbook, four doors on the home screen: finding symmetric
+ * figures by their axes, finding what faces what across one, the two facts
+ * about it together, and the drawing that closes the unit. Each row runs its
+ * own boards and ends its own way, so a child who finished the axes yesterday
+ * starts today's pairs without walking through yesterday again — and so the
+ * home screen says what each row asks, which one flat list of eight never could.
  */
 
-/** 3번: 대칭축으로 선대칭도형 찾기 — the four shapes with axes */
-export const SYMM_AXIS_BOARDS: SymmetryBoard[] = SYMM_BOARDS.filter(
-  (b) => b.kind === 'axis' && b.item.id !== 'sym-scalene',
-)
+/** 3번: 선대칭도형 찾기 — the four shapes with axes, then the one with none */
+export const SYMM_AXIS_BOARDS: SymmetryBoard[] = SYMM_BOARDS.filter((b) => b.kind === 'axis')
 
 /** 4번: 대응점·대응변·대응각 찾기 — the one figure whose parts face each other */
 export const SYMM_PARTS_BOARDS: SymmetryBoard[] = SYMM_BOARDS.filter((b) => b.kind === 'parts')
@@ -259,10 +255,5 @@ export const SYMM_PARTS_BOARDS: SymmetryBoard[] = SYMM_BOARDS.filter((b) => b.ki
 /** 5번: 선대칭도형의 성질 — the two facts together (교과서 5·6번 묶음) */
 export const SYMM_FACTS_BOARDS: SymmetryBoard[] = SYMM_BOARDS.filter((b) => b.kind === 'facts')
 
-/** 6번: 대칭축이 없는 도형 — the one figure with no axis, its own question */
-export const SYMM_NOAXIS_BOARDS: SymmetryBoard[] = SYMM_BOARDS.filter(
-  (b) => b.kind === 'axis' && b.item.id === 'sym-scalene',
-)
-
-/** 7번: 선대칭도형 그리기 — the drawing the facts make possible, last */
+/** 6번: 선대칭도형 그리기 — the drawing the facts make possible, last */
 export const SYMM_DRAW_BOARDS: SymmetryBoard[] = SYMM_BOARDS.filter((b) => b.kind === 'draw')

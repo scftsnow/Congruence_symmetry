@@ -28,7 +28,6 @@ import { CorrespondenceStage } from './modes/CorrespondenceStage'
 import { SymmetryAxisStage } from './modes/SymmetryAxisStage'
 import { SymmetryPartsStage } from './modes/SymmetryPartsStage'
 import { SymmetryFactsStage } from './modes/SymmetryFactsStage'
-import { SymmetryNoAxisStage } from './modes/SymmetryNoAxisStage'
 import { SymmetryDrawStage } from './modes/SymmetryDrawStage'
 
 type Screen =
@@ -38,7 +37,6 @@ type Screen =
   | 'symmetry-axis'
   | 'symmetry-parts'
   | 'symmetry-facts'
-  | 'symmetry-noaxis'
   | 'symmetry-draw'
 
 export default function App() {
@@ -62,10 +60,6 @@ export default function App() {
 
   if (screen === 'symmetry-facts') {
     return <SymmetryFactsStage onBack={() => setScreen('home')} />
-  }
-
-  if (screen === 'symmetry-noaxis') {
-    return <SymmetryNoAxisStage onBack={() => setScreen('home')} />
   }
 
   if (screen === 'symmetry-draw') {
@@ -157,22 +151,9 @@ export default function App() {
               <button
                 type="button"
                 className="unit-open"
-                onClick={() => setScreen('symmetry-noaxis')}
-              >
-                <span className="unit-list__badge">6</span>
-                <span>
-                  <strong>대칭축이 없는 도형</strong>
-                  <em>어떻게 접어도 겹치지 않는 도형 찾기</em>
-                </span>
-              </button>
-            </li>
-            <li className="unit-list__item unit-list__item--active">
-              <button
-                type="button"
-                className="unit-open"
                 onClick={() => setScreen('symmetry-draw')}
               >
-                <span className="unit-list__badge">7</span>
+                <span className="unit-list__badge">6</span>
                 <span>
                   <strong>선대칭도형 그리기</strong>
                   <em>반대쪽 점을 완성하기</em>
@@ -180,7 +161,7 @@ export default function App() {
               </button>
             </li>
             <li className="unit-list__item unit-list__item--locked">
-              <span className="unit-list__badge">8</span>
+              <span className="unit-list__badge">7</span>
               <span>
                 <strong>점대칭</strong>
                 <em>돌려서 겹치는 중심</em>

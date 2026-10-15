@@ -97,10 +97,10 @@ export function mirrorIndex(vertices: Point[], line: Line): number[] {
  *
  * One index per pair is what the parts board asks about, so asking every corner
  * would ask every pair twice — once from each end. And a side whose mirror image
- * is itself, an edge crossing the axis squarely like the top and bottom of this
- * unit's hexagon, has no partner at all: a pair is two, so it is never a 대응변
- * question. The same holds for a corner standing on the axis, which this unit's
- * hexagon was chosen to have none of.
+ * is itself, an edge crossing the axis squarely like the flat top of this unit's
+ * pentagon, has no partner at all: a pair is two, so it is never a 대응변
+ * question. The same holds for the pentagon's bottom apex standing on the axis,
+ * which is why the board asks two point questions of five corners.
  */
 export interface MirrorPairs {
   /** corner pairs, each the lower index first, in outline order */

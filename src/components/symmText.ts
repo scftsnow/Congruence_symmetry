@@ -106,23 +106,7 @@ export function symmetryNextLabelFor(last: boolean): string {
   return last ? '결과 보기 →' : '다음 문제 보기 →'
 }
 
-/** The words for the end of the no-axis row. */
-export function symmetryNoAxisDonePanelFor(): {
-  title: Array<{ text: string; strong?: boolean }>
-  note: string
-  homeLabel: string
-  againLabel: string
-} {
-  return {
-    title: [{ text: '축이 없는 도형도 ' }, { text: '찾았어!', strong: true }],
-    note: '어떻게 접어도 겹치지 않는 도형은 선대칭도형이 아니야',
-    homeLabel: '첫 화면으로',
-    againLabel: '↺ 처음부터',
-  }
-}
-
-/**
- * The words for the end of the unit.
+/** The words for the end of the unit.
  *
  * The note is the definition in one sentence, and it names the two halves the
  * unit taught: that some shapes have such a line, and that some do not.

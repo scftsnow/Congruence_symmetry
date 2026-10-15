@@ -1,11 +1,14 @@
 /**
- * The facts board drawn — one shape, its axis, and the marks that are the claims.
+ * The facts board drawn — one shape, its axis, and the two facts arriving.
  *
- * The right angle and the equal-length ticks are the whole lesson here, so they
- * are drawn here and nowhere else: a claim the child cannot see is a claim they
- * are told. Nothing on this board prints a length or an angle, because a number
- * a child cannot make with their own hands is one they can only be told, and
- * degrees belong to a later unit in fifth grade.
+ * The child joins one pair of corresponding points, and then the board shows
+ * what that joining proves: first the square where the segment meets the axis,
+ * then a span with a tick from each end. Each mark grows in with its sentence,
+ * because the sentence names what was just seen arriving.
+ *
+ * Nothing on this board prints a length or an angle, because a number a child
+ * cannot make with their own hands is one they can only be told, and degrees
+ * belong to a later unit in fifth grade.
  */
 
 import { useMemo, useRef } from 'react'
@@ -15,6 +18,7 @@ import { Celebration } from './Celebration'
 import { footOnAxis, rightAnglePath, tickPath } from '../geometry/symmetryParts'
 import type { Line } from '../geometry/symmetryParts'
 import type { Point } from '../geometry/types'
+import type { FactsStage } from '../modes/useSymmetryFacts'
 
 const W = 1100
 const H = 600
@@ -25,11 +29,9 @@ export function SymmetryFactsScene({
   vertices,
   axis,
   color,
+  stage,
   draft,
   joined,
-  spanned,
-  waitingOn,
-  resolved,
   justFound,
   onDrawStart,
   onDrawMove,
@@ -38,15 +40,11 @@ export function SymmetryFactsScene({
   vertices: Point[]
   axis: Line
   color: string
+  stage: FactsStage
   /** the finger's line, while it is being drawn */
   draft: { p: Point; q: Point } | null
   /** the pair that has been joined, as two corner indices */
   joined: [number, number] | null
-  /** the corners spanned to the axis */
-  spanned: number[]
-  /** the corner whose partner must be spanned next */
-  waitingOn: number | null
-  resolved: boolean
   justFound: boolean
   onDrawStart: (p: Point) => void
   onDrawMove: (p: Point) => void
@@ -65,15 +63,6 @@ export function SymmetryFactsScene({
       y: ((clientY - rect.top) / rect.height) * vb.height,
     }
   }
-
-  /*
-   * A tick is only a claim of equality once there are two spans to compare.
-   *
-   * The first span carries none: a single mark on a single line says nothing
-   * about length, and showing one there would promise a comparison that has not
-   * been made yet.
-   */
-  const compared = resolved && spanned.length >= 2
 
   return (
     <svg
@@ -97,47 +86,48 @@ export function SymmetryFactsScene({
       <line className="sym-axis sym-axis--given" x1={axis.a.x} y1={axis.a.y} x2={axis.b.x} y2={axis.b.y} />
 
       {corners.map(({ v, i }) => (
-        <circle
-          key={i}
-          className={i === waitingOn ? 'sym-corner sym-corner--wait' : 'sym-corner'}
-          cx={v.x}
-          cy={v.y}
-          r={8}
-        />
+        <circle key={i} className="sym-corner" cx={v.x} cy={v.y} r={8} />
       ))}
 
-      {/* the segment joining the pair, and the square that names what it is */}
+      {/* the segment joining the pair, drawn by the child */}
       {joined && (
-        <g className="sym-proved">
-          <line
-            className="sym-join"
-            x1={vertices[joined[0]].x}
-            y1={vertices[joined[0]].y}
-            x2={vertices[joined[1]].x}
-            y2={vertices[joined[1]].y}
-          />
-          <path
-            className="sym-right"
-            d={rightAnglePath(
-              footOnAxis(vertices[joined[0]], axis),
-              axis,
-              vertices[joined[0]],
-              MARK,
-            )}
-          />
-        </g>
+        <line
+          className="sym-join"
+          x1={vertices[joined[0]].x}
+          y1={vertices[joined[0]].y}
+          x2={vertices[joined[1]].x}
+          y2={vertices[joined[1]].y}
+        />
       )}
 
-      {/* the spans to the axis, each with a tick once there are two to compare */}
-      {spanned.map((i) => {
-        const foot = footOnAxis(vertices[i], axis)
-        return (
-          <g key={`sp${i}`} className="sym-proved">
-            <line className="sym-span" x1={vertices[i].x} y1={vertices[i].y} x2={foot.x} y2={foot.y} />
-            {compared && <path className="sym-tick" d={tickPath(vertices[i], foot, MARK)} />}
-          </g>
-        )
-      })}
+      {/* the square where the segment meets the axis: the first fact */}
+      {joined && stage !== 'join' && (
+        <path
+          key={`sq-${joined[0]}-${joined[1]}`}
+          className="sym-right sym-in"
+          d={rightAnglePath(
+            footOnAxis(vertices[joined[0]], axis),
+            axis,
+            vertices[joined[0]],
+            MARK,
+          )}
+        />
+      )}
+
+      {/* a span with a tick from each end: the second fact */}
+      {joined && stage === 'equal' && (
+        <g className="sym-proved">
+          {joined.map((i) => {
+            const foot = footOnAxis(vertices[i], axis)
+            return (
+              <g key={`sp${i}`} className="sym-in">
+                <line className="sym-span" x1={vertices[i].x} y1={vertices[i].y} x2={foot.x} y2={foot.y} />
+                <path className="sym-tick" d={tickPath(vertices[i], foot, MARK)} />
+              </g>
+            )
+          })}
+        </g>
+      )}
 
       {draft && (
         <line className="sym-draft" x1={draft.p.x} y1={draft.p.y} x2={draft.q.x} y2={draft.q.y} />

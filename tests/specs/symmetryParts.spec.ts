@@ -29,7 +29,6 @@ import {
   SYMM_CENTER,
   SYMM_DRAW_BOARDS,
   SYMM_FACTS_BOARDS,
-  SYMM_NOAXIS_BOARDS,
   SYMM_PARTS_BOARDS,
 } from '../../src/geometry/symmetryShapes'
 import { foldPoint, foldTransform } from '../../src/geometry/symmetry'
@@ -53,9 +52,9 @@ import { describe, it, expect } from '../harness/api'
 
 const source = (f: string) => readFileSync(join(process.cwd(), f), 'utf8')
 
-/** the hexagon, on screen, with the axis it really has */
-const hexBoard = SYMM_BOARDS.find((b) => b.kind === 'parts')!
-const HEX = hexBoard.kind === 'parts' ? hexBoard.shape.vertices : []
+/** the pentagon, on screen, with the axis it really has */
+const pentaBoard = SYMM_BOARDS.find((b) => b.kind === 'parts')!
+const HEX = pentaBoard.kind === 'parts' ? pentaBoard.shape.vertices : []
 const ON_SCREEN = HEX.map((p) => ({ x: p.x + SYMM_CENTER.x, y: p.y + SYMM_CENTER.y }))
 const VERTICAL = { a: { x: 550, y: 50 }, b: { x: 550, y: 550 } }
 
@@ -79,21 +78,15 @@ describe('the parts of a folded figure', () => {
     }
   })
 
-  it('gives no corner of this shape as its own partner', () => {
-    // A corner standing on the axis is its own mirror image, and one of those
-    // would make 대응점 a question with no answer. The hexagon was chosen to have
-    // none, and that has to stay true of the shape as drawn.
+  it('leaves the corner on the axis unpaired, like the sides it sits between', () => {
+    // A symmetric pentagon always stands one corner on its axis, and a corner
+    // whose mirror image is itself has no partner: a pair is two. So the apex
+    // is never a 대응점 question, and the flat top edge never a 대응변 one.
     const partners = mirrorIndex(ON_SCREEN, VERTICAL)
-    expect(partners.every((p, i) => p !== i) ? 'ok' : 'a corner sits on the axis').toBe('ok')
-  })
-
-  it('pairs the sides as well as the corners, and only the paired ones', () => {
-    // A side whose mirror image is itself — an edge crossing the axis squarely,
-    // like the top and bottom of this hexagon — has no partner, so it is never
-    // a 대응변 question. A pair is two.
+    expect(partners.filter((p, i) => p === i)).toEqual([3])
     const pairs = mirrorPairs(ON_SCREEN, VERTICAL)
-    expect(pairs.points).toEqual([[0, 5], [1, 4], [2, 3]])
-    expect(pairs.sides).toEqual([[0, 4], [1, 3]])
+    expect(pairs.points).toEqual([[0, 1], [2, 4]])
+    expect(pairs.sides).toEqual([[1, 4], [2, 3]])
   })
 
   it('folds a part onto its partner, which no turn can do', () => {
@@ -158,7 +151,7 @@ describe('the two facts about the axis', () => {
   })
 })
 
-describe('the five rows on the home screen', () => {
+describe('the four rows on the home screen', () => {
   it('runs the eight boards in the textbook\'s order', () => {
     expect(SYMM_BOARDS.length).toBe(8)
     expect(SYMM_BOARDS.slice(0, 4).every((b) => b.kind === 'axis')).toBe(true)
@@ -169,17 +162,16 @@ describe('the five rows on the home screen', () => {
     expect(SYMM_BOARDS[7].kind).toBe('draw')
   })
 
-  it('opens one row per question, not one door for all five', () => {
+  it('opens one row per question, not one door for all four', () => {
     // Finding symmetric figures, finding what faces what across the axis, the
-    // two facts about it, the figure with no axis, and the drawing are five
-    // different questions, and one door for all five never said which was inside.
-    expect(SYMM_AXIS_BOARDS.length).toBe(4)
+    // two facts about it, and the drawing are four different questions, and one
+    // door for all four never said which was inside.
+    expect(SYMM_AXIS_BOARDS.length).toBe(5)
     expect(SYMM_AXIS_BOARDS.every((b) => b.kind === 'axis')).toBe(true)
     expect(SYMM_PARTS_BOARDS.length).toBe(1)
     expect(SYMM_PARTS_BOARDS.every((b) => b.kind === 'parts')).toBe(true)
     expect(SYMM_FACTS_BOARDS.length).toBe(1)
     expect(SYMM_FACTS_BOARDS.every((b) => b.kind === 'facts')).toBe(true)
-    expect(SYMM_NOAXIS_BOARDS.length).toBe(1)
     expect(SYMM_DRAW_BOARDS.length).toBe(1)
     expect(SYMM_DRAW_BOARDS.every((b) => b.kind === 'draw')).toBe(true)
     const app = source('src/App.tsx')
@@ -187,7 +179,6 @@ describe('the five rows on the home screen', () => {
       'symmetry-axis',
       'symmetry-parts',
       'symmetry-facts',
-      'symmetry-noaxis',
       'symmetry-draw',
     ]) {
       expect(app.includes(`'${screen}'`)).toBe(true)
@@ -197,23 +188,23 @@ describe('the five rows on the home screen', () => {
       '선대칭도형 찾기',
       '선대칭도형의 대응점·대응변·대응각',
       '선대칭도형의 성질',
-      '대칭축이 없는 도형',
       '선대칭도형 그리기',
     ]) {
       expect(app.includes(row)).toBe(true)
     }
   })
 
-  it('gives the parts board a shape whose corners all pair up', () => {
+  it('gives the parts board a shape with two pairs and one apex', () => {
     const parts = SYMM_BOARDS[4]
     const onScreen =
       parts.kind === 'parts'
         ? parts.shape.vertices.map((p) => ({ x: p.x + SYMM_CENTER.x, y: p.y + SYMM_CENTER.y }))
         : []
+    expect(onScreen.length).toBe(5)
     const partners = mirrorIndex(onScreen, parts.kind === 'parts' ? parts.axis : VERTICAL)
-    expect(partners.every((p, i) => p !== i) ? 'ok' : 'a corner sits on the axis').toBe('ok')
-    // and enough corners that finding all of them is worth doing
-    expect(onScreen.length >= 6 ? 'ok' : 'too few corners to ask about').toBe('ok')
+    // four corners in two pairs, and the apex on the axis in neither
+    expect(partners.filter((p, i) => p !== i).length).toBe(4)
+    expect(parts.kind === 'parts' ? parts.note : '').toBe('오각형')
   })
 
   it('runs one pass for both correspondence boards, not one each', () => {
@@ -246,7 +237,6 @@ describe('the five rows on the home screen', () => {
       'src/modes/SymmetryAxisStage.tsx',
       'src/modes/SymmetryPartsStage.tsx',
       'src/modes/SymmetryFactsStage.tsx',
-      'src/modes/SymmetryNoAxisStage.tsx',
       'src/modes/SymmetryDrawStage.tsx',
     ]) {
       expect(source(shell).includes('run.round')).toBeTruthy()
@@ -255,8 +245,8 @@ describe('the five rows on the home screen', () => {
 
   it('asks each pair once, and only the paired sides at all', () => {
     // A pair has two ends, so asking every corner would ask every pair twice.
-    // The board asks the lower index of each pair instead: three point questions,
-    // two side questions, three angle questions — and the demonstration folds the
+    // The board asks the lower index of each pair instead: two point questions,
+    // two side questions, two angle questions — and the demonstration folds the
     // same pairs, no more and no fewer.
     const hook = source('src/modes/useSymmetryParts.ts')
     expect(hook.includes('pairs.points.map(([a]) => a)')).toBeTruthy()
@@ -293,21 +283,25 @@ describe('the five rows on the home screen', () => {
     }
   })
 
-  it('makes the child draw both spans, never the system', () => {
-    // A second span drawn for them would be the system asserting the equality.
+  it('shows both facts after the join, in the textbook\'s order', () => {
+    // The child joins one pair of corresponding points, and then the board shows
+    // what that joining proves: first the square where the segment meets the
+    // axis, then a span with a tick from each end. The spans are not decisions —
+    // each starts where the joined pair already is — so the system draws them
+    // with their sentences rather than asking for them.
     const hook = source('src/modes/useSymmetryFacts.ts')
-    expect(hook.includes("stage === 'partner' && from !== waitingOn")).toBeTruthy()
-    // the stars clear and the stage moves on in one timer: two would drop the
-    // first, and the partner sentence would arrive before the partner span.
-    expect(hook.includes("setJustFound(false)\n      setStage('partner')")).toBeTruthy()
-    expect(symmetryFactsInstructionFor('join')).toContain('마주 보는 두 점')
-    expect(symmetryFactsInstructionFor('partner')).toContain('마주 보는 점에서도')
-    expect(symmetryFactsHintFor('foot').text).toContain('곧게')
-    expect(symmetryFactsSuccessFor('join').text).toContain('수직')
-    expect(symmetryFactsSuccessFor('partner').text).toContain('거리는 같아요')
-    for (const kind of ['off', 'pair', 'foot', 'partner']) {
-      expect(/[0-9]/.test(symmetryFactsHintFor(kind).text) ? 'counts in a hint' : 'ok').toBe('ok')
-    }
+    expect(hook.includes("'join' | 'square' | 'equal'")).toBeTruthy()
+    expect(hook.includes('waitingOn') ? 'the child spans again' : 'ok').toBe('ok')
+    const scene = source('src/components/SymmetryFactsScene.tsx')
+    expect(scene.includes('sym-right')).toBeTruthy()
+    expect(scene.includes('sym-span')).toBeTruthy()
+    expect(scene.includes('sym-tick')).toBeTruthy()
+    expect(scene.includes('sym-in')).toBeTruthy()
+    expect(symmetryFactsInstructionFor('join')).toContain('대응점을 손가락으로')
+    expect(symmetryFactsInstructionFor('square')).toBe(null)
+    expect(symmetryFactsHintFor('pair').text).toContain('마주 보는 점')
+    expect(symmetryFactsSuccessFor('square').text).toContain('수직으로 만나요')
+    expect(symmetryFactsSuccessFor('equal').text).toContain('거리는 같아요')
   })
 
   it('snaps a placed point exactly onto the mirror image', () => {

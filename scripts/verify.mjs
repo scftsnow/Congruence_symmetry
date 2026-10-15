@@ -188,7 +188,6 @@ for (const stage of [
   'src/modes/SymmetryAxisStage.tsx',
   'src/modes/SymmetryPartsStage.tsx',
   'src/modes/SymmetryFactsStage.tsx',
-  'src/modes/SymmetryNoAxisStage.tsx',
   'src/modes/SymmetryDrawStage.tsx',
 ]) {
   ok(`symmetry row ends with a way home (${stage})`, read(stage).includes('DonePanel'), 'DonePanel')
@@ -261,7 +260,6 @@ const symmStages = [
   read('src/modes/SymmetryAxisStage.tsx'),
   read('src/modes/SymmetryPartsStage.tsx'),
   read('src/modes/SymmetryFactsStage.tsx'),
-  read('src/modes/SymmetryNoAxisStage.tsx'),
   read('src/modes/SymmetryDrawStage.tsx'),
 ]
 const y = expected.symmetry
@@ -270,8 +268,7 @@ for (const [label, s, stage] of [
   ['symmetry axis row', y.axisRow, 0],
   ['symmetry parts row', y.partsRow, 1],
   ['symmetry facts row', y.factsRow, 2],
-  ['symmetry no-axis row', y.noaxisRow, 3],
-  ['symmetry draw row', y.drawRow, 4],
+  ['symmetry draw row', y.drawRow, 3],
 ]) {
   ok(label, appSrc.includes(s) && symmStages[stage].includes(s), s)
 }
@@ -286,8 +283,6 @@ ok('symmetry hint duplicate', symmSrc.includes(y.hintDup), y.hintDup)
 ok('symmetry deny hint', symmSrc.includes(y.denyHint), y.denyHint)
 ok('symmetry deny label', symmSrc.includes(y.denyLabel), y.denyLabel)
 ok('symmetry axis done', y.axisDone.every((s) => symmSrc.includes(s)), y.axisDone.join(''))
-ok('symmetry no-axis done', y.noaxisDone.every((s) => symmSrc.includes(s)), y.noaxisDone.join(''))
-ok('symmetry no-axis note', symmSrc.includes(y.noaxisNote), y.noaxisNote)
 // The deny button stands on every axis board, or its presence would leak which
 // figure has no axis.
 ok('symmetry deny button on every shape', symmAxisSrc.includes('denyClaim'), 'denyClaim')

@@ -164,6 +164,29 @@
   stroke-linecap: round;
 }
 
+/*
+ * A joining segment drawing itself.
+ *
+ * A line that only appears reads as the system asserting it; a line drawn reads
+ * as something being done. pathLength normalizes any length to one, so one
+ * keyframe serves every pair on every board.
+ */
+@keyframes sym-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.sym-draw {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: sym-draw 600ms ease-out forwards;
+  pointer-events: none;
+}
+
 .sym-right,
 .sym-tick {
   stroke: #2a9d8f;

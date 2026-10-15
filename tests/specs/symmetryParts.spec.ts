@@ -279,6 +279,21 @@ describe('the four rows on the home screen', () => {
     expect(source('src/components/symmPartsText.ts').includes('수직으로 가다가')).toBeTruthy()
   })
 
+  it('draws each joining segment instead of appearing it', () => {
+    // A line that only appears reads as the system asserting it; a line drawn
+    // reads as something being done. pathLength normalizes any length to one,
+    // so one keyframe serves every pair on both boards that join one.
+    for (const scene of [
+      'src/components/SymmetryFactsScene.tsx',
+      'src/components/SymmetryDrawScene.tsx',
+    ]) {
+      const code = source(scene)
+      expect(code.includes('sym-draw')).toBeTruthy()
+      expect(code.includes('pathLength')).toBeTruthy()
+    }
+    expect(source('src/styles/symmetry.css').includes('@keyframes sym-draw')).toBeTruthy()
+  })
+
   it('flies each placed point across instead of appearing it', () => {
     // A tap used to stamp the point where it belongs, which reads as the child
     // asserting the answer. Now the point flies from its given corner to its

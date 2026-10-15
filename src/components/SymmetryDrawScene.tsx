@@ -140,7 +140,7 @@ export function SymmetryDrawScene({
         return (
           <g key={`p${i}`} className="sym-proved">
             <circle className="sym-placed" cx={l.placed.x} cy={l.placed.y} r={13} />
-            <line className="sym-join" x1={l.placed.x} y1={l.placed.y} x2={l.given.x} y2={l.given.y} />
+            <line className="sym-join sym-draw" pathLength={1} x1={l.placed.x} y1={l.placed.y} x2={l.given.x} y2={l.given.y} />
             <path className="sym-right" d={rightAnglePath(foot, axis, l.placed, MARK)} />
             {resolved && <path className="sym-tick" d={tickPath(l.placed, foot, MARK)} />}
           </g>

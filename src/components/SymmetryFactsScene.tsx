@@ -115,7 +115,8 @@ export function SymmetryFactsScene({
       {joinedList.map(([a, b]) => (
         <g key={`jd-${a}-${b}`} className="sym-proved">
           <line
-            className="sym-join"
+            className="sym-join sym-draw"
+            pathLength={1}
             x1={vertices[a].x}
             y1={vertices[a].y}
             x2={vertices[b].x}

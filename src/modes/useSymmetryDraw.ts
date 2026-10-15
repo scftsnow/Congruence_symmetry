@@ -42,6 +42,8 @@ export const PLACE_TOLERANCE = 60
 const HINT_MS = 1800
 /** how long the stars stay up after the last point lands */
 const STAR_MS = 1500
+/** how long a placed point takes to fly across before it lands */
+const FLY_MS = 900
 /** how long each leg of the example walk is looked at before moving on */
 const WALK_MS = 800
 /** how long the landed point is looked at before the placing starts */
@@ -59,6 +61,8 @@ export interface SymmetryDrawState {
   demo: { from: Point; foot: Point; to: Point }
   /** where the walk has got to: corner, foot, mirror, then placing */
   walk: number
+  /** the point now flying across, from its given corner to its mirror spot */
+  flying: { from: Point; to: Point } | null
   resolved: boolean
   justFound: boolean
   attempts: number
@@ -99,6 +103,7 @@ export function useSymmetryDraw(board: DrawBoard, onSettled: () => void): Symmet
   const [placed, setPlaced] = useState<number[]>([])
   const [miss, setMiss] = useState(false)
   const [justFound, setJustFound] = useState(false)
+  const [flying, setFlying] = useState<{ from: Point; to: Point } | null>(null)
   const [attempts, setAttempts] = useState(0)
   const timer = useRef<number | null>(null)
 
@@ -108,14 +113,18 @@ export function useSymmetryDraw(board: DrawBoard, onSettled: () => void): Symmet
   /* The example walks before any placing: given corner, foot, mirror, placing. */
   const [walk, setWalk] = useState(0)
   const walking = walk < 3
-  const demo = useMemo(
-    () => ({
-      from: givens[0],
-      foot: footOnAxis(givens[0], board.axis),
-      to: answers[0],
-    }),
-    [givens, answers, board.axis],
-  )
+  /*
+   * The walk demonstrates the topmost point: the highest corner is where the
+   * eye goes first, so the method is shown where the child is already looking.
+   */
+  const demo = useMemo(() => {
+    const top = givens.indexOf(givens.reduce((a, b) => (a.y < b.y ? a : b)))
+    return {
+      from: givens[top],
+      foot: footOnAxis(givens[top], board.axis),
+      to: answers[top],
+    }
+  }, [givens, answers, board.axis])
 
   useEffect(() => {
     if (!walking) return
@@ -139,24 +148,32 @@ export function useSymmetryDraw(board: DrawBoard, onSettled: () => void): Symmet
 
   const placeAt = useCallback(
     (p: Point) => {
-      // No placing while the example is walking: it would answer a question
-      // never asked, and the walk is the only thing to watch.
-      if (resolved || walking) return
+      // No placing while the example is walking or a point is flying: either
+      // would answer a question never asked.
+      if (resolved || walking || flying) return
       setAttempts((n) => n + 1)
       // only the point still being asked for counts, so a stray press on a spot
       // already filled cannot skip ahead
-      const target = answers[placed.length]
+      const at = placed.length
+      const target = answers[at]
       if (distance(p, target) > PLACE_TOLERANCE) {
         setMiss(true)
         timer.current = window.setTimeout(() => setMiss(false), HINT_MS)
         return
       }
       setMiss(false)
-      setPlaced((prev) => [...prev, prev.length])
-      setJustFound(true)
-      timer.current = window.setTimeout(() => setJustFound(false), STAR_MS)
+      // The point flies from its given corner across to its mirror spot, so the
+      // placing is watched arriving rather than appearing: arriving is the proof
+      // it belongs there.
+      setFlying({ from: givens[at], to: target })
+      timer.current = window.setTimeout(() => {
+        setFlying(null)
+        setPlaced((prev) => [...prev, prev.length])
+        setJustFound(true)
+        timer.current = window.setTimeout(() => setJustFound(false), STAR_MS)
+      }, FLY_MS)
     },
-    [answers, placed.length, resolved, walking],
+    [answers, givens, placed.length, resolved, walking, flying],
   )
 
   return {
@@ -166,6 +183,7 @@ export function useSymmetryDraw(board: DrawBoard, onSettled: () => void): Symmet
     waiting,
     demo,
     walk,
+    flying,
     resolved,
     justFound,
     attempts,
@@ -176,7 +194,14 @@ export function useSymmetryDraw(board: DrawBoard, onSettled: () => void): Symmet
         ? symmetryDrawSuccessFor(waiting)
         : walking
           ? { tone: 'success', icon: '👉', text: SYMM_PARTS_HOW }
-          : { tone: 'neutral' as const, icon: '', text: '' },
+          : !resolved && !flying
+            ? /*
+               * Which point is awaited, as a popup every time: with the bottom
+               * line gone this sentence is the only thing saying what to do, and
+               * a new point awaited is something that just happened.
+               */
+              { tone: 'success', icon: '👉', text: symmetryDrawInstructionFor(waiting) }
+            : { tone: 'neutral' as const, icon: '', text: '' },
     placeAt,
   }
 }

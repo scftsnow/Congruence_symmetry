@@ -270,11 +270,30 @@ describe('the four rows on the home screen', () => {
     const hook = source('src/modes/useSymmetryDraw.ts')
     expect(hook.includes('SYMM_PARTS_HOW')).toBeTruthy()
     expect(hook.includes('walk < 3')).toBeTruthy()
-    expect(hook.includes('footOnAxis(givens[0]')).toBeTruthy()
+    // the walk demonstrates the topmost point, where the eye goes first
+    expect(hook.includes('a.y < b.y')).toBeTruthy()
+    expect(hook.includes('footOnAxis(givens[top]')).toBeTruthy()
     const scene = source('src/components/SymmetryDrawScene.tsx')
     expect(scene.includes('sym-carry')).toBeTruthy()
     expect(scene.includes('walking')).toBeTruthy()
     expect(source('src/components/symmPartsText.ts').includes('수직으로 가다가')).toBeTruthy()
+  })
+
+  it('flies each placed point across instead of appearing it', () => {
+    // A tap used to stamp the point where it belongs, which reads as the child
+    // asserting the answer. Now the point flies from its given corner to its
+    // mirror spot, so the placing is watched arriving: arriving is the proof it
+    // belongs there. And with the bottom line gone, which point is awaited
+    // arrives as a popup for every point — in staged popups that stay up long
+    // enough to read, because placing takes looking.
+    const hook = source('src/modes/useSymmetryDraw.ts')
+    expect(hook.includes('flying')).toBeTruthy()
+    expect(hook.includes('FLY_MS')).toBeTruthy()
+    const scene = source('src/components/SymmetryDrawScene.tsx')
+    expect(scene.includes('sym-trip')).toBeTruthy()
+    const board = source('src/modes/DrawBoard.tsx')
+    expect(board.includes('sym-instruction') ? 'the bottom line is back' : 'ok').toBe('ok')
+    expect(board.includes('DRAW_POPUP_MS')).toBeTruthy()
   })
 
   it('names the pass just answered, not the one just entered', () => {

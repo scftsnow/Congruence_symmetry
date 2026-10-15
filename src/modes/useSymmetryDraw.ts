@@ -34,12 +34,14 @@ const HINT_MS = 1800
 const STAR_MS = 2000
 /** how long a placed point takes to fly across before it lands */
 const FLY_MS = 1400
-/** how long each leg of the example walk is looked at before moving on */
+/** how long each step of the example walk lasts, except the leg being drawn */
 const WALK_MS = 3600
+/** how long the leg step lasts: drawn, then its square at four seconds, looked at */
+const LEG_MS = 5600
 /** how long the landed point is looked at before the placing starts */
 const SHOWN_MS = 3600
-/** how long the leg takes to draw itself before its square may arrive */
-const LEG_DRAWN_MS = 1800
+/** how long after the leg starts its square may arrive */
+const LEG_DRAWN_MS = 4000
 
 export interface SymmetryDrawState {
   /** the half the child is given, with the axis as its straight edge */
@@ -126,7 +128,10 @@ export function useSymmetryDraw(board: DrawBoard, onSettled: () => void): Symmet
 
   useEffect(() => {
     if (!walking) return
-    timer.current = window.setTimeout(() => setWalk((w) => w + 1), walk === 2 ? SHOWN_MS : WALK_MS)
+    timer.current = window.setTimeout(
+      () => setWalk((w) => w + 1),
+      walk === 1 ? LEG_MS : walk === 2 ? SHOWN_MS : WALK_MS,
+    )
     return () => {
       if (timer.current) window.clearTimeout(timer.current)
     }

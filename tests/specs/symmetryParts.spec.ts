@@ -273,6 +273,7 @@ describe('the four rows on the home screen', () => {
     expect(hook.includes('SYMM_PARTS_HOW_CARRY')).toBeTruthy()
     expect(hook.includes('walk < 3')).toBeTruthy()
     expect(hook.includes('WALK_MS = 3600')).toBeTruthy()
+    expect(hook.includes('LEG_DRAWN_MS = 4000')).toBeTruthy()
     // the walk demonstrates the topmost point, where the eye goes first
     expect(hook.includes('a.y < b.y')).toBeTruthy()
     expect(hook.includes('footOnAxis(givens[top]')).toBeTruthy()

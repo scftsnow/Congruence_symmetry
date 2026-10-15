@@ -279,6 +279,8 @@ describe('the four rows on the home screen', () => {
     const scene = source('src/components/SymmetryDrawScene.tsx')
     expect(scene.includes('sym-carry')).toBeTruthy()
     expect(scene.includes('sym-draw--slow')).toBeTruthy()
+    // the leg meets the axis squarely, so its square is drawn with it
+    expect(scene.includes('sym-right')).toBeTruthy()
     // the carry stays invisible until its turn: it lies exactly on the leg
     // being drawn, and would cover the drawing with a finished line.
     expect(scene.includes('opacity: walk >= 2 ? 1 : 0')).toBeTruthy()

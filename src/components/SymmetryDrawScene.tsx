@@ -115,6 +115,13 @@ export function SymmetryDrawScene({
               y2={demo.foot.y}
             />
           )}
+          {/* the leg meets the axis squarely, so the square is drawn with it */}
+          {walk >= 1 && (
+            <path
+              className="sym-right sym-in"
+              d={rightAnglePath(demo.foot, axis, demo.from, MARK)}
+            />
+          )}
           {walk >= 1 && (
             <line
               className="sym-carry"

@@ -201,7 +201,7 @@
   width: 100%;
 }
 
-/* ── a success, briefly, in the middle ──────────────────── */
+/* ── a success, briefly, at the top ───────────────────── */
 
 /*
  * The same card as the ending popup, smaller and lighter.
@@ -212,16 +212,16 @@
  * stays and this does not, so there is no dimmed backdrop behind it and the board
  * underneath stays completely live: a child can carry on dragging with it up.
  *
- * Centred rather than at the top because that is where they are looking. The stars
- * for this very answer burst from the middle of the board, and the sentence
- * belongs with them rather than a hand's width away at the top edge.
+ * At the top rather than the middle, so it never covers what the hands are
+ * doing. The middle belongs to the shapes and the stars; the sentence keeps to
+ * the top edge, where it is read and then left alone.
  */
 .toast {
   position: fixed;
-  top: 50%;
+  top: 14px;
   left: 50%;
   z-index: 25;
-  transform: translate(-50%, -50%);
+  transform: translateX(-50%);
   display: flex;
   align-items: center;
   gap: 12px;
@@ -276,21 +276,11 @@
 @keyframes toast-in {
   from {
     opacity: 0;
-    transform: translate(-50%, -50%) scale(0.86);
+    transform: translateX(-50%) scale(0.86);
   }
   to {
     opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
-  }
-}
-
-/*
- * On a screen too short to give the middle of the board away, a centred card
- * covers the very shapes the child is reaching for. It moves up out of the way.
- */
-@media (max-height: 620px) {
-  .toast {
-    top: 16%;
+    transform: translateX(-50%) scale(1);
   }
 }
 

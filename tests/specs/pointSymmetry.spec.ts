@@ -15,6 +15,9 @@ import {
   pointCenterOf,
   symmetryCenterOf,
   isPointSymmetric,
+  isDrag,
+  snapPointToGrid,
+  turnDirection,
   turnIndex,
   turnOf,
   turnTransform,
@@ -105,6 +108,23 @@ describe('every figure has its middle where fingers can point', () => {
     expect(judgeCenter(para, { x: 550 + CENTER_TOLERANCE + 10, y: 300 })).toBe('miss')
     expect(judgeCenter(para, { x: 1000, y: 1000 })).toBe('off')
     expect(CENTER_TOLERANCE > 0 ? 'ok' : 'no tolerance').toBe('ok')
+  })
+
+  it('snaps the press and reads only the drag direction', () => {
+    // The press lands on the nearest lattice crossing before anything is
+    // judged, on the same grid the axis board snaps to.
+    expect(snapPointToGrid({ x: 567, y: 312 })).toEqual({ x: 550, y: 300 })
+    // Only the direction steers the turn, never the distance: every drag turns
+    // the same fixed half turn, so how far the finger went cannot leak anything.
+    expect(turnDirection({ x: 550, y: 300 }, { x: 700, y: 300 })).toBe(1)
+    expect(turnDirection({ x: 550, y: 300 }, { x: 400, y: 300 })).toBe(-1)
+    expect(turnDirection({ x: 550, y: 300 }, { x: 550, y: 100 })).toBe(1)
+    // and a press without a real drag is not a turn at all.
+    expect(isDrag({ x: 550, y: 300 }, { x: 560, y: 305 })).toBe(false)
+    expect(isDrag({ x: 550, y: 300 }, { x: 650, y: 320 })).toBe(true)
+    const hook = source('src/modes/usePointSymmetry.ts')
+    expect(hook.includes('beginDraw')).toBeTruthy()
+    expect(hook.includes('snapPointToGrid')).toBeTruthy()
   })
 
   it('turns the copy exactly onto the shape, and only there', () => {

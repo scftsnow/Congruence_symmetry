@@ -27,13 +27,40 @@
 import type { Point } from './types'
 import { polygonCentroid } from './overlap'
 import { distance, rotate180 } from './transforms'
-import { CENTER_TOLERANCE, paddedBox } from './symmetry'
+import { CENTER_TOLERANCE, MIN_DRAG, paddedBox, SNAP_PITCH } from './symmetry'
 import { partnerIndexOf } from './symmetryParts'
 import { POINT_SYMM_CENTER } from './pointSymmetryShapes'
 
-/** A half turn about the middle proves it: close enough counts. */
-/** How far a tap may fall from a corner and still count as aimed at the figure. */
-export const TAP_TOLERANCE = 48
+/**
+ * Snap a pressed point onto the grid.
+ *
+ * A middle the child cannot point at exactly is a middle they cannot mean, so
+ * the press lands on the nearest lattice crossing before anything is judged —
+ * the same grid the axis board snaps its lines to.
+ */
+export function snapPointToGrid(p: Point): Point {
+  return {
+    x: Math.round(p.x / SNAP_PITCH) * SNAP_PITCH,
+    y: Math.round(p.y / SNAP_PITCH) * SNAP_PITCH,
+  }
+}
+
+/**
+ * Which way a drag turns: clockwise or counterclockwise.
+ *
+ * Only the direction is read, never the distance — every drag turns the same
+ * fixed half turn, so how far the finger went cannot leak anything. Rightward
+ * drags turn clockwise, leftward ones the other way; straight up counts as
+ * rightward, because a rule with no answer for some gesture is a trap.
+ */
+export function turnDirection(p: Point, q: Point): 1 | -1 {
+  return q.x - p.x >= 0 ? 1 : -1
+}
+
+/** A press without a real drag is not a turn. */
+export function isDrag(p: Point, q: Point): boolean {
+  return Math.hypot(q.x - p.x, q.y - p.y) >= MIN_DRAG
+}
 /** How far a vertex may sit from its true half-turn image and still be its partner. */
 export const TURN_TOLERANCE = 2
 

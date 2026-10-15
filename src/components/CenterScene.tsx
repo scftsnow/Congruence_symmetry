@@ -1,16 +1,18 @@
 /**
- * The center board drawn — one shape, and the copy turning about the tap.
+ * The center board drawn — one shape, and the copy turning about the drag.
  *
- * Pure presentation. It is handed the tapped middle and whether the turn has
- * landed, and it decides nothing — the verdict already happened in the hook, so
- * there is no judgement here to get wrong.
+ * Pure presentation. It is handed the snapped middle, which way the drag
+ * steered it, and whether the turn has landed, and it decides nothing — the
+ * verdict already happened in the hook, so there is no judgement here to get
+ * wrong. While the finger is down its gesture previews as a dashed line, the
+ * same language as the axis board's preview.
  *
  * ONE PAPER TURNING, NEVER TWO
  * -----------------------------
  * The copy is drawn only while a middle is under discussion. The moment the
- * finger lifts with nowhere tapped, there is nothing turning and the shape
- * stands alone — drawing a copy beside it unasked would show two papers where
- * there is one.
+ * finger lifts with no drag, there is nothing turning and the shape stands
+ * alone — drawing a copy beside it unasked would show two papers where there is
+ * one.
  */
 
 import { useMemo, useRef } from 'react'
@@ -29,18 +31,28 @@ const H = 600
 export function CenterScene({
   shape,
   tapped,
+  direction,
+  draft,
   turned,
   justFound,
-  onTap,
+  onDrawStart,
+  onDrawMove,
+  onDrawEnd,
 }: {
   shape: PointSymmetryItem
-  /** the tapped middle under discussion, if one has been tapped */
+  /** the snapped middle under discussion, if one has been drawn */
   tapped: Point | null
+  /** clockwise or back: the drag's direction, and nothing else about it */
+  direction: 1 | -1
+  /** the finger's gesture before it snaps, while it is being drawn */
+  draft: { p: Point; q: Point } | null
   /** the turn has landed */
   turned: boolean
   /** true just after something worth celebrating */
   justFound: boolean
-  onTap: (p: Point) => void
+  onDrawStart: (p: Point) => void
+  onDrawMove: (p: Point) => void
+  onDrawEnd: () => void
 }) {
   const svgRef = useRef<SVGSVGElement | null>(null)
   const placed = useMemo(
@@ -68,24 +80,31 @@ export function CenterScene({
       aria-label="점대칭 도형"
       onPointerDown={(e) => {
         e.preventDefault()
-        onTap(toCanvas(e.clientX, e.clientY))
+        onDrawStart(toCanvas(e.clientX, e.clientY))
+        ;(e.target as Element).setPointerCapture?.(e.pointerId)
       }}
+      onPointerMove={(e) => onDrawMove(toCanvas(e.clientX, e.clientY))}
+      onPointerUp={onDrawEnd}
+      onPointerCancel={onDrawEnd}
     >
       <Grid width={W} height={H} />
 
       <path className="sym-shape" d={pointsToPath(placed)} fill={shape.shape.color} />
 
-      {/* the copy turning about whatever was tapped */}
+      {/* the copy turning about whatever was drawn, steered by the drag */}
       {tapped && (
         <g
           className="sym-turn"
-          style={{ transform: turnTransform(tapped, turned ? 180 : 0) }}
+          style={{ transform: turnTransform(tapped, turned ? 180 * direction : 0) }}
         >
           <path className="sym-shape sym-shape--fold" d={pointsToPath(placed)} fill={shape.shape.color} />
         </g>
       )}
       {tapped && <circle className="sym-hub" cx={tapped.x} cy={tapped.y} r={10} />}
 
+      {draft && (
+        <line className="sym-draft" x1={draft.p.x} y1={draft.p.y} x2={draft.q.x} y2={draft.q.y} />
+      )}
       {justFound && <Celebration x={550} y={300} />}
     </svg>
   )

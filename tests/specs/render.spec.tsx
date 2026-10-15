@@ -502,14 +502,15 @@ describe('a success is in the middle, not at the top', () => {
     expect(html.includes('겹쳤어!')).toBeTruthy()
   })
 
-  it('is fixed to the middle of the window', () => {
+  it('is fixed to the top edge, clear of the hands', () => {
     const ui = source('src/styles/ui.css')
     const fixed = /\.toast\s*\{[^}]*position:\s*fixed/.test(ui)
     expect(fixed).toBeTruthy()
-    // centred by both axes, not anchored to the top
-    expect(/\.toast\s*\{[^}]*top:\s*50%/.test(ui)).toBeTruthy()
+    // centred horizontally at the top, never over the middle of the board
+    expect(/\.toast\s*\{[^}]*top:\s*14px/.test(ui)).toBeTruthy()
     expect(/\.toast\s*\{[^}]*left:\s*50%/.test(ui)).toBeTruthy()
-    expect(/\.toast\s*\{[^}]*transform:\s*translate\(-50%, -50%\)/.test(ui)).toBeTruthy()
+    expect(/\.toast\s*\{[^}]*transform:\s*translateX\(-50%\)/.test(ui)).toBeTruthy()
+    expect(/\.toast\s*\{[^}]*top:\s*50%/.test(ui) ? 'still in the middle' : 'ok').toBe('ok')
   })
 
   it('shares the ending popup\'s shape, so the two look like one kind of event', () => {
@@ -697,7 +698,7 @@ describe('point-symmetry rows render', () => {
 
   it('draws one shape and the standing instruction', () => {
     expect((axis.match(/class="sym-shape"/g) || []).length).toBe(1)
-    expect(axis.includes('대칭의 중심을 손가락으로 눌러 보세요')).toBeTruthy()
+    expect(axis.includes('대칭의 중심을 손가락으로 돌려 보세요')).toBeTruthy()
   })
 
   it('turns no copy before one has been tapped', () => {

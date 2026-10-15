@@ -34,9 +34,13 @@ export function CenterBoard({
         <CenterScene
           shape={s.shape}
           tapped={s.tapped}
+          direction={s.direction}
+          draft={s.draft}
           turned={s.turned}
           justFound={s.justFound}
-          onTap={s.tapCenter}
+          onDrawStart={s.beginDraw}
+          onDrawMove={s.moveDraw}
+          onDrawEnd={s.endDraw}
         />
       </div>
       <div className="sym-foot">

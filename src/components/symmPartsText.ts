@@ -4,7 +4,7 @@
  * Split from symmText because the unit outgrew one file: the axis board is about
  * finding a line, and everything here is about what a line already found lets
  * you say. Nothing here quotes a length or an angle — the two facts are proved
- * by a drawn square and two ticks, and the sentences only name what was seen.
+ * by drawn marks, and the sentences only name what was seen.
  */
 
 import type { Message } from './tone'
@@ -38,13 +38,15 @@ export function symmetryPartsInstructionFor(phase: Phase): string | null {
   return PARTS_ASK[phase as Pass]
 }
 
+/* How to find a corresponding point, spoken while the first pair walks it: go
+ * square to the axis, then on by the same distance again. */
+export const SYMM_PARTS_HOW =
+  '한 점에서 축에 수직으로 가다가, 점과 축 사이만큼 더 가면 거기가 대응점이에요'
+
 /** While a part is folding, and the moment it lands on its partner. */
 const PARTS_MOVING = { side: '대응변을 접어 보고 있어요', angle: '대응각을 접어 보고 있어요' }
-/*
- * The fold is the way, never the claim: what landing proves is that the two are
- * the same size. The same sentences the congruence unit says, because it is the
- * same fact about the same pair.
- */
+/* The fold is the way, never the claim: landing proves the same size, in the
+ * same sentences the congruence unit says. */
 const PARTS_LANDED = { side: '대응변의 길이가 같아요', angle: '대응각의 크기가 같아요' }
 
 /** The one sentence on the parts board, decided from where the child has got to. */
@@ -83,13 +85,8 @@ export function symmetryPartsMessageFor(input: {
   return { tone: 'neutral', icon: '👉', text: PARTS_ASK[input.phase as Pass] }
 }
 
-/**
- * What to say after a miss on the parts board.
- *
- * Each hint names what makes the pair a pair — facing it across the axis — rather
- * than which corner to press, because the child did press something and naming
- * the corner would do the exercise for them.
- */
+/* Each hint names what makes the pair a pair rather than which corner to press,
+ * because naming the corner would do the exercise for them. */
 const PARTS_HINT: Record<Pass, string> = {
   points: '아직이네요. 축을 사이에 두고 마주 보는 점을 찾아보세요',
   sides: '아직이네요. 축을 사이에 두고 마주 보는 변을 찾아보세요',
@@ -100,11 +97,7 @@ export function symmetryPartsHintFor(phase: Pass): string {
   return PARTS_HINT[phase]
 }
 
-/* ── the two facts about the axis ────────────────────────
- *
- * Both are proved by something on the board rather than announced: a square at
- * the crossing, and a tick on each of two equal spans.
- */
+/* The two facts: proved by a square and two ticks on the board, never announced. */
 
 /** Where the facts board is asking the child to draw: only the joining. */
 const FACTS_ASK: Record<string, string> = {
@@ -134,13 +127,8 @@ export function symmetryFactsSuccessFor(stage: string): Message {
   return { tone: 'success', icon: '⭐', text: FACTS_FACT[stage] }
 }
 
-/* ── drawing the other half ──────────────────────────────
- *
- * `waiting` is how many points are still to find. It is a key into these tables,
- * never a number in a sentence: the points already placed are the count the
- * child can see, and the instruction names the next thing to do rather than how
- * many are left.
- */
+/* Drawing the other half. `waiting` is a key into these tables, never a number
+ * in a sentence: the points already placed are the count the child can see. */
 
 const DRAW_ASK: Record<number, string> = {
   3: '축을 사이에 두고 마주 보는 점을 손가락으로 눌러 보세요',
@@ -168,13 +156,7 @@ export function symmetryDrawSuccessFor(waiting: number): Message {
   return { tone: 'success', icon: '⭐', text: DRAW_DONE[waiting] }
 }
 
-/* ── the ends of the rows after the first ────────────────
- *
- * Each row ends its own way, with the sentence the row was for. The parts row
- * ends on what facing pairs share; the facts row ends on the two facts together,
- * because together they are the one piece of reasoning the row proved; and the
- * drawing row ends on the finished figure, which is what the facts were for.
- */
+/* Each row ends its own way, with the sentence the row was for. */
 
 interface DonePanel {
   title: Array<{ text: string; strong?: boolean }>
@@ -195,9 +177,9 @@ export function symmetryPartsDonePanelFor(): DonePanel {
   }
 }
 
-/* The lesson both rows end on, in the textbook's sentence with this app's voice:
- * 대응점끼리 이은 선분은 수직으로 만나고, 대응점에서 대칭축까지의 거리는 같아요.
- */
+/* The lesson both later rows end on, in the textbook's sentence with this app's
+ * voice: 대응점끼리 이은 선분은 수직으로 만나고, 대응점에서 대칭축까지의 거리는
+ * 같아요. */
 const FACTS_NOTE =
   '선대칭도형에서 대응점끼리 이은 선분은 대칭축과 수직으로 만나고, 대응점에서 대칭축까지의 거리는 같아요'
 

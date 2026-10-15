@@ -243,14 +243,15 @@ describe('the four rows on the home screen', () => {
     }
   })
 
-  it('asks each pair once, and only the paired sides at all', () => {
+  it('asks each pair once, then the apex meeting itself', () => {
     // A pair has two ends, so asking every corner would ask every pair twice.
-    // The board asks the lower index of each pair instead: two point questions,
-    // two side questions, two angle questions — and the demonstration folds the
-    // same pairs, no more and no fewer.
+    // The board asks the lower index of each pair, then the apex whose partner
+    // is itself: three point questions of five corners. The sides and angles
+    // keep to their pairs.
     const hook = source('src/modes/useSymmetryParts.ts')
     expect(hook.includes('pairs.points.map(([a]) => a)')).toBeTruthy()
     expect(hook.includes('pairs.sides.map(([a]) => a)')).toBeTruthy()
+    expect(hook.includes('pairs.points.some')).toBeTruthy()
     const pass = source('src/modes/useCorrPass.ts')
     expect(pass.includes('asked[step]')).toBeTruthy()
     expect(pass.includes('flySides')).toBeTruthy()
@@ -259,6 +260,21 @@ describe('the four rows on the home screen', () => {
     const scene = source('src/components/SymmetryPartsScene.tsx')
     expect(scene.includes('pairOf')).toBeTruthy()
     expect(scene.includes('asked.slice(0, step)')).toBeTruthy()
+  })
+
+  it('walks the first point before asking for any', () => {
+    // Placing starts from a walk watched rather than a sentence read: the first
+    // given corner draws its square leg, carries it across, and marks where it
+    // lands — with the method spoken over it — and no press counts until the
+    // walk is done.
+    const hook = source('src/modes/useSymmetryDraw.ts')
+    expect(hook.includes('SYMM_PARTS_HOW')).toBeTruthy()
+    expect(hook.includes('walk < 3')).toBeTruthy()
+    expect(hook.includes('footOnAxis(givens[0]')).toBeTruthy()
+    const scene = source('src/components/SymmetryDrawScene.tsx')
+    expect(scene.includes('sym-carry')).toBeTruthy()
+    expect(scene.includes('walking')).toBeTruthy()
+    expect(source('src/components/symmPartsText.ts').includes('수직으로 가다가')).toBeTruthy()
   })
 
   it('names the pass just answered, not the one just entered', () => {

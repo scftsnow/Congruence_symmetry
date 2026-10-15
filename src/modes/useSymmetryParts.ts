@@ -6,12 +6,13 @@
  * useCorrPass. What is left here is this unit's own business — where the shape
  * sits, which pairs are asked about, and what is said while it happens.
  *
- * WHY EACH PAIR IS ASKED ONCE
- * ---------------------------
- * A pair has two ends, so asking every corner would ask every pair twice — once
- * from each end. The board asks the lower index of each pair instead, and the
- * demonstration folds the same pairs: no more, no fewer. A side whose mirror
- * image is itself has no partner at all, so it is asked neither here nor there.
+ * WHY EACH PAIR IS ASKED ONCE, AND THE APEX TOO
+ * --------------------------------------------
+ * A pair has two ends, so asking every corner would ask every pair twice. The
+ * board asks the lower index of each pair instead — and then the apex as well,
+ * whose partner is itself: three point questions of five corners. The sides and
+ * angles keep to their pairs, because a side or an angle meeting itself across
+ * the axis is not a pair anyone can point at twice.
  */
 
 import { useEffect, useMemo } from 'react'
@@ -64,24 +65,33 @@ export function useSymmetryParts(board: PartsBoard, onSettled: () => void): Symm
   )
   const corners = vertices.length
   const pairs = useMemo(() => mirrorPairs(vertices, board.axis), [vertices, board.axis])
+  /*
+   * Two pairs plus the apex: the lower index of each pair, then every corner
+   * standing on the axis, whose partner is itself.
+   */
+  const pointAsk = useMemo(() => {
+    const reps = pairs.points.map(([a]) => a)
+    const self: number[] = []
+    vertices.forEach((_, i) => {
+      if (!pairs.points.some(([a, b]) => a === i || b === i)) self.push(i)
+    })
+    return [...reps, ...self]
+  }, [pairs, vertices])
   const ask = useMemo<PassAsk>(
     () => ({
-      points: pairs.points.map(([a]) => a),
+      points: pointAsk,
       sides: pairs.sides.map(([a]) => a),
       angles: pairs.points.map(([a]) => a),
     }),
-    [pairs],
+    [pairs, pointAsk],
   )
   const pass = useCorrPass(corners, {
     instruction: symmetryPartsInstructionFor,
     found: symmetryPartsFoundFor,
   }, ask)
 
-  /*
-   * Settling is reported, not derived. The run owns which boards are done, and
-   * this hook owns when this board is — so when the demonstration runs to the
-   * end it says so, once, from an effect rather than the render body.
-   */
+  /* Settling is reported, not derived: the run owns which boards are done, and
+   * this hook owns when this board is. */
   useEffect(() => {
     if (pass.done) onSettled()
   }, [pass.done, onSettled])
@@ -110,7 +120,7 @@ export function useSymmetryParts(board: PartsBoard, onSettled: () => void): Symm
             wrong: pass.wrong,
             done: pass.done,
             flying: pass.flying,
-            flyingAngle: pass.flying && pass.flyStep >= pass.flySides.length,
+            flyingAngle: pass.flying && pass.flyStep >= corners,
             landed: pass.flying && pass.landed,
           })) ?? { tone: 'neutral' as const, icon: '', text: '' },
     answer: pass.answer,

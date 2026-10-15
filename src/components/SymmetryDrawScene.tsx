@@ -25,6 +25,8 @@ export function SymmetryDrawScene({
   axis,
   resolved,
   justFound,
+  demo,
+  walk,
   onPlace,
 }: {
   /** the half the child is given, with the axis as its straight edge */
@@ -35,6 +37,10 @@ export function SymmetryDrawScene({
   /** every point is in, so the whole figure is shown */
   resolved: boolean
   justFound: boolean
+  /** the example walk: the given corner, its foot, its mirror */
+  demo: { from: Point; foot: Point; to: Point }
+  /** where the walk has got to: corner, foot, mirror, then placing */
+  walk: number
   onPlace: (p: Point) => void
 }) {
   const svgRef = useRef<SVGSVGElement | null>(null)
@@ -54,6 +60,9 @@ export function SymmetryDrawScene({
     e.preventDefault()
     onPlace(toCanvas(e.clientX, e.clientY))
   }
+
+  const walking = walk < 3
+  const carry = { x: demo.foot.x - demo.from.x, y: demo.foot.y - demo.from.y }
 
   /*
    * Down only, never up. A tap is one press and one release, and answering both
@@ -84,6 +93,43 @@ export function SymmetryDrawScene({
       {half.map((p, i) => (
         <circle key={`h${i}`} className="sym-corner" cx={p.x} cy={p.y} r={7} />
       ))}
+
+      {/* the walk: the corner lit, the square leg drawn, the leg carried across */}
+      {walking && (
+        <g className="sym-walk">
+          {walk === 0 && (
+            <circle className="corr-target" cx={demo.from.x} cy={demo.from.y} r={30} />
+          )}
+          {walk >= 1 && (
+            <line
+              className="sym-join"
+              x1={demo.from.x}
+              y1={demo.from.y}
+              x2={demo.foot.x}
+              y2={demo.foot.y}
+            />
+          )}
+          {walk >= 1 && (
+            <line
+              className="sym-carry"
+              x1={demo.from.x}
+              y1={demo.from.y}
+              x2={demo.foot.x}
+              y2={demo.foot.y}
+              style={{
+                transform: walk >= 2 ? `translate(${carry.x}px, ${carry.y}px)` : undefined,
+              }}
+            />
+          )}
+          {/* where the carried leg lands is the mirror point, so it is marked */}
+          {walk >= 2 && (
+            <g>
+              <circle className="corr-mark" cx={demo.to.x} cy={demo.to.y} r={13} />
+              <circle className="corr-fresh" cx={demo.to.x} cy={demo.to.y} r={26} />
+            </g>
+          )}
+        </g>
+      )}
 
       {/* each found point, joined to the one it mirrors, with the two marks */}
       {links.map((l, i) => {

@@ -3,8 +3,9 @@
  *
  * This is where the unit's facts are used rather than shown: a point goes where
  * its mirror image goes, which is the same distance from the axis on the other
- * side, so a child who has just measured that distance has everything they need
- * to place the next one without being told where it is.
+ * side. So the first point walks itself first — square to the axis, carried
+ * across, marked where it lands — with the method spoken over it, and only then
+ * does the child place all three.
  *
  * WHY A TAP AND NOT A DRAG
  * -------------------------
@@ -22,13 +23,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { SYMM_CENTER, type SymmetryBoard } from '../geometry/symmetryShapes'
 import { distance } from '../geometry/transforms'
-import { mirrorOf } from '../geometry/symmetryParts'
+import { footOnAxis, mirrorOf } from '../geometry/symmetryParts'
 import type { Line } from '../geometry/symmetryParts'
 import type { Point } from '../geometry/types'
 import {
   symmetryDrawInstructionFor,
   symmetryDrawMissedFor,
   symmetryDrawSuccessFor,
+  SYMM_PARTS_HOW,
 } from '../components/symmPartsText'
 import type { Message } from '../components/tone'
 
@@ -40,6 +42,10 @@ export const PLACE_TOLERANCE = 60
 const HINT_MS = 1800
 /** how long the stars stay up after the last point lands */
 const STAR_MS = 1500
+/** how long each leg of the example walk is looked at before moving on */
+const WALK_MS = 800
+/** how long the landed point is looked at before the placing starts */
+const SHOWN_MS = 1400
 
 export interface SymmetryDrawState {
   /** the half the child is given, with the axis as its straight edge */
@@ -49,6 +55,10 @@ export interface SymmetryDrawState {
   axis: Line
   /** how many of the points are still to find */
   waiting: number
+  /** the example walk: the given corner, its foot, its mirror, then placing */
+  demo: { from: Point; foot: Point; to: Point }
+  /** where the walk has got to: corner, foot, mirror, then placing */
+  walk: number
   resolved: boolean
   justFound: boolean
   attempts: number
@@ -95,6 +105,26 @@ export function useSymmetryDraw(board: DrawBoard, onSettled: () => void): Symmet
   const waiting = answers.length - placed.length
   const resolved = waiting === 0
 
+  /* The example walks before any placing: given corner, foot, mirror, placing. */
+  const [walk, setWalk] = useState(0)
+  const walking = walk < 3
+  const demo = useMemo(
+    () => ({
+      from: givens[0],
+      foot: footOnAxis(givens[0], board.axis),
+      to: answers[0],
+    }),
+    [givens, answers, board.axis],
+  )
+
+  useEffect(() => {
+    if (!walking) return
+    timer.current = window.setTimeout(() => setWalk((w) => w + 1), walk === 2 ? SHOWN_MS : WALK_MS)
+    return () => {
+      if (timer.current) window.clearTimeout(timer.current)
+    }
+  }, [walking, walk])
+
   /* Settling is reported, not derived — see useSymmetryParts for why. */
   useEffect(() => {
     if (resolved) onSettled()
@@ -109,7 +139,9 @@ export function useSymmetryDraw(board: DrawBoard, onSettled: () => void): Symmet
 
   const placeAt = useCallback(
     (p: Point) => {
-      if (resolved) return
+      // No placing while the example is walking: it would answer a question
+      // never asked, and the walk is the only thing to watch.
+      if (resolved || walking) return
       setAttempts((n) => n + 1)
       // only the point still being asked for counts, so a stray press on a spot
       // already filled cannot skip ahead
@@ -124,7 +156,7 @@ export function useSymmetryDraw(board: DrawBoard, onSettled: () => void): Symmet
       setJustFound(true)
       timer.current = window.setTimeout(() => setJustFound(false), STAR_MS)
     },
-    [answers, placed.length, resolved],
+    [answers, placed.length, resolved, walking],
   )
 
   return {
@@ -132,6 +164,8 @@ export function useSymmetryDraw(board: DrawBoard, onSettled: () => void): Symmet
     links: placed.map((_, at) => ({ given: givens[at], placed: answers[at] })),
     axis: board.axis,
     waiting,
+    demo,
+    walk,
     resolved,
     justFound,
     attempts,
@@ -140,7 +174,9 @@ export function useSymmetryDraw(board: DrawBoard, onSettled: () => void): Symmet
       ? symmetryDrawMissedFor()
       : justFound
         ? symmetryDrawSuccessFor(waiting)
-        : { tone: 'neutral' as const, icon: '', text: '' },
+        : walking
+          ? { tone: 'success', icon: '👉', text: SYMM_PARTS_HOW }
+          : { tone: 'neutral' as const, icon: '', text: '' },
     placeAt,
   }
 }

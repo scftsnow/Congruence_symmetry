@@ -126,19 +126,19 @@ const SCALENE: Point[] = [
  * The shape the parts board asks about, because its parts must come in pairs and
  * each pair must be findable: four corners in two mirrored pairs across the
  * axis, and the fifth standing on the axis itself. That fifth corner is its own
- * mirror image, so like the top and bottom edges of the old hexagon it has no
- * partner and is never asked — a pair is two, on this board as everywhere.
+ * mirror image — which is why the board asks three point questions of five
+ * corners: two pairs, and the apex meeting itself.
  *
- * No two pairs look alike either: the top pair sits level across the flat edge
- * and the lower pair slants down to the apex, so "which one faces this one
- * across the line" is a real question rather than a guess.
+ * Every corner stands on a lattice crossing, because a corner between grid
+ * lines is a corner the child cannot point at exactly. Screen coordinates come
+ * out as multiples of the grid pitch, symmetric about the axis.
  */
 const PENTAGON: Point[] = [
-  { x: -150, y: -125 },
-  { x: 150, y: -125 },
-  { x: 175, y: 75 },
-  { x: 0, y: 185 },
-  { x: -175, y: 75 },
+  { x: -100, y: -150 },
+  { x: 100, y: -150 },
+  { x: 150, y: 50 },
+  { x: 0, y: 200 },
+  { x: -150, y: 50 },
 ]
 
 export interface SymmetryItem {

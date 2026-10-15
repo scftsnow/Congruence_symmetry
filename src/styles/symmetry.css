@@ -177,6 +177,21 @@
 }
 
 /*
+ * The leg carried across in the example walk.
+ *
+ * Slid along its own direction by its own length, so the motion itself is the
+ * claim: what arrives is the same length it left with. Same easing as the fold
+ * so every carry in the unit moves with one hand.
+ */
+.sym-carry {
+  stroke: #2a9d8f;
+  stroke-width: 5;
+  stroke-linecap: round;
+  transition: transform 700ms cubic-bezier(0.34, 0.9, 0.3, 1);
+  pointer-events: none;
+}
+
+/*
  * A fact arriving.
  *
  * Each mark of the facts board grows in with its sentence rather than appearing

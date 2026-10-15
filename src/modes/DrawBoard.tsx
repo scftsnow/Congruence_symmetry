@@ -3,7 +3,9 @@
  *
  * The unit's last board, and the only one where the child's own marks are the
  * finished thing: everything before it asks the child to find something that was
- * already there, and this asks them to make something that was not.
+ * already there, and this asks them to make something that was not. The first
+ * point walks itself first, with the method spoken over it, so placing starts
+ * from a walk watched rather than a sentence read.
  */
 
 import { SymmetryDrawScene } from '../components/SymmetryDrawScene'
@@ -33,6 +35,8 @@ export function DrawBoard({ board, onSettled, onNext, nextLabel }: {
           axis={d.axis}
           resolved={d.resolved}
           justFound={d.justFound}
+          demo={d.demo}
+          walk={d.walk}
           onPlace={d.placeAt}
         />
       </div>
@@ -42,7 +46,20 @@ export function DrawBoard({ board, onSettled, onNext, nextLabel }: {
             {nextLabel}
           </button>
         ) : (
-          <p className="stage1-hint sym-instruction">{d.instruction}</p>
+          <>
+            <p className="stage1-hint sym-instruction">{d.instruction}</p>
+            <ol className="sym-dots" aria-label="진행">
+              {d.links.map((_, i) => (
+                <li key={i} className="sym-dot sym-dot--done" />
+              ))}
+              {Array.from({ length: d.waiting }).map((_, i) => (
+                <li
+                  key={`w${i}`}
+                  className={i === 0 ? 'sym-dot sym-dot--now' : 'sym-dot'}
+                />
+              ))}
+            </ol>
+          </>
         )}
       </div>
     </>

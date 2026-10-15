@@ -59,8 +59,8 @@ export function foundFor(phase: Phase): Message | null {
  */
 const HINT: Record<Pass, string> = {
   points: '아직이네요. 빛나는 점과 모양이 꼭 닮은 점을 찾아보세요',
-  sides: '아직이네요. 빛나는 변과 길이가 꼭 같은 변을 찾아보세요',
-  angles: '아직이네요. 빛나는 각과 크기가 꼭 같은 각을 찾아보세요',
+  sides: '아직이네요. 빛나는 변과 길이가 똑같은 변을 찾아보세요',
+  angles: '아직이네요. 빛나는 각과 크기가 똑같은 각을 찾아보세요',
 }
 
 /**

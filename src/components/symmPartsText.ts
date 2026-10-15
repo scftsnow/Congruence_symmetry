@@ -60,7 +60,7 @@ export function symmetryPartsMessageFor(input: {
     return {
       tone: 'success',
       icon: '🎉',
-      text: '선대칭도형의 마주 보는 점과 변과 각은 꼭 같아요',
+      text: '선대칭도형의 마주 보는 점과 변과 각은 똑같아요',
     }
   }
   if (input.landed) {
@@ -189,7 +189,7 @@ const AGAIN_LABEL = '↺ 처음부터'
 export function symmetryPartsDonePanelFor(): DonePanel {
   return {
     title: [{ text: '대응을 ' }, { text: '모두 찾았어!', strong: true }],
-    note: '선대칭도형의 마주 보는 점과 변과 각은 꼭 같아요',
+    note: '선대칭도형의 마주 보는 점과 변과 각은 똑같아요',
     homeLabel: HOME_LABEL,
     againLabel: AGAIN_LABEL,
   }

@@ -286,6 +286,15 @@ describe('the four rows on the home screen', () => {
     expect(pass.includes('texts.found(foundPhase)')).toBeTruthy()
   })
 
+  it('asks each pass with a popup first', () => {
+    // A line at the bottom is read once and then left alone, so the first
+    // question of a pass crosses the board as a popup too — and only the first,
+    // because every later step already knows what it is doing.
+    const hook = source('src/modes/useSymmetryParts.ts')
+    expect(hook.includes('pass.step === 0')).toBeTruthy()
+    expect(hook.includes("icon: '👉'")).toBeTruthy()
+  })
+
   it('says which of the three was found, and counts none of them', () => {
     expect(symmetryPartsFoundFor('points')!.text).toBe('대응점을 찾았어!')
     expect(symmetryPartsFoundFor('sides')!.text).toBe('대응변을 찾았어!')

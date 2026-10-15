@@ -41,13 +41,13 @@ export const PLACE_TOLERANCE = 60
 /** how long a miss is explained before the ask comes back */
 const HINT_MS = 1800
 /** how long the stars stay up after the last point lands */
-const STAR_MS = 1500
+const STAR_MS = 2000
 /** how long a placed point takes to fly across before it lands */
-const FLY_MS = 900
+const FLY_MS = 1400
 /** how long each leg of the example walk is looked at before moving on */
-const WALK_MS = 800
+const WALK_MS = 1200
 /** how long the landed point is looked at before the placing starts */
-const SHOWN_MS = 1400
+const SHOWN_MS = 2000
 
 export interface SymmetryDrawState {
   /** the half the child is given, with the axis as its straight edge */

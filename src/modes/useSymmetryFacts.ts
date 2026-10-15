@@ -45,13 +45,13 @@ export type FactsStage = 'join' | 'square' | 'equal'
 /** how long a miss is explained before the ask comes back */
 const HINT_MS = 1800
 /** how long the joined pair is looked at before the first fact arrives */
-const JOIN_MS = 1200
+const JOIN_MS = 1600
 /** how long the square is looked at before the span takes its trip */
-const SQUARE_MS = 2600
+const SQUARE_MS = 3200
 /** how long a span is looked at before it lifts off */
-const SHOW_MS = 700
+const SHOW_MS = 1000
 /** how long the travelled span rests on its partner before the next round */
-const HOLD_MS = 1600
+const HOLD_MS = 2200
 /** a press without a real drag is not an answer */
 const MIN_DRAG = 30
 

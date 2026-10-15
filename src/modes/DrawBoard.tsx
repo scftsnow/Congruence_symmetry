@@ -15,7 +15,7 @@ import { useSymmetryDraw } from './useSymmetryDraw'
 import { useStageMessage } from './useStageMessage'
 
 /** how long a popup stays up here: placing takes looking, so longer than elsewhere */
-const DRAW_POPUP_MS = 2600
+const DRAW_POPUP_MS = 3400
 
 type DrawBoard = Extract<SymmetryBoard, { kind: 'draw' }>
 

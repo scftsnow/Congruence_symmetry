@@ -261,6 +261,15 @@ describe('the four rows on the home screen', () => {
     expect(scene.includes('asked.slice(0, step)')).toBeTruthy()
   })
 
+  it('names the pass just answered, not the one just entered', () => {
+    // The last answer of a pass flipped the phase before its popup arrived, so
+    // the second of two point-finds celebrated "대응변". The pass the tap
+    // belonged to is remembered instead, and only it is ever said.
+    const pass = source('src/modes/useCorrPass.ts')
+    expect(pass.includes('setFoundPhase(phase)')).toBeTruthy()
+    expect(pass.includes('texts.found(foundPhase)')).toBeTruthy()
+  })
+
   it('says which of the three was found, and counts none of them', () => {
     expect(symmetryPartsFoundFor('points')!.text).toBe('대응점을 찾았어!')
     expect(symmetryPartsFoundFor('sides')!.text).toBe('대응변을 찾았어!')

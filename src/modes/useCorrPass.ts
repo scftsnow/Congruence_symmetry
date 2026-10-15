@@ -7,13 +7,9 @@
  * three passes are what the line-symmetry unit asks for again, on one shape
  * folded over an axis instead of two shapes side by side. The sequence, the
  * dots, the stars, the held miss and the demonstration that runs itself are
- * identical between them, so they live here once.
- *
- * The only thing that differs between the two is what the second shape IS: side
- * by side, and on the axis board a part lands on the same corner; folded over an
- * axis, it lands on the mirror image of that corner. Either way the child taps
- * the part that answers the one being asked about, which is why the same `step`
- * is both the question and the right answer on both boards.
+ * identical between them, so they live here once. Either way the child taps the
+ * part that answers the one being asked about, which is why the same `step` is
+ * both the question and the right answer on both boards.
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react'
@@ -95,6 +91,15 @@ export function useCorrPass(corners: number, texts: PassTexts, ask?: PassAsk): C
   const [flyStep, setFlyStep] = useState(0)
   const [landed, setLanded] = useState(false)
   const [justFound, setJustFound] = useState(false)
+  /**
+   * which pass the celebrated tap belonged to
+   *
+   * The phase flips the instant the last answer of a pass lands, so reading the
+   * words from the current phase would celebrate the pass just entered: the
+   * second of two point-finds said "대응변". The tap's own pass is remembered
+   * instead, and only it is ever said.
+   */
+  const [foundPhase, setFoundPhase] = useState<Phase>('points')
   /** one per tap, right or wrong; re-arms the popup so a repeat still shows */
   const [attempts, setAttempts] = useState(0)
   const starTimer = useRef<number | null>(null)
@@ -115,13 +120,13 @@ export function useCorrPass(corners: number, texts: PassTexts, ask?: PassAsk): C
     setWrong(false)
     setFlyStep(0)
     setLanded(false)
+    setJustFound(false)
+    if (starTimer.current) window.clearTimeout(starTimer.current)
   }, [])
 
   /**
-   * Explain the miss, then put the ask back.
-   *
-   * The timer is dropped when the component unmounts, so a stale one cannot switch
-   * the banner off over the top of a later question.
+   * Explain the miss, then put the ask back. The timer is dropped on unmount, so
+   * a stale one cannot switch the banner off over a later question.
    */
   const explain = useCallback(() => {
     setWrong(true)
@@ -147,13 +152,11 @@ export function useCorrPass(corners: number, texts: PassTexts, ask?: PassAsk): C
 
       /*
        * A correct find is celebrated, every time, exactly as the congruence board
-       * does it. The unit has its own feedback — the ring that appears at the part
-       * just paired up — and that ring is geometry, so it cannot say anything; the
-       * stars are the part of this that is purely "you got it", and leaving them
-       * out made a right answer quieter here than the identical act one screen
-       * away.
+       * does it: the ring is geometry and cannot say anything, so the stars are
+       * the part that is purely "you got it".
        */
       setJustFound(true)
+      setFoundPhase(phase)
       if (starTimer.current) window.clearTimeout(starTimer.current)
       starTimer.current = window.setTimeout(() => setJustFound(false), STAR_MS)
 
@@ -178,10 +181,8 @@ export function useCorrPass(corners: number, texts: PassTexts, ask?: PassAsk): C
   }, [])
 
   /*
-   * The demonstration runs itself.
-   *
-   * The child does not drive it, because it is an explanation rather than a
-   * question, and the only thing they could get wrong is the order it happens in.
+   * The demonstration runs itself: it is an explanation rather than a question,
+   * and the only thing the child could get wrong is the order it happens in.
    */
   useEffect(() => {
     if (!flying) return
@@ -211,7 +212,7 @@ export function useCorrPass(corners: number, texts: PassTexts, ask?: PassAsk): C
     flying,
     done,
     instruction: texts.instruction(phase),
-    found: texts.found(phase),
+    found: texts.found(foundPhase),
     answer,
     restart,
   }

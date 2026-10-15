@@ -103,7 +103,7 @@ export function useSymmetryParts(board: PartsBoard, onSettled: () => void): Symm
     done: pass.done,
     instruction: pass.instruction,
     message:
-      (pass.justFound && pass.phase !== 'compare'
+      (pass.justFound
         ? pass.found
         : symmetryPartsMessageFor({
             phase: pass.phase,

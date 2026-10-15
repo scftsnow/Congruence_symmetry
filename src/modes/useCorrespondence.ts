@@ -86,7 +86,7 @@ export function useCorrespondence(): CorrespondenceState {
     instruction: pass.instruction,
     flying: pass.flying,
     done: pass.done,
-    message: (pass.justFound && pass.phase !== 'compare'
+    message: (pass.justFound
       ? pass.found
       : correspondenceMessageFor({
           phase: pass.phase,

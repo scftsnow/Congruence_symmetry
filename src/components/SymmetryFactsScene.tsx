@@ -1,11 +1,12 @@
 /**
  * The facts board drawn — one shape, its axis, and the two facts arriving.
  *
- * The child joins one pair of corresponding points, and then the board shows
- * what that joining proves: first the square where the segment meets the axis,
- * then each span folding across onto its partner, all three pairs in turn. Each
- * mark grows in with its sentence, because the sentence names what was just
- * seen arriving.
+ * For each of the three corresponding pairs in turn, the child joins it then
+ * watches what that joining proves: first the square where the segment meets
+ * the axis, then one span folding across onto its partner. Joined pairs stay on
+ * screen with their squares, so the rounds add up where the child can see them.
+ * Each mark grows in with its sentence, because the sentence names what was
+ * just seen arriving.
  *
  * The travelling span is the correspondence unit's flying part, not a copy of
  * it: the move is the same fold the axis board folds along, handed in as a
@@ -38,10 +39,10 @@ export function SymmetryFactsScene({
   color,
   stage,
   pairs,
-  equalStep,
+  current,
   landed,
   draft,
-  joined,
+  joinedList,
   justFound,
   onDrawStart,
   onDrawMove,
@@ -51,16 +52,16 @@ export function SymmetryFactsScene({
   axis: Line
   color: string
   stage: FactsStage
-  /** every corresponding pair — each takes the trip in turn */
+  /** every corresponding pair — one round each */
   pairs: MirrorPairs
-  /** which pair's span is travelling */
-  equalStep: number
+  /** which pair's round is running, as an index into the pairs */
+  current: number
   /** the span has landed on its partner */
   landed: boolean
   /** the finger's line, while it is being drawn */
   draft: { p: Point; q: Point } | null
-  /** the pair that has been joined, as two corner indices */
-  joined: [number, number] | null
+  /** every pair joined so far, staying on screen as the rounds add up */
+  joinedList: Array<[number, number]>
   justFound: boolean
   onDrawStart: (p: Point) => void
   onDrawMove: (p: Point) => void
@@ -81,7 +82,7 @@ export function SymmetryFactsScene({
   }
 
   /* The pair now proving the second fact: its segment, and each end's span. */
-  const [pa, pb] = pairs.points[Math.min(equalStep, pairs.points.length - 1)] ?? [0, 0]
+  const [pa, pb] = pairs.points[Math.min(current, pairs.points.length - 1)] ?? [0, 0]
   const fa = footOnAxis(vertices[pa], axis)
   const fb = footOnAxis(vertices[pb], axis)
 
@@ -110,41 +111,28 @@ export function SymmetryFactsScene({
         <circle key={i} className="sym-corner" cx={v.x} cy={v.y} r={8} />
       ))}
 
-      {/* the segment joining the pair, drawn by the child */}
-      {joined && (
-        <line
-          className="sym-join"
-          x1={vertices[joined[0]].x}
-          y1={vertices[joined[0]].y}
-          x2={vertices[joined[1]].x}
-          y2={vertices[joined[1]].y}
-        />
-      )}
-
-      {/* the square where the segment meets the axis: the first fact */}
-      {joined && stage !== 'join' && (
-        <path
-          key={`sq-${joined[0]}-${joined[1]}`}
-          className="sym-right sym-in"
-          d={rightAnglePath(
-            footOnAxis(vertices[joined[0]], axis),
-            axis,
-            vertices[joined[0]],
-            MARK,
-          )}
-        />
-      )}
-
-      {/* one span becoming the other: the second fact, every pair in turn */}
-      {stage === 'equal' && (
-        <g>
+      {/* every pair joined so far, with the square each one proved */}
+      {joinedList.map(([a, b]) => (
+        <g key={`jd-${a}-${b}`} className="sym-proved">
           <line
             className="sym-join"
-            x1={vertices[pa].x}
-            y1={vertices[pa].y}
-            x2={vertices[pb].x}
-            y2={vertices[pb].y}
+            x1={vertices[a].x}
+            y1={vertices[a].y}
+            x2={vertices[b].x}
+            y2={vertices[b].y}
           />
+          {stage !== 'join' && (
+            <path
+              className="sym-right sym-in"
+              d={rightAnglePath(footOnAxis(vertices[a], axis), axis, vertices[a], MARK)}
+            />
+          )}
+        </g>
+      ))}
+
+      {/* one span becoming the other: the second fact, each round in turn */}
+      {stage === 'equal' && (
+        <g>
           <CorrFly
             key={`fly-${pa}-${pb}`}
             part={{

@@ -117,6 +117,7 @@ export function symmetryFactsInstructionFor(stage: string): string | null {
 
 const FACTS_MISS: Record<string, string> = {
   pair: '아직이네요. 축을 사이에 두고 마주 보는 점을 이어보세요',
+  dup: '이 쌍은 이미 이었어요. 다른 대응점을 이어 보세요',
 }
 
 export function symmetryFactsHintFor(kind: string): Message {

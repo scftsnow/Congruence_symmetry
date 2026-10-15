@@ -93,7 +93,7 @@ const HEART: Point[] = scaled(
     { x: 37.2, y: -51 },
     { x: 54, y: -6 },
   ],
-  2.6,
+  3.4,
 )
 
 /** shapes.ts 정사각형 */

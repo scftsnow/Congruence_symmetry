@@ -307,16 +307,19 @@ describe('the four rows on the home screen', () => {
   })
 
   it('shows both facts after the join, in the textbook\'s order', () => {
-    // The child joins one pair of corresponding points, and then the board shows
-    // what that joining proves: first the square where the segment meets the
-    // axis, then each span folding across onto its partner, all three pairs in
-    // turn. Equal length is shown by moving, not by marking: one span lifts off
-    // and lands exactly on the other, because one becoming the other is what
-    // "the same distance" means.
+    // For each of the three pairs in turn, the child joins it, and then the
+    // board shows what that joining proves: first the square where the segment
+    // meets the axis, then the span folding across onto its partner. Equal
+    // length is shown by moving, not by marking: one span lifts off and lands
+    // exactly on the other, because one becoming the other is what "the same
+    // distance" means. Joined pairs stay on screen, so the rounds add up where
+    // the child can see them — and the ask crosses the board as a popup every
+    // round, because after two rounds of watching the bottom line is the last
+    // place the child is looking.
     const hook = source('src/modes/useSymmetryFacts.ts')
     expect(hook.includes("'join' | 'square' | 'equal'")).toBeTruthy()
-    expect(hook.includes('equalStep')).toBeTruthy()
-    expect(hook.includes('pulse')).toBeTruthy()
+    expect(hook.includes('joinedList')).toBeTruthy()
+    expect(hook.includes('current')).toBeTruthy()
     expect(hook.includes('waitingOn') ? 'the child spans again' : 'ok').toBe('ok')
     const scene = source('src/components/SymmetryFactsScene.tsx')
     expect(scene.includes('sym-right')).toBeTruthy()
@@ -327,6 +330,7 @@ describe('the four rows on the home screen', () => {
     expect(symmetryFactsInstructionFor('join')).toContain('대응점을 손가락으로')
     expect(symmetryFactsInstructionFor('square')).toBe(null)
     expect(symmetryFactsHintFor('pair').text).toContain('마주 보는 점')
+    expect(symmetryFactsHintFor('dup').text).toContain('이미 이었어요')
     expect(symmetryFactsSuccessFor('square').text).toContain('수직으로 만나요')
     expect(symmetryFactsSuccessFor('equal').text).toContain('거리는 같아요')
   })

@@ -22,11 +22,10 @@ export function FactsBoard({ board, onSettled, onNext, nextLabel }: {
 }) {
   const f = useSymmetryFacts(board, onSettled)
   /*
-   * The pulse re-arms the popup for each pair's trip: the three trips say the
-   * same sentence, and keyed on the words alone the second and third would find
-   * nothing changed and stay silent.
+   * The round itself re-arms the popup: joining, missing and landing all change
+   * state, so the same sentence arriving again always finds something changed.
    */
-  const toast = useStageMessage(f.message, f.attempts + f.pulse)
+  const toast = useStageMessage(f.message, f.attempts)
 
   return (
     <>
@@ -38,10 +37,10 @@ export function FactsBoard({ board, onSettled, onNext, nextLabel }: {
           color={board.shape.color}
           stage={f.stage}
           pairs={f.pairs}
-          equalStep={f.equalStep}
+          current={f.current}
           landed={f.landed}
           draft={f.draft}
-          joined={f.joined}
+          joinedList={f.joinedList}
           justFound={f.justFound}
           onDrawStart={f.beginDraw}
           onDrawMove={f.moveDraw}
@@ -54,12 +53,23 @@ export function FactsBoard({ board, onSettled, onNext, nextLabel }: {
             {nextLabel}
           </button>
         ) : (
-          /*
-           * Nothing standing while watching: a part is appearing and the popup
-           * is saying what it just showed, and a line under it would compete
-           * with the sentence that carries the lesson.
-           */
-          f.instruction && <p className="stage1-hint sym-instruction">{f.instruction}</p>
+          <>
+            {f.instruction && <p className="stage1-hint sym-instruction">{f.instruction}</p>}
+            <ol className="sym-dots" aria-label="진행">
+              {f.pairs.points.map((_, i) => (
+                <li
+                  key={i}
+                  className={
+                    i < f.joinedList.length
+                      ? 'sym-dot sym-dot--done'
+                      : i === f.joinedList.length
+                        ? 'sym-dot sym-dot--now'
+                        : 'sym-dot'
+                  }
+                />
+              ))}
+            </ol>
+          </>
         )}
       </div>
     </>

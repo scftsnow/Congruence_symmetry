@@ -195,10 +195,16 @@ export function symmetryPartsDonePanelFor(): DonePanel {
   }
 }
 
+/* The lesson both rows end on, in the textbook's sentence with this app's voice:
+ * 대응점끼리 이은 선분은 수직으로 만나고, 대응점에서 대칭축까지의 거리는 같아요.
+ */
+const FACTS_NOTE =
+  '선대칭도형에서 대응점끼리 이은 선분은 대칭축과 수직으로 만나고, 대응점에서 대칭축까지의 거리는 같아요'
+
 export function symmetryFactsDonePanelFor(): DonePanel {
   return {
     title: [{ text: '두 가지 성질을 ' }, { text: '찾았어!', strong: true }],
-    note: '마주 보는 점을 잇는 선분은 대칭축과 수직이고, 대칭점과 대칭축 사이의 거리는 같아요',
+    note: FACTS_NOTE,
     homeLabel: HOME_LABEL,
     againLabel: AGAIN_LABEL,
   }
@@ -207,7 +213,7 @@ export function symmetryFactsDonePanelFor(): DonePanel {
 export function symmetryDrawDonePanelFor(): DonePanel {
   return {
     title: [{ text: '선대칭도형을 ' }, { text: '완성했어!', strong: true }],
-    note: '마주 보는 점을 잇는 선분은 대칭축과 수직이고, 대칭점과 대칭축 사이의 거리는 같아요',
+    note: FACTS_NOTE,
     homeLabel: HOME_LABEL,
     againLabel: AGAIN_LABEL,
   }

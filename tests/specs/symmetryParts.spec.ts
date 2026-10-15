@@ -386,11 +386,14 @@ describe('the four rows on the home screen', () => {
   })
 
   it('ends every row with the sentence the row was for', () => {
-    // Five doors, five endings. Each names what its row taught and counts nothing.
+    // Four doors, four endings. Each names what its row taught and counts nothing —
+    // and the two facts rows end on the textbook's sentence, in this app's voice.
     expect(symmetryPartsDonePanelFor().note).toContain('마주 보는 점과 변과 각')
     expect(symmetryFactsDonePanelFor().title.map((p) => p.text).join('')).toBe('두 가지 성질을 찾았어!')
-    expect(symmetryFactsDonePanelFor().note).toContain('수직')
+    expect(symmetryFactsDonePanelFor().note).toContain('대응점끼리 이은 선분은 대칭축과 수직으로 만나고')
+    expect(symmetryFactsDonePanelFor().note).toContain('대응점에서 대칭축까지의 거리는 같아요')
     expect(symmetryDrawDonePanelFor().title.map((p) => p.text).join('')).toBe('선대칭도형을 완성했어!')
+    expect(symmetryDrawDonePanelFor().note).toBe(symmetryFactsDonePanelFor().note)
     for (const done of [
       symmetryPartsDonePanelFor(),
       symmetryFactsDonePanelFor(),

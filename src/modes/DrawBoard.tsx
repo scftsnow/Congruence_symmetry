@@ -42,6 +42,7 @@ export function DrawBoard({ board, onSettled, onNext, nextLabel }: {
           demo={d.demo}
           walk={d.walk}
           flying={d.flying}
+          legDrawn={d.legDrawn}
           onPlace={d.placeAt}
         />
       </div>

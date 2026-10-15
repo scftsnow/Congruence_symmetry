@@ -29,6 +29,7 @@ export function SymmetryDrawScene({
   demo,
   walk,
   flying,
+  legDrawn,
   onPlace,
 }: {
   /** the half the child is given, with the axis as its straight edge */
@@ -46,6 +47,8 @@ export function SymmetryDrawScene({
   walk: number
   /** the point now flying across, from its given corner to its mirror spot */
   flying: { from: Point; to: Point } | null
+  /** the leg has finished being drawn, so its square may arrive */
+  legDrawn: boolean
   onPlace: (p: Point) => void
 }) {
   const svgRef = useRef<SVGSVGElement | null>(null)
@@ -115,8 +118,9 @@ export function SymmetryDrawScene({
               y2={demo.foot.y}
             />
           )}
-          {/* the leg meets the axis squarely, so the square is drawn with it */}
-          {walk >= 1 && (
+          {/* the leg meets the axis squarely, so the square arrives once the leg
+              has finished being drawn — never with it */}
+          {walk >= 1 && legDrawn && (
             <path
               className="sym-right sym-in"
               d={rightAnglePath(demo.foot, axis, demo.from, MARK)}

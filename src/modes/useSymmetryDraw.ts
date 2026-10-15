@@ -1,23 +1,12 @@
 /**
  * The drawing board — half a figure and its axis, and the other half to place.
  *
- * This is where the unit's facts are used rather than shown: a point goes where
- * its mirror image goes, which is the same distance from the axis on the other
- * side. So the first point walks itself first — square to the axis, carried
- * across, marked where it lands — with the method spoken over it, and only then
- * does the child place all three.
- *
- * WHY A TAP AND NOT A DRAG
- * -------------------------
- * Placing a point is one decision, and a finger tapping where a point belongs
- * makes it. Dragging would ask for the point AND the hand it came from, and a
- * child drawing the heart's lobe by dragging would get a different curve each
- * time — so the shape they were asked to complete would be judged on their
- * drawing rather than on what they were asked about.
- *
- * A press that lands near enough is snapped exactly onto the mirror image. The
- * drawing that results is the true one, because the true one is the answer; the
- * part that is the child's is knowing where it goes.
+ * A point goes where its mirror image goes, so the first point walks itself
+ * first — square to the axis, carried across, marked where it lands — with the
+ * method spoken over it, and only then does the child place all three. A tap is
+ * one decision; a drag would judge their drawing rather than what they were
+ * asked about. A press landing near enough snaps exactly on, because the true
+ * drawing is the answer and knowing where it goes is the child's part.
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -48,7 +37,9 @@ const FLY_MS = 1400
 /** how long each leg of the example walk is looked at before moving on */
 const WALK_MS = 3600
 /** how long the landed point is looked at before the placing starts */
-const SHOWN_MS = 2000
+const SHOWN_MS = 3600
+/** how long the leg takes to draw itself before its square may arrive */
+const LEG_DRAWN_MS = 1800
 
 export interface SymmetryDrawState {
   /** the half the child is given, with the axis as its straight edge */
@@ -64,6 +55,8 @@ export interface SymmetryDrawState {
   walk: number
   /** the point now flying across, from its given corner to its mirror spot */
   flying: { from: Point; to: Point } | null
+  /** the leg has finished being drawn, so its square may arrive */
+  legDrawn: boolean
   resolved: boolean
   justFound: boolean
   attempts: number
@@ -86,12 +79,9 @@ export function useSymmetryDraw(board: DrawBoard, onSettled: () => void): Symmet
     [board],
   )
 
-  /**
-   * Which corner of the given half each point mirrors.
-   *
-   * The half is a run of the outline's corners with the axis edge closed at the
-   * end, so the three to find sit at the same place in the full outline as they
-   * do in the half, less the two that stand on the axis.
+  /*
+   * Which corner of the given half each point mirrors: the same place in the
+   * full outline, less the two standing on the axis.
    */
   const givens = useMemo(
     () =>
@@ -107,6 +97,7 @@ export function useSymmetryDraw(board: DrawBoard, onSettled: () => void): Symmet
   const [flying, setFlying] = useState<{ from: Point; to: Point } | null>(null)
   const [attempts, setAttempts] = useState(0)
   const timer = useRef<number | null>(null)
+  const legTimer = useRef<number | null>(null)
 
   const waiting = answers.length - placed.length
   const resolved = waiting === 0
@@ -114,6 +105,12 @@ export function useSymmetryDraw(board: DrawBoard, onSettled: () => void): Symmet
   /* The example walks before any placing: given corner, foot, mirror, placing. */
   const [walk, setWalk] = useState(0)
   const walking = walk < 3
+  /*
+   * The square names what the leg just proved, so it arrives once the leg has
+   * finished being drawn — tracked in state rather than a CSS delay, because
+   * state is what the board can observe and test.
+   */
+  const [legDrawn, setLegDrawn] = useState(false)
   /*
    * The walk demonstrates the topmost point: the highest corner is where the
    * eye goes first, so the method is shown where the child is already looking.
@@ -135,6 +132,14 @@ export function useSymmetryDraw(board: DrawBoard, onSettled: () => void): Symmet
     }
   }, [walking, walk])
 
+  useEffect(() => {
+    if (walk !== 1) return
+    legTimer.current = window.setTimeout(() => setLegDrawn(true), LEG_DRAWN_MS)
+    return () => {
+      if (legTimer.current) window.clearTimeout(legTimer.current)
+    }
+  }, [walk])
+
   /* Settling is reported, not derived — see useSymmetryParts for why. */
   useEffect(() => {
     if (resolved) onSettled()
@@ -143,6 +148,7 @@ export function useSymmetryDraw(board: DrawBoard, onSettled: () => void): Symmet
   useEffect(
     () => () => {
       if (timer.current) window.clearTimeout(timer.current)
+      if (legTimer.current) window.clearTimeout(legTimer.current)
     },
     [],
   )
@@ -185,6 +191,7 @@ export function useSymmetryDraw(board: DrawBoard, onSettled: () => void): Symmet
     demo,
     walk,
     flying,
+    legDrawn,
     resolved,
     justFound,
     attempts,

@@ -21,7 +21,12 @@ export function FactsBoard({ board, onSettled, onNext, nextLabel }: {
   nextLabel: string
 }) {
   const f = useSymmetryFacts(board, onSettled)
-  const toast = useStageMessage(f.message, f.attempts)
+  /*
+   * The pulse re-arms the popup for each pair's trip: the three trips say the
+   * same sentence, and keyed on the words alone the second and third would find
+   * nothing changed and stay silent.
+   */
+  const toast = useStageMessage(f.message, f.attempts + f.pulse)
 
   return (
     <>
@@ -32,6 +37,9 @@ export function FactsBoard({ board, onSettled, onNext, nextLabel }: {
           axis={board.axis}
           color={board.shape.color}
           stage={f.stage}
+          pairs={f.pairs}
+          equalStep={f.equalStep}
+          landed={f.landed}
           draft={f.draft}
           joined={f.joined}
           justFound={f.justFound}

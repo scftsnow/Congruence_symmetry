@@ -312,7 +312,7 @@ for (const [label, s] of [
 // the eight boards, and the two marks that carry the facts
 ok('symmetry has eight boards', /SYMM_BOARDS: SymmetryBoard\[\] = \[[\s\S]*\]\n/.test(symmShapesSrc))
 const symmCss = read('src/styles/symmetry.css')
-for (const c of ['.sym-right', '.sym-tick', '.sym-span', '.sym-join', '.sym-board']) {
+for (const c of ['.sym-right', '.sym-tick', '.sym-join', '.sym-board']) {
   ok(`symmetry style ${c}`, symmCss.includes(c), c)
 }
 // No figure is quoted anywhere in the unit, and no turn control reappears.

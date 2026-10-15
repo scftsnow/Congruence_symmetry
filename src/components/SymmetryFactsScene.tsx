@@ -3,8 +3,13 @@
  *
  * The child joins one pair of corresponding points, and then the board shows
  * what that joining proves: first the square where the segment meets the axis,
- * then a span with a tick from each end. Each mark grows in with its sentence,
- * because the sentence names what was just seen arriving.
+ * then each span folding across onto its partner, all three pairs in turn. Each
+ * mark grows in with its sentence, because the sentence names what was just
+ * seen arriving.
+ *
+ * The travelling span is the correspondence unit's flying part, not a copy of
+ * it: the move is the same fold the axis board folds along, handed in as a
+ * transform, and one span becoming the other is what "the same distance" means.
  *
  * Nothing on this board prints a length or an angle, because a number a child
  * cannot make with their own hands is one they can only be told, and degrees
@@ -15,8 +20,10 @@ import { useMemo, useRef } from 'react'
 import { pointsToPath } from './svgPath'
 import { Grid } from './BoardGrid'
 import { Celebration } from './Celebration'
+import { CorrFly } from './CorrFly'
+import { foldTransform } from '../geometry/symmetry'
 import { footOnAxis, rightAnglePath, tickPath } from '../geometry/symmetryParts'
-import type { Line } from '../geometry/symmetryParts'
+import type { Line, MirrorPairs } from '../geometry/symmetryParts'
 import type { Point } from '../geometry/types'
 import type { FactsStage } from '../modes/useSymmetryFacts'
 
@@ -30,6 +37,9 @@ export function SymmetryFactsScene({
   axis,
   color,
   stage,
+  pairs,
+  equalStep,
+  landed,
   draft,
   joined,
   justFound,
@@ -41,6 +51,12 @@ export function SymmetryFactsScene({
   axis: Line
   color: string
   stage: FactsStage
+  /** every corresponding pair — each takes the trip in turn */
+  pairs: MirrorPairs
+  /** which pair's span is travelling */
+  equalStep: number
+  /** the span has landed on its partner */
+  landed: boolean
   /** the finger's line, while it is being drawn */
   draft: { p: Point; q: Point } | null
   /** the pair that has been joined, as two corner indices */
@@ -63,6 +79,11 @@ export function SymmetryFactsScene({
       y: ((clientY - rect.top) / rect.height) * vb.height,
     }
   }
+
+  /* The pair now proving the second fact: its segment, and each end's span. */
+  const [pa, pb] = pairs.points[Math.min(equalStep, pairs.points.length - 1)] ?? [0, 0]
+  const fa = footOnAxis(vertices[pa], axis)
+  const fb = footOnAxis(vertices[pb], axis)
 
   return (
     <svg
@@ -114,18 +135,32 @@ export function SymmetryFactsScene({
         />
       )}
 
-      {/* a span with a tick from each end: the second fact */}
-      {joined && stage === 'equal' && (
-        <g className="sym-proved">
-          {joined.map((i) => {
-            const foot = footOnAxis(vertices[i], axis)
-            return (
-              <g key={`sp${i}`} className="sym-in">
-                <line className="sym-span" x1={vertices[i].x} y1={vertices[i].y} x2={foot.x} y2={foot.y} />
-                <path className="sym-tick" d={tickPath(vertices[i], foot, MARK)} />
-              </g>
-            )
-          })}
+      {/* one span becoming the other: the second fact, every pair in turn */}
+      {stage === 'equal' && (
+        <g>
+          <line
+            className="sym-join"
+            x1={vertices[pa].x}
+            y1={vertices[pa].y}
+            x2={vertices[pb].x}
+            y2={vertices[pb].y}
+          />
+          <CorrFly
+            key={`fly-${pa}-${pb}`}
+            part={{
+              kind: 'side',
+              a: [vertices[pa], fa],
+              b: [vertices[pb], fb],
+            }}
+            landed={landed}
+            move={foldTransform({ a: axis.a, b: axis.b }, -1)}
+          />
+          {landed && (
+            <g className="sym-proved sym-in">
+              <path className="sym-tick" d={tickPath(vertices[pa], fa, MARK)} />
+              <path className="sym-tick" d={tickPath(vertices[pb], fb, MARK)} />
+            </g>
+          )}
         </g>
       )}
 

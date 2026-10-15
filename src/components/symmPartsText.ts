@@ -40,7 +40,12 @@ export function symmetryPartsInstructionFor(phase: Phase): string | null {
 
 /** While a part is folding, and the moment it lands on its partner. */
 const PARTS_MOVING = { side: '대응변을 접어 보고 있어요', angle: '대응각을 접어 보고 있어요' }
-const PARTS_LANDED = { side: '대응변을 접으면 꼭 겹쳐요', angle: '대응각을 접으면 꼭 겹쳐요' }
+/*
+ * The fold is the way, never the claim: what landing proves is that the two are
+ * the same size. The same sentences the congruence unit says, because it is the
+ * same fact about the same pair.
+ */
+const PARTS_LANDED = { side: '대응변의 길이가 같아요', angle: '대응각의 크기가 같아요' }
 
 /** The one sentence on the parts board, decided from where the child has got to. */
 export function symmetryPartsMessageFor(input: {

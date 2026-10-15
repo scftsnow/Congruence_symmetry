@@ -279,6 +279,20 @@ describe('the four rows on the home screen', () => {
     expect(symmetryPartsInstructionFor('points')).toBe('빛나는 점의 대응점을 찾아요')
     expect(symmetryPartsInstructionFor('sides')).toBe('빛나는 변의 대응변을 찾아요')
     expect(symmetryPartsInstructionFor('angles')).toBe('빛나는 각의 대응각을 찾아요')
+    // landing proves the size, never the fold: the fold is the way the part
+    // travelled, and "it fits" is what eyes already see. The claim is the same
+    // sentences the congruence unit says.
+    for (const flyingAngle of [false, true]) {
+      const said = symmetryPartsMessageFor({
+        phase: 'compare',
+        wrong: false,
+        done: false,
+        flying: true,
+        flyingAngle,
+        landed: true,
+      }).text
+      expect(said).toContain(flyingAngle ? '대응각의 크기가 같아요' : '대응변의 길이가 같아요')
+    }
     // every sentence this board can say names no figure
     for (const phase of ['points', 'sides', 'angles'] as const) {
       expect(/[0-9]/.test(symmetryPartsMessageFor({

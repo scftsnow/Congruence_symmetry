@@ -460,12 +460,14 @@ describe('a part travels onto its partner exactly', () => {
   it('exchanges the two places instead of sending one onto the other', () => {
     // One part travelling onto the other reads as the traveller doing something
     // to the one that stays. But a correspondence runs both ways, so the two
-    // change places at once — while the span on the facts board stays one-way,
-    // because there the claim is that one length lands exactly on the other.
+    // change places at once — everywhere except the line facts board, where the
+    // claim is that one length lands exactly on the other.
     const fly = source('src/components/CorrFly.tsx')
     expect(fly.includes('swap')).toBeTruthy()
     expect(source('src/components/CorrespondenceScene.tsx').includes('swap')).toBeTruthy()
     expect(source('src/components/SymmetryPartsScene.tsx').includes('swap')).toBeTruthy()
+    expect(source('src/components/PointPartsScene.tsx').includes('swap')).toBeTruthy()
+    expect(source('src/components/PointFactsScene.tsx').includes('swap')).toBeTruthy()
     expect(source('src/components/SymmetryFactsScene.tsx').includes('swap') ? 'the span stops landing' : 'ok').toBe('ok')
   })
 })

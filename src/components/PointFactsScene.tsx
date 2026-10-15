@@ -120,6 +120,7 @@ export function PointFactsScene({
               b: [vertices[pb], center],
             }}
             landed={landed}
+            swap
           />
           {landed && (
             <g className="sym-proved sym-in">

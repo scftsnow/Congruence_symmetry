@@ -18,9 +18,9 @@
  * exchange places at once, each landing where the other stood. Neither is the
  * original and neither is the copy, which is exactly what 대응 means.
  *
- * The span on the facts board is the exception, and it stays one-way: there the
- * claim is that one length lands exactly on the other, and two parts crossing
- * mid-way would never land on anything.
+ * The span on the line facts board is the exception, and it stays one-way:
+ * there the claim is that one length lands exactly on the other, and two parts
+ * crossing mid-way would never land on anything.
  */
 
 import { angleTransform, angleWedge, sideTransform, type Angle } from '../geometry/correspondence'

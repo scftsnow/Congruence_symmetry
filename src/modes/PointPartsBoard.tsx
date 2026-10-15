@@ -25,8 +25,8 @@ export function PointPartsBoard({ board, onSettled, onNext, nextLabel }: {
 
   return (
     <>
-      {toast && <Toast {...toast} />}
       <div className="canvas-wrap">
+        {toast && <Toast {...toast} />}
         <PointPartsScene
           vertices={p.vertices}
           center={p.center}

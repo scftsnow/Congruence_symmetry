@@ -29,8 +29,8 @@ export function CenterBoard({
 
   return (
     <>
-      {toast && <Toast {...toast} />}
       <div className="canvas-wrap">
+        {toast && <Toast {...toast} />}
         <CenterScene
           shape={s.shape}
           tapped={s.tapped}

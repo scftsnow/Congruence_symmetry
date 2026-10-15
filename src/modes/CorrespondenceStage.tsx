@@ -61,6 +61,7 @@ export function CorrespondenceStage({ onBack }: { onBack: () => void }) {
       </nav>
 
       <div className="canvas-wrap">
+        {toast && <Toast {...toast} />}
         <CorrespondenceScene
           pair={c.pair}
           phase={c.phase}

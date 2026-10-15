@@ -176,9 +176,8 @@ export function CongruenceStage({ onBack }: CongruenceStageProps) {
        * popup into the new drag. Gating the render on `dragging` makes "popup on
        * let-go, never mid-drag" true no matter how the timers line up.
        */}
-      {toast && !dragging && <Toast {...toast} />}
-
       <div className="canvas-wrap">
+        {toast && !dragging && <Toast {...toast} />}
         <svg
           ref={svgRef}
           className="canvas"

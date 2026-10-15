@@ -25,8 +25,8 @@ export function PartsBoard({ board, onSettled, onNext, nextLabel }: {
 
   return (
     <>
-      {toast && <Toast {...toast} />}
       <div className="canvas-wrap">
+        {toast && <Toast {...toast} />}
         <SymmetryPartsScene
           vertices={p.vertices}
           axis={board.axis}

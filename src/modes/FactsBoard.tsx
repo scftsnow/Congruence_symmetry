@@ -29,8 +29,8 @@ export function FactsBoard({ board, onSettled, onNext, nextLabel }: {
 
   return (
     <>
-      {toast && <Toast {...toast} />}
       <div className="canvas-wrap">
+        {toast && <Toast {...toast} />}
         <SymmetryFactsScene
           vertices={f.vertices}
           axis={board.axis}

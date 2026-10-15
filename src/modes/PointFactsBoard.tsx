@@ -25,8 +25,8 @@ export function PointFactsBoard({ board, onSettled, onNext, nextLabel }: {
 
   return (
     <>
-      {toast && <Toast {...toast} />}
       <div className="canvas-wrap">
+        {toast && <Toast {...toast} />}
         <PointFactsScene
           vertices={f.vertices}
           center={f.center}

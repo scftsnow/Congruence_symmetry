@@ -502,14 +502,27 @@ describe('a success is in the middle, not at the top', () => {
     expect(html.includes('겹쳤어!')).toBeTruthy()
   })
 
-  it('is fixed to the top edge, clear of the hands', () => {
+  it('is fixed to the top of its panel, clear of the hands', () => {
+    // The popup lives at the top of the canvas panel, not the window: every
+    // screen renders it as the first child of .canvas-wrap.
+    for (const screen of [
+      'src/modes/CongruenceStage.tsx',
+      'src/modes/CorrespondenceStage.tsx',
+      'src/modes/AxisBoard.tsx',
+      'src/modes/PartsBoard.tsx',
+      'src/modes/FactsBoard.tsx',
+      'src/modes/DrawBoard.tsx',
+      'src/modes/CenterBoard.tsx',
+      'src/modes/PointPartsBoard.tsx',
+      'src/modes/PointFactsBoard.tsx',
+      'src/modes/PointDrawBoard.tsx',
+    ]) {
+      expect(source(screen).includes('<div className="canvas-wrap">')).toBeTruthy()
+    }
     const ui = source('src/styles/ui.css')
-    const fixed = /\.toast\s*\{[^}]*position:\s*fixed/.test(ui)
-    expect(fixed).toBeTruthy()
-    // centred horizontally at the top, never over the middle of the board
-    expect(/\.toast\s*\{[^}]*top:\s*14px/.test(ui)).toBeTruthy()
-    expect(/\.toast\s*\{[^}]*left:\s*50%/.test(ui)).toBeTruthy()
-    expect(/\.toast\s*\{[^}]*transform:\s*translateX\(-50%\)/.test(ui)).toBeTruthy()
+    expect(/\.canvas-wrap\s*\{[^}]*position:\s*relative/.test(ui)).toBeTruthy()
+    expect(/\.toast\s*\{[^}]*position:\s*absolute/.test(ui)).toBeTruthy()
+    expect(/\.toast\s*\{[^}]*top:\s*10px/.test(ui)).toBeTruthy()
     expect(/\.toast\s*\{[^}]*top:\s*50%/.test(ui) ? 'still in the middle' : 'ok').toBe('ok')
   })
 

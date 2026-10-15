@@ -30,8 +30,8 @@ export function PointDrawBoard({ board, onSettled, onNext, nextLabel }: {
 
   return (
     <>
-      {toast && <Toast {...toast} />}
       <div className="canvas-wrap">
+        {toast && <Toast {...toast} />}
         <PointDrawScene
           half={d.half}
           links={d.links}

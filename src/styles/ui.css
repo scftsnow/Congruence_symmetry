@@ -85,6 +85,7 @@
 /* ── 캔버스 ──────────────────────────────────────────── */
 
 .canvas-wrap {
+  position: relative;
   background: var(--color-surface);
   border-radius: var(--radius);
   padding: 12px;
@@ -212,13 +213,13 @@
  * stays and this does not, so there is no dimmed backdrop behind it and the board
  * underneath stays completely live: a child can carry on dragging with it up.
  *
- * At the top rather than the middle, so it never covers what the hands are
+ * At the top of the board panel rather than the middle of it, so it never covers what the hands are
  * doing. The middle belongs to the shapes and the stars; the sentence keeps to
  * the top edge, where it is read and then left alone.
  */
 .toast {
-  position: fixed;
-  top: 14px;
+  position: absolute;
+  top: 10px;
   left: 50%;
   z-index: 25;
   transform: translateX(-50%);

@@ -29,8 +29,8 @@ export function AxisBoard({
 
   return (
     <>
-      {toast && <Toast {...toast} />}
       <div className="canvas-wrap">
+        {toast && <Toast {...toast} />}
         <SymmetryScene
           shape={s.shape.shape}
           axis={s.axis}

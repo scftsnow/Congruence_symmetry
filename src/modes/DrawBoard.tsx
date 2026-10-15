@@ -30,8 +30,8 @@ export function DrawBoard({ board, onSettled, onNext, nextLabel }: {
 
   return (
     <>
-      {toast && <Toast {...toast} />}
       <div className="canvas-wrap">
+        {toast && <Toast {...toast} />}
         <SymmetryDrawScene
           half={d.half}
           links={d.links}

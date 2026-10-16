@@ -272,6 +272,9 @@ describe('the four rows on the home screen', () => {
     expect(hook.includes('SYMM_PARTS_HOW_LEG')).toBeTruthy()
     expect(hook.includes('SYMM_PARTS_HOW_CARRY')).toBeTruthy()
     expect(hook.includes('walk < 3')).toBeTruthy()
+    // One popup per walk step, like the point unit: sharing one popup across
+    // two steps lets the seven seconds run out mid-step and leaves a gap.
+    expect(hook.includes('walk < 1 ? SYMM_PARTS_HOW_LEG : SYMM_PARTS_HOW_CARRY')).toBeTruthy()
     expect(hook.includes('WALK_MS = 3600')).toBeTruthy()
     expect(hook.includes('LEG_DRAWN_MS = 4000')).toBeTruthy()
     // the walk demonstrates the topmost point, where the eye goes first
@@ -455,7 +458,7 @@ describe('the four rows on the home screen', () => {
   })
 
   it('asks for the next point without saying how many are left', () => {
-    expect(symmetryDrawInstructionFor(3)).toContain('마주 보는 점')
+    expect(symmetryDrawInstructionFor(3)).toBe('대응점을 찾아 누르세요')
     expect(symmetryDrawInstructionFor(1)).toContain('마지막 점')
     expect(symmetryDrawInstructionFor(0)).not.toContain('0')
     expect(symmetryDrawMissedFor().text).toContain('같은 거리')

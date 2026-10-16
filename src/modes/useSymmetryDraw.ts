@@ -204,7 +204,7 @@ export function useSymmetryDraw(board: DrawBoard, onSettled: () => void): Symmet
       : justFound
         ? symmetryDrawSuccessFor(waiting)
         : walking
-          ? { tone: 'success', icon: '👉', text: walk < 2 ? SYMM_PARTS_HOW_LEG : SYMM_PARTS_HOW_CARRY }
+          ? { tone: 'success', icon: '👉', text: walk < 1 ? SYMM_PARTS_HOW_LEG : SYMM_PARTS_HOW_CARRY }
           : !resolved && !flying
             ? /*
                * Which point is awaited, as a popup every time: with the bottom

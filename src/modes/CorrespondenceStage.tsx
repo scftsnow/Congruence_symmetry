@@ -41,12 +41,6 @@ export function CorrespondenceStage({ onBack }: { onBack: () => void }) {
         <h1 className="mode__title">대응점 · 대응변 · 대응각</h1>
       </header>
 
-      {/*
-       * Every answer, answered: a pair found, a wrong one, a part that has just
-       * landed exactly on its partner.
-       */}
-      {toast && <Toast {...toast} />}
-
       <nav className="corr-pairs" aria-label="도형 고르기">
         {CORRESPONDENCE_PAIRS.map((p, i) => (
           <button

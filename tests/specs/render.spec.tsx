@@ -566,6 +566,27 @@ describe('a success is in the middle, not at the top', () => {
     expect(toast.includes('pointer-events: none')).toBeTruthy()
   })
 
+  it('every screen shows at most one popup at a time', () => {
+    // CorrespondenceStage once rendered the toast twice — once above the pair
+    // picker and once inside the panel — so the opening ask arrived doubled.
+    for (const stage of [
+      'src/modes/CongruenceStage.tsx',
+      'src/modes/CorrespondenceStage.tsx',
+      'src/modes/AxisBoard.tsx',
+      'src/modes/PartsBoard.tsx',
+      'src/modes/FactsBoard.tsx',
+      'src/modes/DrawBoard.tsx',
+      'src/modes/CenterBoard.tsx',
+      'src/modes/PointPartsBoard.tsx',
+      'src/modes/PointFactsBoard.tsx',
+      'src/modes/PointDrawBoard.tsx',
+    ]) {
+      const code = source(stage)
+      const renders = (code.match(/<Toast \{/g) || []).length
+      expect(renders === 1 ? 'ok' : `${stage} renders ${renders} toasts`).toBe('ok')
+    }
+  })
+
   it('both units send every message to it', () => {
     for (const stage of [
       'src/modes/CongruenceStage.tsx',

@@ -310,6 +310,7 @@ for (const [label, s] of [
   ['symmetry draw said', y.drawDone.found],
   ['symmetry draw said', y.drawDone.next],
   ['symmetry draw said', y.drawDone.all],
+  ['symmetry draw done all', y.drawDone.doneAll],
 ]) {
   const parts = Array.isArray(s) ? s : [s]
   ok(label, parts.every((p) => symmPartsSrc.includes(p)), parts.join(''))
@@ -383,6 +384,7 @@ for (const [label, s] of [
   ['point-symmetry draw said', pt.drawDone.found],
   ['point-symmetry draw said', pt.drawDone.next],
   ['point-symmetry draw said', pt.drawDone.all],
+  ['point-symmetry draw done all', pt.drawDone.doneAll],
 ]) {
   const parts = Array.isArray(s) ? s : [s]
   ok(label, parts.every((p) => ptsymPartsSrc.includes(p)), parts.join(''))

@@ -14,8 +14,8 @@ const WALK_MS = 3600
 const LEG_MS = 5600
 /** how long the landed point is looked at before the placing starts */
 const SHOWN_MS = 3600
-/** how long after the leg starts its mark may arrive */
-const LEG_DRAWN_MS = 4000
+/** how long after the leg starts its mark may arrive: once the line is drawn */
+const LEG_DRAWN_MS = 1200
 
 export function useDrawWalk() {
   const [walk, setWalk] = useState(0)

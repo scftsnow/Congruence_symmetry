@@ -2,30 +2,29 @@
  * The drawing board drawn — a half figure, its middle, and the half taking shape.
  *
  * The full outline is never shown while the child is working: it would be the
- * answer, painted underneath. It appears whole once every neighbour pair is
- * joined, and stands for three seconds before the way out appears.
+ * answer, painted underneath. It appears whole once every span is drawn and
+ * every neighbour pair is joined, and stands for three seconds before the way
+ * out appears.
  */
 
 import { useRef } from 'react'
 import { pointsToPath } from './svgPath'
 import { Grid } from './BoardGrid'
 import { Celebration } from './Celebration'
-import { tickPath } from '../geometry/symmetryParts'
 import type { Point } from '../geometry/types'
 
 const W = 1100
 const H = 600
-const MARK = 16
 
 export function PointDrawScene({
   half,
-  links,
-  segments,
+  spans,
+  joins,
+  placed,
   draft,
   center,
   color,
   complete,
-  resolved,
   justFound,
   demo,
   walk,
@@ -37,18 +36,18 @@ export function PointDrawScene({
 }: {
   /** the half the child is given, with the middle on its straight edge */
   half: Point[]
-  /** each found point with the given one it mirrors */
-  links: Array<{ given: Point; placed: Point }>
-  /** the neighbour pairs joined so far */
-  segments: Array<{ a: Point; b: Point }>
+  /** the spans drawn so far: each given point reaching the middle */
+  spans: Array<{ a: Point; b: Point }>
+  /** the neighbour pairs joined so far: the outline taking shape */
+  joins: Array<{ a: Point; b: Point }>
+  /** placed point positions in outline order */
+  placed: Point[]
   /** the finger's line, while it is being drawn */
   draft: { p: Point; q: Point } | null
   center: Point
   color: string
-  /** every neighbour pair is joined, so the whole figure is shown */
+  /** every span is drawn and every pair joined, so the whole figure is shown */
   complete: boolean
-  /** the finished figure has stood long enough, so the way out appears */
-  resolved: boolean
   justFound: boolean
   /** the example walk: the given corner, the middle it crosses, its mirror */
   demo: { from: Point; mid: Point; to: Point }
@@ -98,7 +97,7 @@ export function PointDrawScene({
       {complete && (
         <path
           className="sym-shape sym-shape--whole"
-          d={pointsToPath([...links.map((l) => l.placed), ...half.slice().reverse()])}
+          d={pointsToPath([...placed, ...half.slice().reverse()])}
           fill={color}
         />
       )}
@@ -137,29 +136,10 @@ export function PointDrawScene({
         </g>
       )}
 
-      {/* each found point, joined through the middle to the one it mirrors */}
-      {links.map((l, i) => {
-        return (
-          <g key={`p${i}`} className="sym-proved">
-            <circle className="sym-placed" cx={l.placed.x} cy={l.placed.y} r={13} />
-            <line
-              className="sym-join sym-draw"
-              pathLength={1}
-              x1={l.placed.x}
-              y1={l.placed.y}
-              x2={l.given.x}
-              y2={l.given.y}
-            />
-            <circle className="sym-hub" cx={center.x} cy={center.y} r={10} />
-            {resolved && <path className="sym-tick" d={tickPath(l.placed, center, MARK)} />}
-          </g>
-        )
-      })}
-
-      {/* the neighbour pairs joined so far: the outline taking shape */}
-      {segments.map((s, i) => (
+      {/* each span the child drew: the corner reaching the middle */}
+      {spans.map((s, i) => (
         <line
-          key={`sg${i}`}
+          key={`sp${i}`}
           className="sym-join sym-draw"
           pathLength={1}
           x1={s.a.x}
@@ -167,6 +147,23 @@ export function PointDrawScene({
           x2={s.b.x}
           y2={s.b.y}
         />
+      ))}
+
+      {/* the neighbour pairs joined so far: the outline taking shape */}
+      {joins.map((s, i) => (
+        <line
+          key={`jn${i}`}
+          className="sym-join sym-draw"
+          pathLength={1}
+          x1={s.a.x}
+          y1={s.a.y}
+          x2={s.b.x}
+          y2={s.b.y}
+        />
+      ))}
+
+      {placed.map((p, i) => (
+        <circle key={`pl${i}`} className="sym-placed" cx={p.x} cy={p.y} r={13} />
       ))}
 
       {/* the point now flying across to its mirror spot */}

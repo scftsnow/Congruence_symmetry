@@ -31,13 +31,13 @@ export function PointDrawBoard({ board, onSettled, onNext, nextLabel }: {
         {toast && <Toast {...toast} />}
         <PointDrawScene
           half={d.half}
-          links={d.links}
-          segments={d.segments}
+          spans={d.spans}
+          joins={d.joins}
+          placed={d.placed}
           draft={d.draft}
           center={d.center}
           color={board.shape.color}
           complete={d.complete}
-          resolved={d.resolved}
           justFound={d.justFound}
           demo={d.demo}
           walk={d.walk}
@@ -59,7 +59,7 @@ export function PointDrawBoard({ board, onSettled, onNext, nextLabel }: {
            * point awaited, and a second telling of it underneath would compete.
            */
           <ol className="sym-dots" aria-label="진행">
-            {d.links.map((_, i) => (
+            {d.placed.map((_, i) => (
               <li key={i} className="sym-dot sym-dot--done" />
             ))}
             {Array.from({ length: d.waiting }).map((_, i) => (

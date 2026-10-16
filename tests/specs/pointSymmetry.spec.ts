@@ -319,7 +319,7 @@ describe('the four rows on the home screen', () => {
     expect(unit.includes('POINT_DRAW_LINK_ASK')).toBeTruthy()
     expect(unit.includes('POINT_DRAW_LINKED')).toBeTruthy()
     const scene = source('src/components/PointDrawScene.tsx')
-    expect(scene.includes('segments')).toBeTruthy()
+    expect(scene.includes('joins')).toBeTruthy()
     expect(scene.includes('{complete && (')).toBeTruthy()
   })
 

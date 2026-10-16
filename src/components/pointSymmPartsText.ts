@@ -143,8 +143,8 @@ const DRAW_MISSED = '조금만 아쉬워요. 중심에서 같은 거리, 반대�
 
 const DRAW_DONE: Record<number, string> = {
   2: '맞아요! 대칭점은 중심에서 같은 거리에 있어요',
-  1: '마지막 점도 마주 보는 자리에 왔어요',
-  0: '점대칭도형을 완성했어요!',
+  1: '잘했어요! 다음 점도 찾아 보세요',
+  0: '마지막 점도 마주 보는 자리에 왔어요',
 }
 
 export function pointDrawInstructionFor(waiting: number): string {
@@ -159,15 +159,19 @@ export function pointDrawSuccessFor(waiting: number): Message {
   return { tone: 'success', icon: '⭐', text: DRAW_DONE[waiting] }
 }
 
-/* Joining the placed points. The figure is whole only once its outline is
- * drawn, so placing the last point is not the end of it. */
-export const POINT_DRAW_LINK_ASK = '놓은 점들을 손가락으로 이어 보세요'
+export function pointDrawDoneAll(): Message {
+  return { tone: 'success', icon: '⭐', text: '점대칭도형을 완성했어요!' }
+}
+
+/* The spans to draw first, then the joins that close the outline. */
+export const POINT_DRAW_SPAN_ASK = '점에서 중심까지 손가락으로 이어 보세요'
+export const POINT_DRAW_SPAN_MISS = '중심을 향해 곧게 이어 보세요'
+export const POINT_DRAW_SPAN_DONE = '대칭의 중심에서 만났어요'
+export const POINT_DRAW_LINK_ASK = '놓은 점들을 서로 이어 보세요'
 export const POINT_DRAW_LINK_MISS = '옆에 있는 두 점을 이어 보세요'
 export const POINT_DRAW_LINKED = '잘 연결했어요'
 
-/* How to find a corresponding point, spoken while the first point walks it:
- * straight through the middle, out the same distance the other side. One
- * sentence per leg, because the two legs are two different claims. */
+/* How to find a corresponding point, spoken while the first point walks it. */
 export const POINT_PARTS_HOW_LEG = '한 점에서 대칭의 중심을 향해 곧게 가요'
 export const POINT_PARTS_HOW_CARRY = '그대로 중심을 지나 같은 만큼 더 가면 거기가 대응점이에요'
 
@@ -192,9 +196,7 @@ export function pointPartsDonePanelFor(): DonePanel {
   }
 }
 
-/* The lesson both later rows end on, in the textbook's sentence with this app's
- * voice: 대응점끼리 이은 선분은 중심을 지나고, 대응점에서 중심까지의 거리는
- * 같아요. */
+/* The lesson both later rows end on, in the textbook's sentence. */
 const POINT_FACTS_NOTE =
   '점대칭도형에서 대응점끼리 이은 선분은 대칭의 중심을 지나고, 대응점에서 대칭의 중심까지의 거리는 같아요'
 

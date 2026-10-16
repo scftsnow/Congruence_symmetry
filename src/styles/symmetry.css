@@ -176,10 +176,10 @@
   pointer-events: none;
 }
 
-/* The same drawing, three times slower: the example leg is watched being drawn,
- * not noticed having arrived. */
+/* The same drawing, slower: the example leg is watched being drawn, not
+ * noticed having arrived. */
 .sym-draw--slow {
-  animation-duration: 1800ms;
+  animation-duration: 1200ms;
 }
 
 .sym-right,

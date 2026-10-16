@@ -266,8 +266,8 @@ describe('the four rows on the home screen', () => {
     // Placing starts from a walk watched rather than a sentence read: the first
     // given corner draws its square leg, carries it across, and marks where it
     // lands — one popup per leg, because the two legs are two different claims —
-    // and no press counts until the walk is done. Each leg takes three times as
-    // long as a mark appearing would, so the drawing is watched being drawn.
+    // and no press counts until the walk is done. The leg is drawn, and its mark
+    // arrives the moment it finishes, so the drawing is watched being drawn.
     const unit = source('src/modes/useSymmetryDraw.ts')
     expect(unit.includes('SYMM_PARTS_HOW_LEG')).toBeTruthy()
     expect(unit.includes('SYMM_PARTS_HOW_CARRY')).toBeTruthy()
@@ -280,9 +280,10 @@ describe('the four rows on the home screen', () => {
     const clock = source('src/modes/useDrawWalk.ts')
     expect(clock.includes('walk < 3')).toBeTruthy()
     expect(clock.includes('WALK_MS = 3600')).toBeTruthy()
-    expect(clock.includes('LEG_DRAWN_MS = 4000')).toBeTruthy()
+    // the mark arrives once the line is drawn, not on a fixed later delay
+    expect(clock.includes('LEG_DRAWN_MS = 1200')).toBeTruthy()
     const shared = source('src/modes/useDrawBoard.ts')
-    expect(shared.includes('walk < 1 ? texts.howLeg : texts.howCarry')).toBeTruthy()
+    expect(shared.includes('legDrawn ? texts.howCarry : texts.howLeg')).toBeTruthy()
     const scene = source('src/components/SymmetryDrawScene.tsx')
     expect(scene.includes('sym-carry')).toBeTruthy()
     expect(scene.includes('sym-draw--slow')).toBeTruthy()
@@ -330,25 +331,27 @@ describe('the four rows on the home screen', () => {
     expect(source('src/modes/useStageMessage.ts').includes('GUIDE_MS')).toBeTruthy()
   })
 
-  it('joins neighbours before calling the figure whole', () => {
+  it('joins the outline before calling the figure whole', () => {
     // Placing the last point used to finish the board, so one tap completed a
-    // figure whose outline was never drawn. Now only joined neighbours count:
-    // a stroke has to land on both spots of one needed pair, either way round,
-    // while a repeat, a skip, or a stroke off the spots matches nothing.
+    // figure whose outline was never drawn. Now only joined edges count: a
+    // stroke has to land on both ends of one outline edge, either way round,
+    // while a repeat or a stroke off the edges matches nothing. The edges are
+    // the placed-point neighbours plus the two that tie the chain to the half.
     const hook = source('src/modes/useDrawBoard.ts')
-    expect(hook.includes('connected')).toBeTruthy()
-    expect(hook.includes('matchLink')).toBeTruthy()
+    expect(hook.includes('joined')).toBeTruthy()
+    expect(hook.includes('matchJoin')).toBeTruthy()
+    expect(hook.includes('joinEdges')).toBeTruthy()
     expect(hook.includes('linkAsk')).toBeTruthy()
     const geo = source('src/geometry/symmetryParts.ts')
     expect(geo.includes('matchSpot')).toBeTruthy()
-    expect(geo.includes('matchLink')).toBeTruthy()
+    expect(geo.includes('matchJoin')).toBeTruthy()
     for (const scene of [
       'src/components/SymmetryDrawScene.tsx',
       'src/components/PointDrawScene.tsx',
     ]) {
       const code = source(scene)
-      expect(code.includes('segments')).toBeTruthy()
-      // the whole outline appears only once every neighbour pair is joined
+      expect(code.includes('joins')).toBeTruthy()
+      // the whole outline appears only once every edge is joined
       expect(code.includes('{complete && (')).toBeTruthy()
     }
   })

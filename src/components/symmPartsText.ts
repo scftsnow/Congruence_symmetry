@@ -141,8 +141,8 @@ const DRAW_MISSED = '조금만 아쉬워요. 축에서 같은 거리, 반대쪽 
 
 const DRAW_DONE: Record<number, string> = {
   2: '맞아요! 대칭점은 축에서 같은 거리에 있어요',
-  1: '마지막 점도 마주 보는 자리에 왔어요',
-  0: '선대칭도형을 완성했어요!',
+  1: '잘했어요! 다음 점도 찾아 보세요',
+  0: '마지막 점도 마주 보는 자리에 왔어요',
 }
 
 export function symmetryDrawInstructionFor(waiting: number): string {
@@ -157,9 +157,20 @@ export function symmetryDrawSuccessFor(waiting: number): Message {
   return { tone: 'success', icon: '⭐', text: DRAW_DONE[waiting] }
 }
 
-/* Joining the placed points. The figure is whole only once its outline is
- * drawn, so placing the last point is not the end of it. */
-export const DRAW_LINK_ASK = '놓은 점들을 손가락으로 이어 보세요'
+/* Said once the last join is drawn: the figure is whole, and the way out waits
+ * three seconds so the finish is watched rather than left. */
+export function symmetryDrawDoneAll(): Message {
+  return { tone: 'success', icon: '⭐', text: '선대칭도형을 완성했어요!' }
+}
+
+/* The spans and the joins. Each given point reaches the axis on its own
+ * perpendicular first, and only then are the found points joined in outline
+ * order — the same two facts the facts board proved, used here instead of
+ * shown. */
+export const DRAW_SPAN_ASK = '점에서 대칭축까지 손가락으로 이어 보세요'
+export const DRAW_SPAN_MISS = '점은 대칭축을 향해 곧게 이어 보세요'
+export const DRAW_SPAN_DONE = '대칭축과 수직으로 만났어요'
+export const DRAW_LINK_ASK = '놓은 점들을 서로 이어 보세요'
 export const DRAW_LINK_MISS = '옆에 있는 두 점을 이어 보세요'
 export const DRAW_LINKED = '잘 연결했어요'
 

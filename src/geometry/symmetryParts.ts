@@ -186,27 +186,52 @@ export function matchSpot(
 }
 
 /**
- * Which unjoined neighbour pair a drawn stroke matches, or null.
+ * Which unspanned corner a drawn stroke starts from, or -1.
  *
- * Both ends must land on the two spots of one needed pair, either way round —
- * while a repeat, a skip, or a stroke off the spots matches nothing.
+ * A span runs from its corner to its target, so the stroke has to start where
+ * the corner is; starting anywhere else is a different line.
  */
-export function matchLink(
+export function matchSpanStart(
+  p: Point,
+  givens: Point[],
+  spanned: number[],
+  tolerance: number,
+): number {
+  return givens.findIndex((g, i) => !spanned.includes(i) && distance(p, g) <= tolerance)
+}
+
+/**
+ * Which unjoined outline edge a drawn stroke matches, or -1.
+ *
+ * The edges are the segments the child must draw to finish the outline: the
+ * neighbour pairs among the placed points, plus the two that tie the chain to
+ * the given half's own corners — the placed points alone do not close the
+ * figure. Both ends of the stroke have to land on the two ends of one edge,
+ * either way round; a repeat or a stroke off the edges matches nothing.
+ */
+export function matchJoin(
   p: Point,
   q: Point,
-  answers: Point[],
-  needed: Array<[number, number]>,
-  connected: Array<[number, number]>,
+  edges: Array<{ a: Point; b: Point }>,
+  drawn: number[],
   tolerance: number,
-): [number, number] | null {
-  const endIndex = (at: Point) => answers.findIndex((target) => distance(at, target) <= tolerance)
-  const a = endIndex(p)
-  const b = endIndex(q)
-  if (a === -1 || b === -1 || a === b) return null
-  const pair: [number, number] = a < b ? [a, b] : [b, a]
-  const wanted = needed.some(([x, y]) => x === pair[0] && y === pair[1])
-  const fresh = !connected.some(([x, y]) => x === pair[0] && y === pair[1])
-  return wanted && fresh ? pair : null
+): number {
+  const fits = (e: { a: Point; b: Point }) =>
+    (distance(p, e.a) <= tolerance && distance(q, e.b) <= tolerance) ||
+    (distance(p, e.b) <= tolerance && distance(q, e.a) <= tolerance)
+  return edges.findIndex((e, k) => !drawn.includes(k) && fits(e))
+}
+
+/**
+ * Whether a drawn span lands on its target and stands square to the axis.
+ *
+ * The end of a stroke is where a finger is least precise, so landing is judged
+ * generously; squareness is the point of the span, so it is judged exactly. A
+ * unit with no axis to stand square to (the middle of a point-symmetric figure)
+ * skips the squareness half.
+ */
+export function spanFalls(p: Point, q: Point, target: Point, axis: Line | null): boolean {
+  return distance(q, target) <= SPAN_TOLERANCE && (!axis || angleOffRight(p, q, axis) <= SQUARE_TOLERANCE)
 }
 
 /** Where a square dropped from a point meets the line. */

@@ -2,9 +2,9 @@
  * The drawing board drawn — a half figure, its axis, and the half taking shape.
  *
  * The full outline is never shown while the child is working: it would be the
- * answer, painted underneath. It appears whole at the end, when there is nothing
- * left to copy, and the line joining each found point to its partner is what
- * says why it is the same figure — the same two facts the board before proved.
+ * answer, painted underneath. It appears whole once every neighbour pair is
+ * joined — placing the points is not the end of it — and stands for three
+ * seconds before the way out appears, because the finish is watched, not left.
  */
 
 import { useRef } from 'react'
@@ -22,34 +22,47 @@ const MARK = 16
 export function SymmetryDrawScene({
   half,
   links,
+  segments,
+  draft,
   axis,
   color,
+  complete,
   resolved,
   justFound,
   demo,
   walk,
   flying,
   legDrawn,
-  onPlace,
+  onDrawStart,
+  onDrawMove,
+  onDrawEnd,
 }: {
   /** the half the child is given, with the axis as its straight edge */
   half: Point[]
   /** each found point with the given one it mirrors */
   links: Array<{ given: Point; placed: Point }>
+  /** the neighbour pairs joined so far */
+  segments: Array<{ a: Point; b: Point }>
+  /** the finger's line, while it is being drawn */
+  draft: { p: Point; q: Point } | null
   axis: Line
   color: string
-  /** every point is in, so the whole figure is shown */
+  /** every neighbour pair is joined, so the whole figure is shown */
+  complete: boolean
+  /** the finished figure has stood long enough, so the way out appears */
   resolved: boolean
   justFound: boolean
-  /** the example walk: the given corner, its foot, its mirror */
-  demo: { from: Point; foot: Point; to: Point }
-  /** where the walk has got to: corner, foot, mirror, then placing */
+  /** the example walk: the given corner, the middle it crosses, its mirror */
+  demo: { from: Point; mid: Point; to: Point }
+  /** where the walk has got to: corner, middle, mirror, then placing */
   walk: number
   /** the point now flying across, from its given corner to its mirror spot */
   flying: { from: Point; to: Point } | null
   /** the leg has finished being drawn, so its square may arrive */
   legDrawn: boolean
-  onPlace: (p: Point) => void
+  onDrawStart: (p: Point) => void
+  onDrawMove: (p: Point) => void
+  onDrawEnd: (up: Point | null) => void
 }) {
   const svgRef = useRef<SVGSVGElement | null>(null)
 
@@ -64,19 +77,9 @@ export function SymmetryDrawScene({
     }
   }
 
-  const press = (e: React.PointerEvent<SVGSVGElement>) => {
-    e.preventDefault()
-    onPlace(toCanvas(e.clientX, e.clientY))
-  }
-
   const walking = walk < 3
-  const carry = { x: demo.foot.x - demo.from.x, y: demo.foot.y - demo.from.y }
+  const carry = { x: demo.mid.x - demo.from.x, y: demo.mid.y - demo.from.y }
 
-  /*
-   * Down only, never up. A tap is one press and one release, and answering both
-   * would place two points for one finger: the second press lands where the
-   * first did, which is near enough to count as the NEXT point as well.
-   */
   return (
     <svg
       ref={svgRef}
@@ -84,11 +87,18 @@ export function SymmetryDrawScene({
       viewBox={`0 0 ${W} ${H}`}
       role="img"
       aria-label="반대쪽을 완성할 도형"
-      onPointerDown={press}
+      onPointerDown={(e) => {
+        e.preventDefault()
+        onDrawStart(toCanvas(e.clientX, e.clientY))
+        ;(e.target as Element).setPointerCapture?.(e.pointerId)
+      }}
+      onPointerMove={(e) => onDrawMove(toCanvas(e.clientX, e.clientY))}
+      onPointerUp={(e) => onDrawEnd(toCanvas(e.clientX, e.clientY))}
+      onPointerCancel={() => onDrawEnd(null)}
     >
       <Grid width={W} height={H} />
 
-      {resolved && (
+      {complete && (
         <path
           className="sym-shape sym-shape--whole"
           d={pointsToPath([...links.map((l) => l.placed), ...half.slice().reverse()])}
@@ -114,8 +124,8 @@ export function SymmetryDrawScene({
               pathLength={1}
               x1={demo.from.x}
               y1={demo.from.y}
-              x2={demo.foot.x}
-              y2={demo.foot.y}
+              x2={demo.mid.x}
+              y2={demo.mid.y}
             />
           )}
           {/* the leg meets the axis squarely, so the square arrives once the leg
@@ -123,7 +133,7 @@ export function SymmetryDrawScene({
           {walk >= 1 && legDrawn && (
             <path
               className="sym-right sym-in"
-              d={rightAnglePath(demo.foot, axis, demo.from, MARK)}
+              d={rightAnglePath(demo.mid, axis, demo.from, MARK)}
             />
           )}
           {walk >= 1 && (
@@ -131,8 +141,8 @@ export function SymmetryDrawScene({
               className="sym-carry"
               x1={demo.from.x}
               y1={demo.from.y}
-              x2={demo.foot.x}
-              y2={demo.foot.y}
+              x2={demo.mid.x}
+              y2={demo.mid.y}
               style={{
                 /* hidden until its turn: it sits exactly on the leg being drawn,
                  * and would cover the drawing with a finished line. */
@@ -164,6 +174,19 @@ export function SymmetryDrawScene({
         )
       })}
 
+      {/* the neighbour pairs joined so far: the outline taking shape */}
+      {segments.map((s, i) => (
+        <line
+          key={`sg${i}`}
+          className="sym-join sym-draw"
+          pathLength={1}
+          x1={s.a.x}
+          y1={s.a.y}
+          x2={s.b.x}
+          y2={s.b.y}
+        />
+      ))}
+
       {/* the point now flying across to its mirror spot */}
       {flying && (
         <g
@@ -181,6 +204,9 @@ export function SymmetryDrawScene({
         </g>
       )}
 
+      {draft && (
+        <line className="sym-draft" x1={draft.p.x} y1={draft.p.y} x2={draft.q.x} y2={draft.q.y} />
+      )}
       {justFound && <Celebration x={550} y={300} />}
     </svg>
   )

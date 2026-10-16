@@ -32,15 +32,20 @@ export function PointDrawBoard({ board, onSettled, onNext, nextLabel }: {
         <PointDrawScene
           half={d.half}
           links={d.links}
+          segments={d.segments}
+          draft={d.draft}
           center={d.center}
           color={board.shape.color}
+          complete={d.complete}
           resolved={d.resolved}
           justFound={d.justFound}
           demo={d.demo}
           walk={d.walk}
           flying={d.flying}
           legDrawn={d.legDrawn}
-          onPlace={d.placeAt}
+          onDrawStart={d.beginDraw}
+          onDrawMove={d.moveDraw}
+          onDrawEnd={d.endDraw}
         />
       </div>
       <div className="sym-foot">

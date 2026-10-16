@@ -299,15 +299,28 @@ describe('the four rows on the home screen', () => {
   })
 
   it('walks the first point before asking for any', () => {
-    const hook = source('src/modes/usePointSymmetryDraw.ts')
-    expect(hook.includes('POINT_PARTS_HOW_LEG')).toBeTruthy()
-    expect(hook.includes('POINT_PARTS_HOW_CARRY')).toBeTruthy()
-    expect(hook.includes('walk < 3')).toBeTruthy()
+    const unit = source('src/modes/usePointSymmetryDraw.ts')
+    expect(unit.includes('POINT_PARTS_HOW_LEG')).toBeTruthy()
+    expect(unit.includes('POINT_PARTS_HOW_CARRY')).toBeTruthy()
+    // the clock lives in useDrawWalk so both units share it
+    expect(source('src/modes/useDrawWalk.ts').includes('walk < 3')).toBeTruthy()
     const scene = source('src/components/PointDrawScene.tsx')
     expect(scene.includes('sym-join')).toBeTruthy()
     expect(scene.includes('walking')).toBeTruthy()
     expect(POINT_PARTS_HOW_LEG).toContain('중심을 향해')
     expect(POINT_PARTS_HOW_CARRY).toContain('대응점이에요')
+  })
+
+  it('joins neighbours before calling the figure whole', () => {
+    // Same shared board, so the point unit joins before finishing too: the
+    // whole outline appears only once every neighbour pair is joined, and
+    // stands three seconds before the way out appears.
+    const unit = source('src/modes/usePointSymmetryDraw.ts')
+    expect(unit.includes('POINT_DRAW_LINK_ASK')).toBeTruthy()
+    expect(unit.includes('POINT_DRAW_LINKED')).toBeTruthy()
+    const scene = source('src/components/PointDrawScene.tsx')
+    expect(scene.includes('segments')).toBeTruthy()
+    expect(scene.includes('{complete && (')).toBeTruthy()
   })
 
   it('ends every row with the sentence the row was for', () => {

@@ -157,6 +157,12 @@ export function symmetryDrawSuccessFor(waiting: number): Message {
   return { tone: 'success', icon: '⭐', text: DRAW_DONE[waiting] }
 }
 
+/* Joining the placed points. The figure is whole only once its outline is
+ * drawn, so placing the last point is not the end of it. */
+export const DRAW_LINK_ASK = '놓은 점들을 손가락으로 이어 보세요'
+export const DRAW_LINK_MISS = '옆에 있는 두 점을 이어 보세요'
+export const DRAW_LINKED = '잘 연결했어요'
+
 /* Each row ends its own way, with the sentence the row was for. */
 
 interface DonePanel {

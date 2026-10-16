@@ -159,6 +159,12 @@ export function pointDrawSuccessFor(waiting: number): Message {
   return { tone: 'success', icon: '⭐', text: DRAW_DONE[waiting] }
 }
 
+/* Joining the placed points. The figure is whole only once its outline is
+ * drawn, so placing the last point is not the end of it. */
+export const POINT_DRAW_LINK_ASK = '놓은 점들을 손가락으로 이어 보세요'
+export const POINT_DRAW_LINK_MISS = '옆에 있는 두 점을 이어 보세요'
+export const POINT_DRAW_LINKED = '잘 연결했어요'
+
 /* How to find a corresponding point, spoken while the first point walks it:
  * straight through the middle, out the same distance the other side. One
  * sentence per leg, because the two legs are two different claims. */

@@ -168,6 +168,47 @@ export function mirrorPairs(vertices: Point[], line: Line): MirrorPairs {
   return pairsFromPartners(mirrorIndex(vertices, line))
 }
 
+/**
+ * Which unplaced mirror spot a press lands on, or -1.
+ *
+ * Any order counts: the figure is the same figure however its points arrive,
+ * and requiring a fixed order turns a drawing into a guessing game.
+ */
+export function matchSpot(
+  p: Point,
+  answers: Point[],
+  placed: number[],
+  tolerance: number,
+): number {
+  return answers.findIndex(
+    (target, i) => !placed.includes(i) && distance(p, target) <= tolerance,
+  )
+}
+
+/**
+ * Which unjoined neighbour pair a drawn stroke matches, or null.
+ *
+ * Both ends must land on the two spots of one needed pair, either way round —
+ * while a repeat, a skip, or a stroke off the spots matches nothing.
+ */
+export function matchLink(
+  p: Point,
+  q: Point,
+  answers: Point[],
+  needed: Array<[number, number]>,
+  connected: Array<[number, number]>,
+  tolerance: number,
+): [number, number] | null {
+  const endIndex = (at: Point) => answers.findIndex((target) => distance(at, target) <= tolerance)
+  const a = endIndex(p)
+  const b = endIndex(q)
+  if (a === -1 || b === -1 || a === b) return null
+  const pair: [number, number] = a < b ? [a, b] : [b, a]
+  const wanted = needed.some(([x, y]) => x === pair[0] && y === pair[1])
+  const fresh = !connected.some(([x, y]) => x === pair[0] && y === pair[1])
+  return wanted && fresh ? pair : null
+}
+
 /** Where a square dropped from a point meets the line. */
 export function footOnAxis(p: Point, line: Line): Point {
   const dx = line.b.x - line.a.x

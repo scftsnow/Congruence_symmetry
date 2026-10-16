@@ -268,18 +268,21 @@ describe('the four rows on the home screen', () => {
     // lands — one popup per leg, because the two legs are two different claims —
     // and no press counts until the walk is done. Each leg takes three times as
     // long as a mark appearing would, so the drawing is watched being drawn.
-    const hook = source('src/modes/useSymmetryDraw.ts')
-    expect(hook.includes('SYMM_PARTS_HOW_LEG')).toBeTruthy()
-    expect(hook.includes('SYMM_PARTS_HOW_CARRY')).toBeTruthy()
-    expect(hook.includes('walk < 3')).toBeTruthy()
-    // One popup per walk step, like the point unit: sharing one popup across
-    // two steps lets the seven seconds run out mid-step and leaves a gap.
-    expect(hook.includes('walk < 1 ? SYMM_PARTS_HOW_LEG : SYMM_PARTS_HOW_CARRY')).toBeTruthy()
-    expect(hook.includes('WALK_MS = 3600')).toBeTruthy()
-    expect(hook.includes('LEG_DRAWN_MS = 4000')).toBeTruthy()
+    const unit = source('src/modes/useSymmetryDraw.ts')
+    expect(unit.includes('SYMM_PARTS_HOW_LEG')).toBeTruthy()
+    expect(unit.includes('SYMM_PARTS_HOW_CARRY')).toBeTruthy()
     // the walk demonstrates the topmost point, where the eye goes first
-    expect(hook.includes('a.y < b.y')).toBeTruthy()
-    expect(hook.includes('footOnAxis(givens[top]')).toBeTruthy()
+    expect(unit.includes('a.y < b.y')).toBeTruthy()
+    expect(unit.includes('footOnAxis(givens[top]')).toBeTruthy()
+    // the walk's clock lives in useDrawWalk so both units share it; one popup
+    // per step, because sharing one across two steps lets seven seconds run out
+    // mid-step and leaves a gap.
+    const clock = source('src/modes/useDrawWalk.ts')
+    expect(clock.includes('walk < 3')).toBeTruthy()
+    expect(clock.includes('WALK_MS = 3600')).toBeTruthy()
+    expect(clock.includes('LEG_DRAWN_MS = 4000')).toBeTruthy()
+    const shared = source('src/modes/useDrawBoard.ts')
+    expect(shared.includes('walk < 1 ? texts.howLeg : texts.howCarry')).toBeTruthy()
     const scene = source('src/components/SymmetryDrawScene.tsx')
     expect(scene.includes('sym-carry')).toBeTruthy()
     expect(scene.includes('sym-draw--slow')).toBeTruthy()
@@ -287,7 +290,7 @@ describe('the four rows on the home screen', () => {
     // finished being drawn — tracked in state, because state is what the board
     // can observe and test.
     expect(scene.includes('legDrawn')).toBeTruthy()
-    expect(hook.includes('LEG_DRAWN_MS')).toBeTruthy()
+    expect(clock.includes('LEG_DRAWN_MS')).toBeTruthy()
     // the carry stays invisible until its turn: it lies exactly on the leg
     // being drawn, and would cover the drawing with a finished line.
     expect(scene.includes('opacity: walk >= 2 ? 1 : 0')).toBeTruthy()
@@ -316,7 +319,7 @@ describe('the four rows on the home screen', () => {
     // belongs there. And with the bottom line gone, which point is awaited
     // arrives as a popup for every point — in staged popups that stay up long
     // enough to read, because placing takes looking.
-    const hook = source('src/modes/useSymmetryDraw.ts')
+    const hook = source('src/modes/useDrawBoard.ts')
     expect(hook.includes('flying')).toBeTruthy()
     expect(hook.includes('FLY_MS')).toBeTruthy()
     const scene = source('src/components/SymmetryDrawScene.tsx')
@@ -325,6 +328,37 @@ describe('the four rows on the home screen', () => {
     expect(board.includes('sym-instruction') ? 'the bottom line is back' : 'ok').toBe('ok')
     // guides stay up seven seconds: long enough to read while doing.
     expect(source('src/modes/useStageMessage.ts').includes('GUIDE_MS')).toBeTruthy()
+  })
+
+  it('joins neighbours before calling the figure whole', () => {
+    // Placing the last point used to finish the board, so one tap completed a
+    // figure whose outline was never drawn. Now only joined neighbours count:
+    // a stroke has to land on both spots of one needed pair, either way round,
+    // while a repeat, a skip, or a stroke off the spots matches nothing.
+    const hook = source('src/modes/useDrawBoard.ts')
+    expect(hook.includes('connected')).toBeTruthy()
+    expect(hook.includes('matchLink')).toBeTruthy()
+    expect(hook.includes('linkAsk')).toBeTruthy()
+    const geo = source('src/geometry/symmetryParts.ts')
+    expect(geo.includes('matchSpot')).toBeTruthy()
+    expect(geo.includes('matchLink')).toBeTruthy()
+    for (const scene of [
+      'src/components/SymmetryDrawScene.tsx',
+      'src/components/PointDrawScene.tsx',
+    ]) {
+      const code = source(scene)
+      expect(code.includes('segments')).toBeTruthy()
+      // the whole outline appears only once every neighbour pair is joined
+      expect(code.includes('{complete && (')).toBeTruthy()
+    }
+  })
+
+  it('lets the finished figure stand three seconds before the way out', () => {
+    // Showing the way out in the same instant as the outline would trade
+    // looking at it for leaving it.
+    const hook = source('src/modes/useDrawBoard.ts')
+    expect(hook.includes('DONE_SHOW_MS = 3000')).toBeTruthy()
+    expect(hook.includes('complete')).toBeTruthy()
   })
 
   it('names the pass just answered, not the one just entered', () => {
@@ -469,17 +503,20 @@ describe('the four rows on the home screen', () => {
     }
   })
 
-  it('draws the whole figure only once there is nothing left to copy', () => {
-    // Before the last point it is the answer painted under the question, so the
-    // whole outline and the completion both hang off `resolved`.
+  it('draws the whole figure only once every neighbour pair is joined', () => {
+    // Before that it is the answer painted under the question, so the whole
+    // outline hangs off `complete` — which needs every join, not every point —
+    // while the way out still waits on `resolved` three seconds later.
     const scene = source('src/components/SymmetryDrawScene.tsx')
-    expect(/\{resolved && \(/.test(scene) ? 'ok' : 'the whole figure is shown early').toBe('ok')
+    expect(/\{complete && \(/.test(scene) ? 'ok' : 'the whole figure is shown early').toBe('ok')
     expect(scene.includes('sym-shape--whole')).toBeTruthy()
     // and the axis is given rather than asked for on this board
     expect(scene.includes('sym-axis--given')).toBeTruthy()
-    // a tap is one press: answering the release as well would place two points
-    // for one finger, the second landing near enough to count as the next.
-    expect(scene.includes('onPointerUp')).toBeFalsy()
+    // a tap and a drag both end on release, and the hook tells them apart by
+    // distance: a press without a real drag is not a line, and a line without
+    // two real ends is not an answer.
+    expect(scene.includes('onPointerUp')).toBeTruthy()
+    expect(source('src/modes/useDrawBoard.ts').includes('MIN_DRAG')).toBeTruthy()
   })
 
   it('ends every row with the sentence the row was for', () => {

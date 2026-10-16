@@ -144,8 +144,7 @@ export function CongruenceStage({ onBack }: CongruenceStageProps) {
     icon: '👉',
     parts: [
       { text: '도형을 ' },
-      { text: '누른 뒤 끌어다', strong: true },
-      { text: ' 겹쳐 보세요. 맞으면 저절로 맞춰집니다' },
+      { text: '끌어다 겹쳐 보세요', strong: true },
     ],
   }
   const toast = useStageMessage(cleared ? NEUTRAL : attempts === 0 ? opening : message, attempts)

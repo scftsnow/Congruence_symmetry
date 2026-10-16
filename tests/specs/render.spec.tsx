@@ -139,14 +139,13 @@ describe('congruence board renders', () => {
     // The bottom line is gone: the ask crosses the top of the panel instead.
     // SSR never runs the popup timer, so the wording is checked in the source.
     const stage = source('src/modes/CongruenceStage.tsx')
-    expect(stage.includes('누른 뒤 끌어다')).toBeTruthy()
-    expect(stage.includes('저절로 맞춰집니다')).toBeTruthy()
+    expect(stage.includes('끌어다 겹쳐 보세요')).toBeTruthy()
     expect(stage.includes('stage1-hint') ? 'bottom line is back' : 'ok').toBe('ok')
   })
 
-  it('says the shape will be matched automatically', () => {
+  it('opens with a guide popup, not a standing line', () => {
     const stage = source('src/modes/CongruenceStage.tsx')
-    expect(stage.includes('저절로 맞춰집니다')).toBeTruthy()
+    expect(stage.includes("icon: '👉'")).toBeTruthy()
   })
 
   it('offers a reset and no angle controls', () => {
@@ -629,6 +628,15 @@ describe('a success is in the middle, not at the top', () => {
     expect(/window\.setTimeout/.test(hook)).toBeTruthy()
     // and nothing brings the old one back
     expect(existsSync(join(process.cwd(), 'src/modes/useToast.ts'))).toBeFalsy()
+  })
+
+  it('lets a popup leave even when its message object is rebuilt', () => {
+    // Every screen builds a fresh message object on every render. Depending on
+    // that object would reset the timer on every render, so the opening popup
+    // stayed up forever instead of seven seconds.
+    const hook = source('src/modes/useStageMessage.ts')
+    expect(/\[\s*key\s*,\s*duration\s*\]/.test(hook)).toBeTruthy()
+    expect(/GUIDE_MS/.test(hook)).toBeTruthy()
   })
 })
 

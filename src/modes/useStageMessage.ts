@@ -25,29 +25,51 @@
  * must never do, because the child is still stuck.
  */
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { Message, Popup } from '../components/tone'
 import { isPopup, said } from '../components/tone'
 
 /** how long a message stays up. Long enough to read, short enough not to wait. */
 export const POPUP_MS = 1800
+/*
+ * How long a guide stays up. A guide tells what to do next, so it is read
+ * while doing — seven seconds, then gone. Guides are the 👉 popups; every
+ * other popup answers something that just happened and keeps the short time.
+ */
+export const GUIDE_MS = 7000
 
 export function useStageMessage(message: Message, attempts: number, ms: number = POPUP_MS): Popup {
   const [live, setLive] = useState<Popup>(null)
   const words = said(message)
   const popup = isPopup(message)
+  const guide = popup && message.tone === 'success' && message.icon === '👉'
+  const duration = guide ? GUIDE_MS : ms
+  /*
+   * What re-arms the popup, as a string: every screen builds a fresh message
+   * object on every render, so depending on the object itself would reset the
+   * timer on every render and the popup would never leave — which is exactly
+   * what the opening popup used to do.
+   */
+  const key = popup ? `${message.tone}|${message.icon}|${words}|${attempts}|${duration}` : 'off'
+  const ref = useRef(message)
+  ref.current = message
 
   useEffect(() => {
-    if (!popup || !words) {
+    if (key === 'off') {
       setLive(null)
       return
     }
-    const next: Popup = { tone: message.tone, icon: message.icon, ...(message.parts ? { parts: message.parts } : { text: words }) }
+    const m = ref.current
+    if (!isPopup(m) || !said(m)) {
+      setLive(null)
+      return
+    }
+    const next: Popup = { tone: m.tone, icon: m.icon, ...(m.parts ? { parts: m.parts } : { text: said(m) }) }
     setLive(next)
-    const timer = window.setTimeout(() => setLive(null), ms)
+    const timer = window.setTimeout(() => setLive(null), duration)
     return () => window.clearTimeout(timer)
     // `attempts` is the point: it is what makes an identical sentence show again.
-  }, [popup, words, attempts, ms, message])
+  }, [key, duration])
 
   return live
 }

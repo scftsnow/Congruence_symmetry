@@ -571,13 +571,16 @@ describe('a file holds one thing', () => {
     expect(/attempts/.test(read('src/modes/CongruenceStage.tsx'))).toBeTruthy()
 
     /*
-     * And the counter has to be one of the effect's dependencies, which is the
+     * And the counter has to reach the effect's dependencies, which is the
      * whole mechanism. Matching the word anywhere in the file would pass on a
      * comment or a parameter that nothing reads, which is the shape of the bug
      * being guarded against: a name that looks like a fix but changes nothing.
+     * It may travel inside the change-key string rather than as a bare dep, as
+     * long as the key is what the effect depends on.
      */
     const hook = read('src/modes/useStageMessage.ts')
-    expect(/\}, \[[^\]]*\battempts\b[^\]]*\]\)/.test(hook)).toBeTruthy()
+    expect(/\|?\$\{attempts\}\|?/.test(hook)).toBeTruthy()
+    expect(/\}, \[[^\]]*\b(key|attempts)\b[^\]]*\]\)/.test(hook)).toBeTruthy()
   })
 
   it('one rule decides where a message goes, and both units use it', () => {

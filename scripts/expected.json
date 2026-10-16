@@ -15,7 +15,7 @@
     "uiStrings":  {
                       "homeTitle":  "합동과 대칭",
                       "congruentMsg":  "합동",
-                      "dragHint":  "누른 뒤 끌어다",
+                      "dragHint":  "끌어다 겹쳐 보세요",
                       "directionMsg":  "방향이 달라도",
                       "startBtn":  "합동인 도형 찾기 시작하기",
                       "unitTitle":  "합동인 도형 찾기",
@@ -53,8 +53,7 @@
                      },
     "board":  {
                   "title":  "합동인 도형 찾기",
-                  "dragHint":  "누른 뒤 끌어다",
-                  "autoMatch":  "저절로 맞춰집니다"
+                  "dragHint":  "끌어다 겹쳐 보세요"
               },
     "symmetry":  {
                      "axisRow":  "선대칭도형 찾기",
@@ -114,7 +113,7 @@
                                     "찾았어!"
                                 ],
                      "drawAsk":  {
-                                    "first":  "축을 사이에 두고 마주 보는 점을 손가락으로 눌러 보세요",
+                                    "first":  "마주 보는 점을 눌러 보세요",
                                     "next":  "다음 점을 눌러 보세요",
                                     "last":  "마지막 점을 눌러 보세요"
                                 },
@@ -189,7 +188,7 @@
                                     "찾았어!"
                                 ],
                      "drawAsk":  {
-                                    "first":  "중심을 사이에 두고 마주 보는 점",
+                                    "first":  "마주 보는 점을 눌러 보세요",
                                     "next":  "다음 점을 눌러 보세요",
                                     "last":  "마지막 점을 눌러 보세요"
                                 },

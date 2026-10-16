@@ -132,7 +132,7 @@ export function symmetryFactsSuccessFor(stage: string): Message {
  * in a sentence: the points already placed are the count the child can see. */
 
 const DRAW_ASK: Record<number, string> = {
-  3: '축을 사이에 두고 마주 보는 점을 손가락으로 눌러 보세요',
+  3: '마주 보는 점을 눌러 보세요',
   2: '다음 점을 눌러 보세요',
   1: '마지막 점을 눌러 보세요',
 }

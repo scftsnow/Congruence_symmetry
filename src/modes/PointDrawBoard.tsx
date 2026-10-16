@@ -14,9 +14,6 @@ import type { PointSymmetryBoard } from '../geometry/pointSymmetryShapes'
 import { usePointSymmetryDraw } from './usePointSymmetryDraw'
 import { useStageMessage } from './useStageMessage'
 
-/** how long a popup stays up here: placing takes looking, so longer than elsewhere */
-const POINT_DRAW_POPUP_MS = 3400
-
 type DrawBoard = Extract<PointSymmetryBoard, { kind: 'draw' }>
 
 export function PointDrawBoard({ board, onSettled, onNext, nextLabel }: {
@@ -26,7 +23,7 @@ export function PointDrawBoard({ board, onSettled, onNext, nextLabel }: {
   nextLabel: string
 }) {
   const d = usePointSymmetryDraw(board, onSettled)
-  const toast = useStageMessage(d.message, d.attempts, POINT_DRAW_POPUP_MS)
+  const toast = useStageMessage(d.message, d.attempts)
 
   return (
     <>

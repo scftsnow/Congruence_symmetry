@@ -226,7 +226,8 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  max-width: min(440px, calc(100vw - 40px));
+  width: max-content;
+  max-width: min(640px, calc(100% - 20px));
   padding: 16px 22px;
   border-radius: var(--radius);
   background: var(--color-surface);
@@ -238,13 +239,28 @@
 .toast__icon {
   font-size: 1.8rem;
   line-height: 1;
+  flex: none;
 }
 
 .toast__text {
-  font-size: 1.15rem;
+  font-size: 1.1rem;
   font-weight: 600;
   color: var(--color-ink);
   line-height: 1.4;
+  white-space: nowrap;
+}
+
+@media (max-width: 600px) {
+  .toast {
+    gap: 8px;
+    padding: 12px 14px;
+  }
+  .toast__icon {
+    font-size: 1.4rem;
+  }
+  .toast__text {
+    font-size: 0.95rem;
+  }
 }
 
 .toast__text strong {

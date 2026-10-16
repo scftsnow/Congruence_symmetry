@@ -8,8 +8,7 @@
               },
     "board":  {
                   "congruentMsg":  "합동이야",
-                  "autoMatch":  "저절로 맞춰집니다",
-                  "dragHint":  "누른 뒤 끌어다",
+                  "dragHint":  "끌어다 겹쳐 보세요",
                   "reset":  "처음부터",
                   "directionMsg":  "방향이 달라도",
                   "sizeTrap":  "크기가 달라"

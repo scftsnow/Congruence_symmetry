@@ -320,7 +320,8 @@ describe('the four rows on the home screen', () => {
     expect(scene.includes('sym-trip')).toBeTruthy()
     const board = source('src/modes/DrawBoard.tsx')
     expect(board.includes('sym-instruction') ? 'the bottom line is back' : 'ok').toBe('ok')
-    expect(board.includes('DRAW_POPUP_MS')).toBeTruthy()
+    // guides stay up seven seconds: long enough to read while doing.
+    expect(source('src/modes/useStageMessage.ts').includes('GUIDE_MS')).toBeTruthy()
   })
 
   it('names the pass just answered, not the one just entered', () => {

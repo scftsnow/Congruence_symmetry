@@ -14,9 +14,6 @@ import type { SymmetryBoard } from '../geometry/symmetryShapes'
 import { useSymmetryDraw } from './useSymmetryDraw'
 import { useStageMessage } from './useStageMessage'
 
-/** how long a popup stays up here: placing takes looking, so longer than elsewhere */
-const DRAW_POPUP_MS = 3400
-
 type DrawBoard = Extract<SymmetryBoard, { kind: 'draw' }>
 
 export function DrawBoard({ board, onSettled, onNext, nextLabel }: {
@@ -26,7 +23,7 @@ export function DrawBoard({ board, onSettled, onNext, nextLabel }: {
   nextLabel: string
 }) {
   const d = useSymmetryDraw(board, onSettled)
-  const toast = useStageMessage(d.message, d.attempts, DRAW_POPUP_MS)
+  const toast = useStageMessage(d.message, d.attempts)
 
   return (
     <>

@@ -106,14 +106,30 @@ export function usePointSymmetryParts(board: PartsBoard, onSettled: () => void):
     message:
       (pass.justFound
         ? pass.found
-        : pointPartsMessageFor({
-            phase: pass.phase,
-            wrong: pass.wrong,
-            done: pass.done,
-            flying: pass.flying,
-            flyingAngle: pass.flying && pass.flyStep >= pass.flySides.length,
-            landed: pass.flying && pass.landed,
-          })) ?? { tone: 'neutral' as const, icon: '', text: '' },
+        : pass.wrong
+          ? pointPartsMessageFor({
+              phase: pass.phase,
+              wrong: true,
+              done: pass.done,
+              flying: pass.flying,
+              flyingAngle: pass.flying && pass.flyStep >= pass.flySides.length,
+              landed: pass.flying && pass.landed,
+            })
+          : pass.phase !== 'compare' && pass.step === 0 && pass.instruction
+            ? /*
+               * The ask crosses the board as a popup when its pass opens, because
+               * a line at the bottom is read once and then left alone — and the
+               * first question of a pass is exactly what has just happened.
+               */
+              { tone: 'success', icon: '👉', text: pass.instruction }
+            : pointPartsMessageFor({
+                phase: pass.phase,
+                wrong: pass.wrong,
+                done: pass.done,
+                flying: pass.flying,
+                flyingAngle: pass.flying && pass.flyStep >= pass.flySides.length,
+                landed: pass.flying && pass.landed,
+              })) ?? { tone: 'neutral' as const, icon: '', text: '' },
     answer: pass.answer,
   }
 }

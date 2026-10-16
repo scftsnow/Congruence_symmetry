@@ -48,23 +48,20 @@ export function PointFactsBoard({ board, onSettled, onNext, nextLabel }: {
             {nextLabel}
           </button>
         ) : (
-          <>
-            {f.instruction && <p className="stage1-hint sym-instruction">{f.instruction}</p>}
-            <ol className="sym-dots" aria-label="진행">
-              {f.pairs.points.map((_, i) => (
-                <li
-                  key={i}
-                  className={
-                    i < f.joinedList.length
-                      ? 'sym-dot sym-dot--done'
-                      : i === f.joinedList.length
-                        ? 'sym-dot sym-dot--now'
-                        : 'sym-dot'
-                  }
-                />
-              ))}
-            </ol>
-          </>
+          <ol className="sym-dots" aria-label="진행">
+            {f.pairs.points.map((_, i) => (
+              <li
+                key={i}
+                className={
+                  i < f.joinedList.length
+                    ? 'sym-dot sym-dot--done'
+                    : i === f.joinedList.length
+                      ? 'sym-dot sym-dot--now'
+                      : 'sym-dot'
+                }
+              />
+            ))}
+          </ol>
         )}
       </div>
     </>

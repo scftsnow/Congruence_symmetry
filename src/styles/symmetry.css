@@ -13,17 +13,6 @@
   gap: 8px;
 }
 
-/*
- * The one standing instruction, at the bottom.
- *
- * Read once and then left alone, with nothing over the shape — and in the same
- * place as in both earlier units, so the three do not teach the same lesson
- * from three different screens.
- */
-.sym-instruction {
-  text-align: center;
-}
-
 .sym-dots {
   display: flex;
   gap: 12px;

@@ -25,6 +25,7 @@ import { StackedOverlay } from '../components/StackedOverlay'
 import { Grid } from '../components/BoardGrid'
 import { BoardShapeView } from '../components/BoardShapeView'
 import { congruenceDonePanelFor, congruenceMessageFor } from '../components/verdictText'
+import type { Message } from '../components/tone'
 import { useStageMessage } from './useStageMessage'
 
 /** nothing to say; the board is finished and the ending popup has it */
@@ -133,7 +134,21 @@ export function CongruenceStage({ onBack }: CongruenceStageProps) {
 
   const cleared = count >= board.target
   const message = congruenceMessageFor(verdict, turned, count, board.target)
-  const toast = useStageMessage(cleared ? NEUTRAL : message, attempts)
+  /*
+   * Before the first release, the standing instruction crosses the top of the
+   * panel as a popup, because the bottom line is gone everywhere. congruenceMessageFor
+   * stays neutral for an unstacked shape so its own checks still hold.
+   */
+  const opening: Message = {
+    tone: 'success',
+    icon: '👉',
+    parts: [
+      { text: '도형을 ' },
+      { text: '누른 뒤 끌어다', strong: true },
+      { text: ' 겹쳐 보세요. 맞으면 저절로 맞춰집니다' },
+    ],
+  }
+  const toast = useStageMessage(cleared ? NEUTRAL : attempts === 0 ? opening : message, attempts)
 
   useEffect(() => {
     if (!released) return
@@ -229,9 +244,6 @@ export function CongruenceStage({ onBack }: CongruenceStageProps) {
       ) : (
         <div className="toolbar">
           <div className="toolbar__actions">
-            <p className="stage1-hint">
-              도형을 <strong>누른 뒤 끌어다</strong> 겹쳐 보세요. 맞으면 저절로 맞춰집니다
-            </p>
             <button type="button" className="mini-btn mini-btn--ghost" onClick={board.reset}>
               ↺ 처음부터
             </button>

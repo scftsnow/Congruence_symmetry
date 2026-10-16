@@ -98,31 +98,20 @@ export function CorrespondenceStage({ onBack }: { onBack: () => void }) {
             </button>
           )
         ) : (
-          <>
-            {/*
-             * The one standing instruction, at the bottom.
-             *
-             * It used to be a strip across the top, above a board the child was
-             * looking at rather than in. The congruence board already keeps this
-             * same line in its bottom toolbar, so this is where it belongs in both
-             * units: read once, then left alone, with nothing over the shapes.
-             */}
-            {c.instruction && <p className="stage1-hint corr-instruction">{c.instruction}</p>}
-            <ol className="corr-dots" aria-label="진행">
-              {Array.from({ length: c.corners }).map((_, i) => (
-                <li
-                  key={i}
-                  className={
-                    i === c.step
-                      ? 'corr-dot corr-dot--now'
-                      : i < c.step
-                        ? 'corr-dot corr-dot--done'
-                        : 'corr-dot'
-                  }
-                />
-              ))}
-            </ol>
-          </>
+          <ol className="corr-dots" aria-label="진행">
+            {Array.from({ length: c.corners }).map((_, i) => (
+              <li
+                key={i}
+                className={
+                  i === c.step
+                    ? 'corr-dot corr-dot--now'
+                    : i < c.step
+                      ? 'corr-dot corr-dot--done'
+                      : 'corr-dot'
+                }
+              />
+            ))}
+          </ol>
         )}
       </div>
     </div>

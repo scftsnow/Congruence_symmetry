@@ -153,7 +153,9 @@ export function usePointSymmetry(item: PointSymmetryItem, onSettled: () => void)
       : pointSymmetryFoundFor()
     : wrongKind
       ? pointSymmetryHintFor(wrongKind)
-      : { tone: 'neutral' as const, icon: '', text: '' }
+      : attempts === 0
+        ? { tone: 'success', icon: '👉', text: pointSymmetryInstructionFor() }
+        : { tone: 'neutral' as const, icon: '', text: '' }
 
   return {
     shape: item,

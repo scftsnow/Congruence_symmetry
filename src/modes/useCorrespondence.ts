@@ -88,14 +88,25 @@ export function useCorrespondence(): CorrespondenceState {
     done: pass.done,
     message: (pass.justFound
       ? pass.found
-      : correspondenceMessageFor({
-          phase: pass.phase,
-          wrong: pass.wrong,
-          done: pass.done,
-          flying: pass.flying,
-          flyingAngle: pass.flying && pass.flyStep >= corners,
-          landed: pass.flying && pass.landed,
-        })) ?? { tone: 'neutral' as const, icon: '', text: '' },
+      : pass.wrong
+        ? correspondenceMessageFor({
+            phase: pass.phase,
+            wrong: true,
+            done: pass.done,
+            flying: pass.flying,
+            flyingAngle: pass.flying && pass.flyStep >= corners,
+            landed: pass.flying && pass.landed,
+          })
+        : pass.phase !== 'compare' && pass.step === 0 && pass.instruction
+          ? { tone: 'success', icon: '👉', text: pass.instruction }
+          : correspondenceMessageFor({
+              phase: pass.phase,
+              wrong: pass.wrong,
+              done: pass.done,
+              flying: pass.flying,
+              flyingAngle: pass.flying && pass.flyStep >= corners,
+              landed: pass.flying && pass.landed,
+            })) ?? { tone: 'neutral' as const, icon: '', text: '' },
     startPair,
     answer: pass.answer,
     nextPair,

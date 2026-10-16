@@ -48,19 +48,16 @@ export function PointPartsBoard({ board, onSettled, onNext, nextLabel }: {
             {nextLabel}
           </button>
         ) : (
-          <>
-            {p.instruction && <p className="stage1-hint sym-instruction">{p.instruction}</p>}
-            <ol className="sym-dots" aria-label="진행">
-              {Array.from({ length: p.total }).map((_, i) => (
-                <li
-                  key={i}
-                  className={
-                    i === p.step ? 'sym-dot sym-dot--now' : i < p.step ? 'sym-dot sym-dot--done' : 'sym-dot'
-                  }
-                />
-              ))}
-            </ol>
-          </>
+          <ol className="sym-dots" aria-label="진행">
+            {Array.from({ length: p.total }).map((_, i) => (
+              <li
+                key={i}
+                className={
+                  i === p.step ? 'sym-dot sym-dot--now' : i < p.step ? 'sym-dot sym-dot--done' : 'sym-dot'
+                }
+              />
+            ))}
+          </ol>
         )}
       </div>
     </>

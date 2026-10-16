@@ -163,7 +163,9 @@ export function useSymmetry(item: SymmetryItem, onSettled: () => void): Symmetry
       : symmetryMoreFor()
     : wrongKind
       ? symmetryHintFor(wrongKind)
-      : { tone: 'neutral' as const, icon: '', text: '' }
+      : attempts === 0
+        ? { tone: 'success', icon: '👉', text: symmetryInstructionFor() }
+        : { tone: 'neutral' as const, icon: '', text: '' }
 
   return {
     shape: item,

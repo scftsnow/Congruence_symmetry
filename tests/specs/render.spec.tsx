@@ -135,12 +135,18 @@ describe('congruence board renders', () => {
     expect(html.includes('0 / 5')).toBeTruthy()
   })
 
-  it('tells the child to drag a shape', () => {
-    expect(html.includes(expected.board.dragHint)).toBeTruthy()
+  it('tells the child to drag a shape, as a popup', () => {
+    // The bottom line is gone: the ask crosses the top of the panel instead.
+    // SSR never runs the popup timer, so the wording is checked in the source.
+    const stage = source('src/modes/CongruenceStage.tsx')
+    expect(stage.includes('누른 뒤 끌어다')).toBeTruthy()
+    expect(stage.includes('저절로 맞춰집니다')).toBeTruthy()
+    expect(stage.includes('stage1-hint') ? 'bottom line is back' : 'ok').toBe('ok')
   })
 
   it('says the shape will be matched automatically', () => {
-    expect(html.includes(expected.board.autoMatch)).toBeTruthy()
+    const stage = source('src/modes/CongruenceStage.tsx')
+    expect(stage.includes('저절로 맞춰집니다')).toBeTruthy()
   })
 
   it('offers a reset and no angle controls', () => {
@@ -356,8 +362,11 @@ describe('correspondence stage renders', () => {
     expect((html.match(/class="corr-shape/g) || []).length).toBe(2)
   })
 
-  it('asks for the first correspondence', () => {
-    expect(html.includes(expected.corr.askPoint)).toBeTruthy()
+  it('asks for the first correspondence, as a popup', () => {
+    // The bottom line is gone: each pass opens with its ask over the panel.
+    const hook = source('src/modes/useCorrespondence.ts')
+    expect(hook.includes('pass.step === 0')).toBeTruthy()
+    expect(html.includes('corr-instruction') ? 'bottom line is back' : 'ok').toBe('ok')
   })
 
   it('lights a point on the left shape and offers a target on the right', () => {
@@ -594,19 +603,16 @@ describe('a success is in the middle, not at the top', () => {
     expect(styles.includes('.banner')).toBeFalsy()
   })
 
-  it('each unit says what to do, at the bottom', () => {
+  it('each unit says what to do, over the panel', () => {
     /*
-     * The instruction is the one thing that is not a message about something that
-     * happened, so it is the one thing that does not go over the board. The
-     * congruence board has always kept it in its bottom toolbar; the correspondence
-     * unit now keeps it beside the progress dots, in the same place.
+     * The bottom lines are gone everywhere: every ask now crosses the top of
+     * the panel as a popup instead, so nothing competes with the shapes.
      */
     const board = renderToStaticMarkup(<CongruenceStage onBack={() => {}} />)
-    expect(board.includes(expected.board.dragHint)).toBeTruthy()
-    expect(board.includes(expected.board.autoMatch)).toBeTruthy()
+    expect(board.includes('stage1-hint') ? 'bottom line is back' : 'ok').toBe('ok')
 
     const corr = renderToStaticMarkup(<CorrespondenceStage onBack={() => {}} />)
-    expect(corr.includes(expected.corr.askPoint)).toBeTruthy()
+    expect(corr.includes('corr-instruction') ? 'bottom line is back' : 'ok').toBe('ok')
     // and it is not up in a strip
     expect(corr.includes('banner')).toBeFalsy()
   })
@@ -654,9 +660,12 @@ describe('symmetry rows render', () => {
     expect(draw.includes(expected.symm.drawTitle)).toBeTruthy()
   })
 
-  it('draws one shape and the standing instruction', () => {
+  it('draws one shape and asks over the panel', () => {
     expect((axis.match(/class="sym-shape"/g) || []).length).toBe(1)
-    expect(axis.includes(expected.symm.instruction)).toBeTruthy()
+    // The bottom line is gone: the first ask is a popup, checked in the hook.
+    const hook = source('src/modes/useSymmetry.ts')
+    expect(hook.includes('attempts === 0')).toBeTruthy()
+    expect(axis.includes('sym-instruction') ? 'bottom line is back' : 'ok').toBe('ok')
   })
 
   it('draws no axis before one has been drawn', () => {
@@ -709,9 +718,11 @@ describe('point-symmetry rows render', () => {
     expect(draw.includes(expected.ptsym.drawTitle)).toBeTruthy()
   })
 
-  it('draws one shape and the standing instruction', () => {
+  it('draws one shape and asks over the panel', () => {
     expect((axis.match(/class="sym-shape"/g) || []).length).toBe(1)
-    expect(axis.includes('대칭의 중심을 손가락으로 돌려 보세요')).toBeTruthy()
+    const hook = source('src/modes/usePointSymmetry.ts')
+    expect(hook.includes('attempts === 0')).toBeTruthy()
+    expect(axis.includes('sym-instruction') ? 'bottom line is back' : 'ok').toBe('ok')
   })
 
   it('turns no copy before one has been tapped', () => {

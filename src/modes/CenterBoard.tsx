@@ -49,19 +49,16 @@ export function CenterBoard({
             {nextLabel}
           </button>
         ) : (
-          <>
-            <p className="stage1-hint sym-instruction">{s.instruction}</p>
-            {/*
-             * The "there is none" answer, on every shape.
-             *
-             * Only on the figure with no center would leak which one it is, so
-             * it stands everywhere and is judged everywhere: right once, wrong
-             * everywhere else. Its words live in pointSymmText, like all wording.
-             */}
-            <button type="button" className="mini-btn" onClick={s.denyClaim}>
-              {POINT_DENY_LABEL}
-            </button>
-          </>
+          /*
+           * The "there is none" answer, on every shape.
+           *
+           * Only on the figure with no center would leak which one it is, so
+           * it stands everywhere and is judged everywhere: right once, wrong
+           * everywhere else. Its words live in pointSymmText, like all wording.
+           */
+          <button type="button" className="mini-btn" onClick={s.denyClaim}>
+            {POINT_DENY_LABEL}
+          </button>
         )}
       </div>
     </>

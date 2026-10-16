@@ -49,19 +49,16 @@ export function AxisBoard({
             {nextLabel}
           </button>
         ) : (
-          <>
-            <p className="stage1-hint sym-instruction">{s.instruction}</p>
-            {/*
-             * The "there is none" answer, on every shape.
-             *
-             * Only on the shape with no axis would leak which one it is, so it
-             * stands everywhere and is judged everywhere: right once, wrong
-             * everywhere else. Its words live in symmText, like all wording.
-             */}
-            <button type="button" className="mini-btn" onClick={s.denyClaim}>
-              {SYMM_DENY_LABEL}
-            </button>
-          </>
+          /*
+           * The "there is none" answer, on every shape.
+           *
+           * Only on the shape with no axis would leak which one it is, so it
+           * stands everywhere and is judged everywhere: right once, wrong
+           * everywhere else. Its words live in symmText, like all wording.
+           */
+          <button type="button" className="mini-btn" onClick={s.denyClaim}>
+            {SYMM_DENY_LABEL}
+          </button>
         )}
       </div>
     </>

@@ -155,22 +155,3 @@
   cursor: not-allowed;
 }
 
-/* the congruence board hint
- *
- * Split out of src/index.css, which was one file because there was
- * one screen. 
- */
-
-/* ── board hint ───────────────────────────────────────── */
-
-.stage1-hint {
-  margin: 0;
-  font-size: 1rem;
-  color: var(--color-ink-soft);
-  line-height: 1.6;
-}
-
-.stage1-hint strong {
-  color: var(--color-ink);
-}
-

@@ -81,10 +81,7 @@ export function useSymmetryDraw(board: DrawBoard, onSettled: () => void): Symmet
     [board],
   )
 
-  /*
-   * Which corner of the given half each point mirrors: the same place in the
-   * full outline, less the two standing on the axis.
-   */
+  /* Which corner of the given half each point mirrors: same place in the full outline, less the two on the axis. */
   const givens = useMemo(
     () =>
       board.place.map((i) => {
@@ -164,11 +161,10 @@ export function useSymmetryDraw(board: DrawBoard, onSettled: () => void): Symmet
       // would answer a question never asked.
       if (resolved || walking || flying) return
       setAttempts((n) => n + 1)
-      // only the point still being asked for counts, so a stray press on a spot
-      // already filled cannot skip ahead
-      const at = placed.length
-      const target = answers[at]
-      if (distance(p, target) > PLACE_TOLERANCE) {
+      // Any unplaced point counts: the figure is the same figure in any order,
+      // and requiring a fixed order turns a drawing into a guessing game.
+      const at = answers.findIndex((target, i) => !placed.includes(i) && distance(p, target) <= PLACE_TOLERANCE)
+      if (at === -1) {
         setMiss(true)
         timer.current = window.setTimeout(() => setMiss(false), HINT_MS)
         return
@@ -177,20 +173,22 @@ export function useSymmetryDraw(board: DrawBoard, onSettled: () => void): Symmet
       // The point flies from its given corner across to its mirror spot, so the
       // placing is watched arriving rather than appearing: arriving is the proof
       // it belongs there.
-      setFlying({ from: givens[at], to: target })
+      setFlying({ from: givens[at], to: answers[at] })
       timer.current = window.setTimeout(() => {
         setFlying(null)
-        setPlaced((prev) => [...prev, prev.length])
+        setPlaced((prev) => [...prev, at])
         setJustFound(true)
         timer.current = window.setTimeout(() => setJustFound(false), STAR_MS)
       }, FLY_MS)
     },
-    [answers, givens, placed.length, resolved, walking, flying],
+    [answers, givens, placed, resolved, walking, flying],
   )
 
   return {
     half,
-    links: placed.map((_, at) => ({ given: givens[at], placed: answers[at] })),
+    // Sorted back into outline order so the completed polygon winds one way
+    // round whichever order the points were placed in.
+    links: [...placed].sort((a, b) => a - b).map((at) => ({ given: givens[at], placed: answers[at] })),
     axis: board.axis,
     waiting,
     demo,

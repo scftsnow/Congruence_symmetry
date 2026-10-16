@@ -118,7 +118,7 @@
                                     "last":  "마지막 점을 눌러 보세요"
                                 },
                      "drawMissed":  "조금만 아쉬워요. 축에서 같은 거리, 반대쪽 점을 눌러 보세요",
-                     "drawLinkAsk":  "놓은 점들을 서로 이어 보세요",
+                     "drawLinkAsk":  "남은 절반을 점끼리 이어서 그려 보세요",
                      "drawLinkMiss":  "옆에 있는 두 점을 이어 보세요",
                      "drawLinked":  "잘 연결했어요",
                      "drawDone":  {
@@ -194,7 +194,7 @@
                                     "last":  "마지막 점을 눌러 보세요"
                                 },
                      "drawMissed":  "중심에서 같은 거리",
-                     "drawLinkAsk":  "놓은 점들을 서로 이어 보세요",
+                     "drawLinkAsk":  "남은 절반을 점끼리 이어서 그려 보세요",
                      "drawLinkMiss":  "옆에 있는 두 점을 이어 보세요",
                      "drawLinked":  "잘 연결했어요",
                      "drawDone":  {

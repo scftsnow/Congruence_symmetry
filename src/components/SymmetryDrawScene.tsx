@@ -2,9 +2,9 @@
  * The drawing board drawn — a half figure, its axis, and the half taking shape.
  *
  * The full outline is never shown while the child is working: it would be the
- * answer, painted underneath. It appears whole once every span is drawn and
- * every neighbour pair is joined, and stands for three seconds before the way
- * out appears, because the finish is watched, not left.
+ * answer, painted underneath. It appears whole once every edge of the remaining
+ * half is joined, and stands for three seconds before the way out appears,
+ * because the finish is watched, not left.
  */
 
 import { useRef } from 'react'
@@ -21,7 +21,6 @@ const MARK = 16
 
 export function SymmetryDrawScene({
   half,
-  spans,
   joins,
   placed,
   draft,
@@ -39,9 +38,7 @@ export function SymmetryDrawScene({
 }: {
   /** the half the child is given, with the axis as its straight edge */
   half: Point[]
-  /** the spans drawn so far: each given point reaching the axis */
-  spans: Array<{ a: Point; b: Point }>
-  /** the neighbour pairs joined so far: the outline taking shape */
+  /** the outline edges joined so far: the remaining half taking shape */
   joins: Array<{ a: Point; b: Point }>
   /** placed point positions in outline order */
   placed: Point[]
@@ -49,7 +46,7 @@ export function SymmetryDrawScene({
   draft: { p: Point; q: Point } | null
   axis: Line
   color: string
-  /** every span is drawn and every pair joined, so the whole figure is shown */
+  /** every edge is joined, so the whole figure is shown */
   complete: boolean
   justFound: boolean
   /** the example walk: the given corner, the middle it crosses, its mirror */
@@ -161,15 +158,7 @@ export function SymmetryDrawScene({
         </g>
       )}
 
-      {/* each span the child drew: the corner reaching the axis, square to it */}
-      {spans.map((s, i) => (
-        <g key={`sp${i}`} className="sym-proved">
-          <line className="sym-join sym-draw" pathLength={1} x1={s.a.x} y1={s.a.y} x2={s.b.x} y2={s.b.y} />
-          <path className="sym-right" d={rightAnglePath(s.b, axis, s.a, MARK)} />
-        </g>
-      ))}
-
-      {/* the neighbour pairs joined so far: the outline taking shape */}
+      {/* the remaining half taking shape: each edge joined, drawn as it is made */}
       {joins.map((s, i) => (
         <line
           key={`jn${i}`}

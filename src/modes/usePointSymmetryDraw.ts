@@ -2,9 +2,9 @@
  * The point-symmetric drawing board — half a figure and its middle to complete.
  *
  * Where the figure sits, which mirror it answers to, and what is said while it
- * happens. The sequence itself — walk, place, span, join, show — is the shared
- * draw board's, because completing the other mirror's figure is the same
- * activity with the words exchanged.
+ * happens. The sequence itself — walk, place, join, show — is the shared draw
+ * board's, because completing the other mirror's figure is the same activity
+ * with the words exchanged.
  */
 
 import { useMemo } from 'react'
@@ -15,9 +15,6 @@ import {
   pointDrawMissedFor,
   pointDrawSuccessFor,
   pointDrawDoneAll,
-  POINT_DRAW_SPAN_ASK,
-  POINT_DRAW_SPAN_MISS,
-  POINT_DRAW_SPAN_DONE,
   POINT_DRAW_LINK_ASK,
   POINT_DRAW_LINK_MISS,
   POINT_DRAW_LINKED,
@@ -53,8 +50,6 @@ export function usePointSymmetryDraw(board: DrawBoard, onSettled: () => void) {
       }),
     [board],
   )
-  /* Every span ends at the middle: a point and its image stand either side of it. */
-  const spanTargets = useMemo(() => givens.map(() => ({ ...board.center })), [givens, board.center])
   /*
    * The walk demonstrates the topmost point: the highest corner is where the
    * eye goes first, so the method is shown where the child is already looking.
@@ -71,8 +66,6 @@ export function usePointSymmetryDraw(board: DrawBoard, onSettled: () => void) {
       half,
       givens,
       answers,
-      spanTargets,
-      squareAxis: null,
       demo,
       placeTolerance: PLACE_TOLERANCE,
       texts: {
@@ -81,9 +74,6 @@ export function usePointSymmetryDraw(board: DrawBoard, onSettled: () => void) {
         successFor: pointDrawSuccessFor,
         howLeg: POINT_PARTS_HOW_LEG,
         howCarry: POINT_PARTS_HOW_CARRY,
-        spanAsk: POINT_DRAW_SPAN_ASK,
-        spanMiss: POINT_DRAW_SPAN_MISS,
-        spanDone: POINT_DRAW_SPAN_DONE,
         linkAsk: POINT_DRAW_LINK_ASK,
         linkMiss: POINT_DRAW_LINK_MISS,
         linkDone: POINT_DRAW_LINKED,

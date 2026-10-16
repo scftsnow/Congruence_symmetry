@@ -38,15 +38,6 @@ export const MIRROR_TOLERANCE = 2
 export const GRAB_TOLERANCE = 48
 /** How square a drawn segment must stand to an axis, in degrees either way. */
 export const SQUARE_TOLERANCE = 12
-/**
- * How near the axis a drawn span must land, in pixels.
- *
- * Generous, because the end of a stroke is where a finger is least precise, and
- * the point being made is where the span STOPS — not that a child can hit a
- * target the width of a pencil. A span that stops well short is a different
- * answer and gets a different hint.
- */
-export const SPAN_TOLERANCE = 45
 
 /** The mirror image of one point. */
 export function mirrorOf(p: Point, line: Line): Point {
@@ -186,21 +177,6 @@ export function matchSpot(
 }
 
 /**
- * Which unspanned corner a drawn stroke starts from, or -1.
- *
- * A span runs from its corner to its target, so the stroke has to start where
- * the corner is; starting anywhere else is a different line.
- */
-export function matchSpanStart(
-  p: Point,
-  givens: Point[],
-  spanned: number[],
-  tolerance: number,
-): number {
-  return givens.findIndex((g, i) => !spanned.includes(i) && distance(p, g) <= tolerance)
-}
-
-/**
  * Which unjoined outline edge a drawn stroke matches, or -1.
  *
  * The edges are the segments the child must draw to finish the outline: the
@@ -220,18 +196,6 @@ export function matchJoin(
     (distance(p, e.a) <= tolerance && distance(q, e.b) <= tolerance) ||
     (distance(p, e.b) <= tolerance && distance(q, e.a) <= tolerance)
   return edges.findIndex((e, k) => !drawn.includes(k) && fits(e))
-}
-
-/**
- * Whether a drawn span lands on its target and stands square to the axis.
- *
- * The end of a stroke is where a finger is least precise, so landing is judged
- * generously; squareness is the point of the span, so it is judged exactly. A
- * unit with no axis to stand square to (the middle of a point-symmetric figure)
- * skips the squareness half.
- */
-export function spanFalls(p: Point, q: Point, target: Point, axis: Line | null): boolean {
-  return distance(q, target) <= SPAN_TOLERANCE && (!axis || angleOffRight(p, q, axis) <= SQUARE_TOLERANCE)
 }
 
 /** Where a square dropped from a point meets the line. */

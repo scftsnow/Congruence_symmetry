@@ -163,14 +163,11 @@ export function symmetryDrawDoneAll(): Message {
   return { tone: 'success', icon: '⭐', text: '선대칭도형을 완성했어요!' }
 }
 
-/* The spans and the joins. Each given point reaches the axis on its own
- * perpendicular first, and only then are the found points joined in outline
- * order — the same two facts the facts board proved, used here instead of
- * shown. */
-export const DRAW_SPAN_ASK = '점에서 대칭축까지 손가락으로 이어 보세요'
-export const DRAW_SPAN_MISS = '점은 대칭축을 향해 곧게 이어 보세요'
-export const DRAW_SPAN_DONE = '대칭축과 수직으로 만났어요'
-export const DRAW_LINK_ASK = '놓은 점들을 서로 이어 보세요'
+/* The joins. The remaining half is drawn by joining the found points in
+ * outline order — the chain they make, tied to the given half's own corners.
+ * Nothing is drawn to the axis: the axis was how the points were found, and
+ * the finding is over once they are placed. */
+export const DRAW_LINK_ASK = '남은 절반을 점끼리 이어서 그려 보세요'
 export const DRAW_LINK_MISS = '옆에 있는 두 점을 이어 보세요'
 export const DRAW_LINKED = '잘 연결했어요'
 

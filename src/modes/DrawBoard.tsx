@@ -31,7 +31,6 @@ export function DrawBoard({ board, onSettled, onNext, nextLabel }: {
         {toast && <Toast {...toast} />}
         <SymmetryDrawScene
           half={d.half}
-          spans={d.spans}
           joins={d.joins}
           placed={d.placed}
           draft={d.draft}

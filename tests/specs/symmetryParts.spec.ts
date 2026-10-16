@@ -19,8 +19,6 @@ import {
   nearestVertexIndex,
   rightAnglePath,
   tickPath,
-  GRAB_TOLERANCE,
-  SPAN_TOLERANCE,
 } from '../../src/geometry/symmetryParts'
 import { correspondence } from '../../src/geometry/correspondence'
 import {
@@ -103,11 +101,12 @@ describe('the parts of a folded figure', () => {
 })
 
 describe('the two facts about the axis', () => {
-  it('puts the foot of a span on the axis, square to it', () => {
+  it('puts the foot of a perpendicular on the axis, square to it', () => {
     const foot = footOnAxis({ x: 620, y: 200 }, VERTICAL)
     expect(foot.x).toBe(550)
     expect(foot.y).toBe(200)
-    // and the span itself stands square, which is the claim the board draws
+    // and a segment from the point to its foot reads as square, which is the
+    // claim the walk draws and the facts board names
     expect(isSquareToAxis({ x: 620, y: 200 }, foot, VERTICAL)).toBe(true)
     expect(angleOffRight({ x: 620, y: 200 }, { x: 620, y: 260 }, VERTICAL) > 60).toBe(true)
   })
@@ -147,7 +146,6 @@ describe('the two facts about the axis', () => {
   it('reads a press as the corner it was aimed at, and nothing else', () => {
     expect(nearestVertexIndex(ON_SCREEN[2], ON_SCREEN)).toBe(2)
     expect(nearestVertexIndex({ x: 550, y: 550 }, ON_SCREEN) === -1 ? 'ok' : 'found a corner that is not there').toBe('ok')
-    expect(GRAB_TOLERANCE > SPAN_TOLERANCE).toBe(true)
   })
 })
 
@@ -345,6 +343,10 @@ describe('the four rows on the home screen', () => {
     const geo = source('src/geometry/symmetryParts.ts')
     expect(geo.includes('matchSpot')).toBeTruthy()
     expect(geo.includes('matchJoin')).toBeTruthy()
+    // and nothing stands between placing and joining: the half is completed by
+    // joining the points, never by drawing a line out to the axis
+    expect(hook.includes('spanFalls') ? 'a span stage is back' : 'ok').toBe('ok')
+    expect(geo.includes('spanFalls') ? 'a span helper outlived the span' : 'ok').toBe('ok')
     for (const scene of [
       'src/components/SymmetryDrawScene.tsx',
       'src/components/PointDrawScene.tsx',

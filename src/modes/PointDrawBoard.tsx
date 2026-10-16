@@ -31,7 +31,6 @@ export function PointDrawBoard({ board, onSettled, onNext, nextLabel }: {
         {toast && <Toast {...toast} />}
         <PointDrawScene
           half={d.half}
-          spans={d.spans}
           joins={d.joins}
           placed={d.placed}
           draft={d.draft}

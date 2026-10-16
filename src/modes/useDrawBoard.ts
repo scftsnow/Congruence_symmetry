@@ -1,16 +1,16 @@
 /**
  * The drawing board's state machine, shared by both symmetry units: place,
- * span, join and show. Points land first in any order, then each given point
- * reaches the axis on its own perpendicular, then the found points are joined
- * in outline order. The finished figure stands three seconds before the way
+ * join and show. Points land first in any order, then the remaining half is
+ * drawn by joining the found points in outline order — the chain they make,
+ * tied to the given half's own corners, because the placed points alone do not
+ * close the figure. The finished figure stands three seconds before the way
  * out appears, because the finish is watched.
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { distance } from '../geometry/transforms'
 import { MIN_DRAG } from '../geometry/symmetry'
-import { matchJoin, matchSpot, matchSpanStart, spanFalls } from '../geometry/symmetryParts'
-import type { Line } from '../geometry/symmetryParts'
+import { matchJoin, matchSpot } from '../geometry/symmetryParts'
 import type { Message } from '../components/tone'
 import type { Point } from '../geometry/types'
 import { useDrawWalk } from './useDrawWalk'
@@ -21,9 +21,6 @@ export interface DrawTexts {
   successFor: (waiting: number) => Message
   howLeg: string
   howCarry: string
-  spanAsk: string
-  spanMiss: string
-  spanDone: string
   linkAsk: string
   linkMiss: string
   linkDone: string
@@ -34,8 +31,6 @@ export interface DrawBoardInput {
   half: Point[]
   givens: Point[]
   answers: Point[]
-  spanTargets: Point[] // each given point's span ends here: its foot, or the middle
-  squareAxis: Line | null // the axis spans must stand square to; null skips the check
   demo: { from: Point; mid: Point; to: Point }
   placeTolerance: number
   texts: DrawTexts
@@ -51,7 +46,6 @@ export const PLACE_TOLERANCE = 60
 
 export interface DrawBoardState {
   half: Point[]
-  spans: Array<{ a: Point; b: Point }> // the spans drawn so far
   joins: Array<{ a: Point; b: Point }> // the edges joined so far
   placed: Point[] // placed point positions in outline order
   draft: { p: Point; q: Point } | null
@@ -71,21 +65,19 @@ export interface DrawBoardState {
 }
 
 /** The standing guide, one line per stage; the leg's explanation holds until its mark arrives. */
-function guide(texts: DrawTexts, walking: boolean, legDrawn: boolean, waiting: number, flying: boolean, spanning: boolean, joining: boolean): Message {
+function guide(texts: DrawTexts, walking: boolean, legDrawn: boolean, waiting: number, flying: boolean, joining: boolean): Message {
   const text = walking ? (legDrawn ? texts.howCarry : texts.howLeg)
     : waiting > 0 && !flying ? texts.instructionFor(waiting)
-    : spanning ? texts.spanAsk
     : joining ? texts.linkAsk
     : ''
   return text ? { tone: 'success', icon: '👉', text } : { tone: 'neutral', icon: '', text }
 }
 
 export function useDrawBoard(input: DrawBoardInput, onSettled: () => void): DrawBoardState {
-  const { half, givens, answers, spanTargets, squareAxis, demo, placeTolerance, texts } = input
+  const { half, givens, answers, demo, placeTolerance, texts } = input
   const [placed, setPlaced] = useState<number[]>([])
-  const [spanned, setSpanned] = useState<number[]>([])
   const [joined, setJoined] = useState<number[]>([])
-  const [miss, setMiss] = useState<'spot' | 'span' | 'join' | null>(null)
+  const [miss, setMiss] = useState<'spot' | 'join' | null>(null)
   const [justFound, setJustFound] = useState(false)
   const [foundText, setFoundText] = useState<string | null>(null)
   const [flying, setFlying] = useState<{ from: Point; to: Point } | null>(null)
@@ -102,14 +94,13 @@ export function useDrawBoard(input: DrawBoardInput, onSettled: () => void): Draw
     { a: half[0], b: answers[0] },
     { a: answers[answers.length - 1], b: half[half.length - 1] },
   ], [answers, half])
-  /* place → span → join: the stage is what is left to do */
-  const spanning = waiting === 0 && spanned.length < givens.length
-  const joining = waiting === 0 && spanned.length >= givens.length && joined.length < joinEdges.length
-  const complete = waiting === 0 && spanned.length >= givens.length && joined.length >= joinEdges.length
+  /* place → join: the stage is what is left to do */
+  const joining = waiting === 0 && joined.length < joinEdges.length
+  const complete = waiting === 0 && joined.length >= joinEdges.length
 
   const { walk, walking, legDrawn } = useDrawWalk()
 
-  const fail = useCallback((kind: 'spot' | 'span' | 'join') => {
+  const fail = useCallback((kind: 'spot' | 'join') => {
     setMiss(kind)
     timer.current = window.setTimeout(() => setMiss(null), HINT_MS)
   }, [])
@@ -149,7 +140,7 @@ export function useDrawBoard(input: DrawBoardInput, onSettled: () => void): Draw
       const stroke = draft
       setDraft(null)
       if (!stroke || !up || walking || flying || resolved) return
-      // each gesture belongs to exactly one stage: taps place, drags span or join
+      // each gesture belongs to exactly one stage: taps place, drags join
       const tap = distance(stroke.p, up) < MIN_DRAG
       if (tap && waiting > 0) {
         setAttempts((n) => n + 1)
@@ -162,15 +153,6 @@ export function useDrawBoard(input: DrawBoardInput, onSettled: () => void): Draw
           setPlaced((prev) => [...prev, at])
           note(texts.successFor(waiting - 1).text ?? null)
         }, FLY_MS)
-        return
-      }
-      if (!tap && spanning) {
-        setAttempts((n) => n + 1)
-        const i = matchSpanStart(stroke.p, givens, spanned, placeTolerance)
-        if (i === -1 || !spanFalls(stroke.p, up, spanTargets[i], squareAxis)) return fail('span')
-        setMiss(null)
-        setSpanned((prev) => [...prev, i])
-        note(texts.spanDone)
         return
       }
       if (!tap && joining) {
@@ -189,12 +171,11 @@ export function useDrawBoard(input: DrawBoardInput, onSettled: () => void): Draw
         }
       }
     },
-    [draft, walking, flying, resolved, waiting, spanning, joining, answers, givens, spanTargets, squareAxis, placed, spanned, joined, joinEdges, placeTolerance, texts, fail, note],
+    [draft, walking, flying, resolved, waiting, joining, answers, givens, placed, joined, joinEdges, placeTolerance, texts, fail, note],
   )
 
   return {
     half,
-    spans: spanned.map((i) => ({ a: givens[i], b: spanTargets[i] })),
     joins: joined.map((k) => joinEdges[k]),
     placed: [...placed].sort((a, b) => a - b).map((at) => answers[at]),
     draft,
@@ -208,10 +189,10 @@ export function useDrawBoard(input: DrawBoardInput, onSettled: () => void): Draw
     justFound,
     attempts,
     message: miss
-      ? { tone: 'hint', icon: '💡', text: miss === 'spot' ? texts.missedFor().text : miss === 'span' ? texts.spanMiss : texts.linkMiss }
+      ? { tone: 'hint', icon: '💡', text: miss === 'spot' ? texts.missedFor().text : texts.linkMiss }
       : foundText
         ? { tone: 'success', icon: '⭐', text: foundText }
-        : guide(texts, walking, legDrawn, waiting, !!flying, spanning, joining),
+        : guide(texts, walking, legDrawn, waiting, !!flying, joining),
     beginDraw,
     moveDraw,
     endDraw,

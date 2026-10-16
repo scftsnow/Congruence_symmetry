@@ -163,11 +163,11 @@ export function pointDrawDoneAll(): Message {
   return { tone: 'success', icon: '⭐', text: '점대칭도형을 완성했어요!' }
 }
 
-/* The spans to draw first, then the joins that close the outline. */
-export const POINT_DRAW_SPAN_ASK = '점에서 중심까지 손가락으로 이어 보세요'
-export const POINT_DRAW_SPAN_MISS = '중심을 향해 곧게 이어 보세요'
-export const POINT_DRAW_SPAN_DONE = '대칭의 중심에서 만났어요'
-export const POINT_DRAW_LINK_ASK = '놓은 점들을 서로 이어 보세요'
+/* The joins. The remaining half is drawn by joining the found points in
+ * outline order — the chain they make, tied to the given half's own corners.
+ * Nothing is drawn to the middle: it was how the points were found, and the
+ * finding is over once they are placed. */
+export const POINT_DRAW_LINK_ASK = '남은 절반을 점끼리 이어서 그려 보세요'
 export const POINT_DRAW_LINK_MISS = '옆에 있는 두 점을 이어 보세요'
 export const POINT_DRAW_LINKED = '잘 연결했어요'
 

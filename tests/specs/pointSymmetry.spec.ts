@@ -330,6 +330,38 @@ describe('the four rows on the home screen', () => {
     expect(scene.includes('{complete && (')).toBeTruthy()
   })
 
+  it('joins the figure along its sides, never across it', () => {
+    // The images come out in the order they are listed, and the outline ties
+    // that chain to the two ends of the given half. A half turn carries the
+    // top of the given half to the bottom of the other side, so the list has
+    // to start from the shape's bottom corner: listed top-down, the chain
+    // attaches to the wrong ends and the first and last joins cut across the
+    // figure. Each of the four joins must be a side of the shape itself.
+    const board = POINT_DRAW_BOARDS[0]
+    expect(board && board.kind === 'draw' ? 'ok' : 'no drawing board').toBe('ok')
+    if (!board || board.kind !== 'draw') return
+    const corners = onScreen(board.shape.vertices)
+    const half = onScreen(board.half)
+    const answers = board.place.map((i) => turnOf(corners[i], CENTER))
+    const joins = [
+      { a: half[0], b: answers[0] },
+      ...answers.slice(0, -1).map((a, i) => ({ a, b: answers[i + 1] })),
+      { a: answers[answers.length - 1], b: half[half.length - 1] },
+    ]
+    expect(joins.length).toBe(4)
+    const isSide = (a: { x: number; y: number }, b: { x: number; y: number }) =>
+      corners.some((v, i) => {
+        const w = corners[(i + 1) % corners.length]
+        return (
+          (distance(v, a) < 0.5 && distance(w, b) < 0.5) ||
+          (distance(v, b) < 0.5 && distance(w, a) < 0.5)
+        )
+      })
+    for (const join of joins) {
+      expect(isSide(join.a, join.b) ? 'ok' : 'a join cuts across the figure').toBe('ok')
+    }
+  })
+
   it('ends every row with the sentence the row was for', () => {
     expect(pointPartsDonePanelFor().note).toContain('마주 보는 점과 변과 각')
     expect(pointFactsDonePanelFor().title.map((p) => p.text).join('')).toBe('두 가지 성질을 찾았어!')

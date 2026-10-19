@@ -169,7 +169,17 @@ export const POINT_SYMM_BOARDS: PointSymmetryBoard[] = [
     center: CENTER,
     note: '팔각형',
     half: OCTAGON.slice(0, 5),
-    place: [1, 2, 3],
+    /**
+     * The same three corners the line unit places, listed the other way round.
+     *
+     * The images come out in list order, and the outline ties that chain to
+     * the two ends of the given half, so the list has to start from the end
+     * the first join needs. A half turn carries the top of the given half to
+     * the bottom of the other side: listed top-down, the chain attached to the
+     * wrong ends and the first and last joins cut across the figure. Bottom-up,
+     * every one of the four joins lands on a side.
+     */
+    place: [3, 2, 1],
   },
 ]
 

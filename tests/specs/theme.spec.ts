@@ -7,7 +7,7 @@
  * swapped back to green, or a starlight mark left unreadable over a pale shape.
  */
 
-import { readFileSync, readdirSync } from 'node:fs'
+import { existsSync, readFileSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, it, expect } from '../harness/api'
 
@@ -137,6 +137,64 @@ describe('a point is still a point', () => {
     for (const file of boards) {
       expect(source(`src/components/${file}`)).not.toContain('★')
     }
+  })
+
+  it('the cover constellation is dots, not star glyphs either', () => {
+    // The one place a starry shape belongs still draws plain dots: up here
+    // nothing has been proved yet, so even the cover earns no ★.
+    const cover = source('src/components/Constellation.tsx')
+    expect(cover).not.toContain('★')
+    expect(cover).toContain('<circle')
+  })
+})
+
+describe('the whole screen speaks in 별자리', () => {
+  it('both subset weights ship with the app, and the licence with them', () => {
+    // OFL lets the font travel inside the app as long as the licence travels
+    // too and the file itself is never sold — which is exactly this shape:
+    // two small subsets plus the licence text, no full originals.
+    expect(existsSync(join(process.cwd(), 'src/assets/fonts/hakgyoansim-byeoljari-l.woff2'))).toBeTruthy()
+    expect(existsSync(join(process.cwd(), 'src/assets/fonts/hakgyoansim-byeoljari-b.woff2'))).toBeTruthy()
+    expect(existsSync(join(process.cwd(), 'public/fonts/OFL.txt'))).toBeTruthy()
+  })
+
+  it('the family is declared for swap and read first', () => {
+    /*
+     * Swap, because a child on a slow connection reads the fallback first and
+     * the font when it arrives — never a blank title. First in the stack,
+     * because "the whole screen" means the whole screen; a missing glyph falls
+     * through to Pretendard rather than breaking.
+     */
+    const base = source('src/styles/base.css')
+    expect((base.match(/@font-face/g) || []).length >= 2).toBeTruthy()
+    expect(base).toContain("font-family: 'Hakgyoansim Byeoljari'")
+    expect(base).toContain('font-display: swap')
+    expect(/font-family:\s*'Hakgyoansim Byeoljari', 'Pretendard'/.test(base)).toBeTruthy()
+  })
+})
+
+describe('the night breathes', () => {
+  it('two star layers blink out of step with each other', () => {
+    // One layer blinking is a flicker; two on different periods is weather. The
+    // two share one rule, so the check reads the shared block rather than one
+    // name — and that block lets the finger through, so the sky can never eat
+    // a tap meant for a shape.
+    const base = source('src/styles/base.css')
+    expect(base).toContain('body::before')
+    expect(base).toContain('body::after')
+    expect(base).toContain('star-breathe')
+    const shared = /body::before,\s*body::after\s*\{([^}]*)\}/.exec(base)?.[1] ?? ''
+    expect(shared).toContain('position: fixed')
+    expect(shared).toContain('pointer-events: none')
+  })
+
+  it('the cover ring turns once every two minutes, and rests when asked', () => {
+    // Slow enough to be weather rather than motion — and stillness on request,
+    // for a child sensitive to movement.
+    const home = source('src/styles/home.css')
+    expect(/constellation-turn\s+120s/.test(home)).toBeTruthy()
+    expect(home).toContain('prefers-reduced-motion')
+    expect(source('src/styles/base.css')).toContain('prefers-reduced-motion')
   })
 })
 

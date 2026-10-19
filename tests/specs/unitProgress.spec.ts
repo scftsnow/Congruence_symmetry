@@ -96,6 +96,31 @@ describe('the home screen says one thing', () => {
     expect(css).toContain('grid-template-columns: repeat(2, minmax(0, 1fr))')
     expect(/@media \(max-width: 620px\)/.test(css)).toBeTruthy()
   })
+
+  it('keeps the earned count in the top-right corner, apart from the title', () => {
+    // Centred under the title it competed for the same glance; in the corner it
+    // is checked and left alone.
+    const css = source('src/styles/home.css')
+    expect(/\.home__stars\s*\{[^}]*position:\s*absolute/.test(css)).toBeTruthy()
+    expect(/\.home__stars\s*\{[^}]*top:\s*0/.test(css)).toBeTruthy()
+    expect(/\.home__stars\s*\{[^}]*right:\s*0/.test(css)).toBeTruthy()
+  })
+
+  it('opens with a cover, and the way in only scrolls to the doors', () => {
+    /*
+     * Title, stars, one constellation, one button — and the button reveals
+     * rather than navigates, because the list is already rendered below. No
+     * second first-screen to learn, and no state deciding which half shows.
+     */
+    const app = source('src/App.tsx')
+    expect(app).toContain('className="hero"')
+    expect(app).toContain('<Constellation />')
+    expect(app).toContain('시작하기')
+    // reveals by scrolling, with an instant fallback if smooth never moves
+    expect(app).toContain('scrollTo')
+    expect(app).toContain("'smooth'")
+    expect(app).toContain("behavior: 'auto'")
+  })
 })
 
 const { report } = await import('../harness/spec.mjs')

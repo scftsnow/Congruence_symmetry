@@ -97,7 +97,20 @@ describe('home screen renders', () => {
   })
 
   it('has no second way into a unit', () => {
-    expect(html.includes('시작하기')).toBeFalsy()
+    /*
+     * The cover carries one button, but it opens nothing — it only scrolls down
+     * to the list, which is already on the page. The failure this guards is the
+     * old duplicate: a big button under the list pointing at the first unit
+     * next to its small row, two doors into one room. So what has to hold is
+     * that every screen change into a unit comes from a unit row, and home is
+     * the only other place a button may go.
+     */
+    const app = strip('src/App.tsx')
+    const targets = [...app.matchAll(/setScreen\(([^)]+)\)/g)].map((m) => m[1].trim())
+    expect(targets.length).toBeGreaterThan(0)
+    for (const target of targets) {
+      expect(target === 'unit.id' || target === "'home'" ? 'ok' : target).toBe('ok')
+    }
   })
 
   it('does not ask the child to pick shapes first', () => {

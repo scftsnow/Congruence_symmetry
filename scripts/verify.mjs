@@ -456,6 +456,24 @@ for (const n of expected.shapeNames) {
   ok('shape in shapes.ts', shapeSrc.includes("name: '" + n + "'"), n)
 }
 
+/*
+ * The 별자리 webfonts ship inside the bundle, not from a CDN: a classroom
+ * tablet may be offline, and a font that arrives over the network is a font
+ * that may not arrive. Both subset weights have to be in dist/assets, next to
+ * the CSS that names them.
+ */
+if (existsSync(assetsDir)) {
+  const built = readdirSync(assetsDir)
+  ok(
+    '별자리 L ships in the bundle',
+    built.some((f) => f.startsWith('hakgyoansim-byeoljari-l-') && f.endsWith('.woff2')),
+  )
+  ok(
+    '별자리 B ships in the bundle',
+    built.some((f) => f.startsWith('hakgyoansim-byeoljari-b-') && f.endsWith('.woff2')),
+  )
+}
+
 console.log('\n' + '-'.repeat(52))
 console.log('PASS ' + pass + '   FAIL ' + fail)
 if (fail > 0) process.exit(1)

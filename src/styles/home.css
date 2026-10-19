@@ -12,31 +12,58 @@
   padding: 24px 20px 48px;
 }
 
+/*
+ * The cover: one screenful of night before the doors.
+ *
+ * Title, earned stars, one turning constellation, one way in — and no sentence.
+ * The unit list waits directly below, so the way in only scrolls: there is no
+ * second first-screen to learn, and no state deciding which half is showing.
+ */
+.hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  min-height: 92vh;
+  min-height: 92svh;
+  padding-bottom: 24px;
+}
+
 .home__header {
+  position: relative;
+  width: 100%;
   text-align: center;
-  padding: 32px 0 24px;
+  padding: 32px 0 8px;
 }
 
 .home__title {
   margin: 0;
-  font-size: 2.2rem;
+  font-size: 2.6rem;
   letter-spacing: -0.02em;
   color: var(--color-ink);
+  text-shadow: 0 0 24px rgba(186, 214, 255, 0.25);
 }
 
 /*
- * The stars a child has earned, told as one count at the top of the sky.
+ * The stars a child has earned, told as one count in the top-right corner.
  *
  * The number counts units, not boards: a unit is the door the child actually
- * chooses, so it is the thing that is finished or not. The star is drawn in the
- * same starlight the proved marks use, which is what ties the two together — the
- * thing that glows on a board is the thing that left a star up here.
+ * chooses, so it is the thing that is finished or not. It sits apart from the
+ * centred title so the two never compete for the same glance, and it stays
+ * visible while the cover is up — the first thing a returning child checks is
+ * how many are left. The star is drawn in the same starlight the proved marks
+ * use, which is what ties the two together — the thing that glows on a board
+ * is the thing that left a star up here.
  */
 .home__stars {
+  position: absolute;
+  top: 0;
+  right: 0;
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  margin: 12px 0 0;
+  margin: 0;
   padding: 8px 18px;
   border: 1px solid var(--color-line);
   border-radius: 999px;
@@ -51,6 +78,62 @@
   line-height: 1;
   color: var(--color-success);
   text-shadow: var(--glow-shadow);
+}
+
+/*
+ * The turning constellation.
+ *
+ * The ring turns as one piece about its own middle — transform-box keeps the
+ * middle where the stars are rather than at the corner of the canvas — one
+ * revolution every two minutes: slow enough to be weather rather than motion.
+ * Each star breathes on its own delay, so no two blink together.
+ */
+.constellation {
+  width: min(520px, 92vw);
+  height: auto;
+  overflow: visible;
+}
+
+.constellation__spin {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: constellation-turn 120s linear infinite;
+}
+
+@keyframes constellation-turn {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.constellation__link {
+  stroke: rgba(168, 200, 255, 0.35);
+  stroke-width: 1.5;
+}
+
+.constellation__star {
+  animation: star-twinkle 3.6s ease-in-out infinite;
+}
+
+@keyframes star-twinkle {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .constellation__spin,
+  .constellation__star {
+    animation: none;
+  }
+}
+
+.hero__start {
+  width: min(320px, 80vw);
 }
 
 .home__main {

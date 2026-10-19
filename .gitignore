@@ -45,3 +45,6 @@ Thumbs.db
 
 # ---- 옆에 있는 다른 프로젝트 ----
 ganseong-ai-training/
+
+# ---- 폰트 원본 (KERIS에서 받아 subsetting하는 재료, 재생성 가능) ----
+fonts-src/

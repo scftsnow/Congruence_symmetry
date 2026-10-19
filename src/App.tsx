@@ -23,19 +23,21 @@
  *
  * WHAT THE HOME SAYS, AND WHAT IT DOES NOT
  * --------------------------------------
- * The header carries the count of finished units, and each row says only what
- * the unit is. It used to also carry a sentence about the app, a panel heading,
- * a line explaining the first unit and a caption under every row: a page of
- * sentences, on the one screen that has to be quick to read, saying nothing a
- * child cannot find out by opening the door. Ten rows of a name and a star take
- * half the height they did and read at a glance.
+ * The first screen is a cover, not a list: the title, the earned stars, one
+ * turning constellation and one way in. It used to also carry a sentence about
+ * the app, a panel heading, a line explaining the first unit, a caption under
+ * every row — a page of sentences, on the screens that have to be quick to
+ * read, saying nothing a child cannot find out by opening the door. The unit
+ * list waits one tap below, and the tap only scrolls: everything is already on
+ * the page, so there is no second screen to get lost on the way to.
  *
  * A unit earns its star from its own stage, at the moment the ending popup goes
  * up, and keeps it in the browser — see useUnitProgress. Nothing here decides
  * whether a unit was finished; that is the board's own business.
  */
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
+import { Constellation } from './components/Constellation'
 import { CongruenceStage } from './modes/CongruenceStage'
 import { CorrespondenceStage } from './modes/CorrespondenceStage'
 import { SymmetryAxisStage } from './modes/SymmetryAxisStage'
@@ -92,6 +94,30 @@ export default function App() {
   const progress = useUnitProgress()
   const goHome = () => setScreen('home')
   const finish = (unit: Screen) => () => progress.markDone(unit)
+  /*
+   * The unit list lives one screenful down from the cover. The way in only
+   * scrolls there — the list is already rendered below, so opening a unit is
+   * never more than one tap away and there is no second first-screen to learn.
+   */
+  const listRef = useRef<HTMLElement | null>(null)
+  const revealUnits = () => {
+    const list = listRef.current
+    if (!list) return
+    const top = list.getBoundingClientRect().top + window.scrollY
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    window.scrollTo({ top, behavior: reduce ? 'auto' : 'smooth' })
+    /*
+     * A parachute for a browser that accepts 'smooth' and then never moves: if
+     * half a second later nothing has happened at all, go there at once rather
+     * than stranding the child on the cover with a button that did nothing.
+     */
+    if (!reduce) {
+      const from = window.scrollY
+      window.setTimeout(() => {
+        if (Math.abs(window.scrollY - from) < 4) window.scrollTo({ top, behavior: 'auto' })
+      }, 600)
+    }
+  }
 
   if (screen === 'congruence') {
     return <CongruenceStage onBack={goHome} onComplete={finish('congruence')} />
@@ -135,18 +161,26 @@ export default function App() {
 
   return (
     <div className="home">
-      <header className="home__header">
-        <h1 className="home__title">합동과 대칭</h1>
-        <p className="home__stars" aria-label={`해낸 단원 ${progress.count} / ${UNITS.length}`}>
-          <span className="home__star" aria-hidden="true">
-            ★
-          </span>
-          {progress.count} / {UNITS.length}
-        </p>
-      </header>
+      <section className="hero" aria-label="합동과 대칭 시작">
+        <header className="home__header">
+          <h1 className="home__title">합동과 대칭</h1>
+          <p className="home__stars" aria-label={`해낸 단원 ${progress.count} / ${UNITS.length}`}>
+            <span className="home__star" aria-hidden="true">
+              ★
+            </span>
+            {progress.count} / {UNITS.length}
+          </p>
+        </header>
 
-      <main className="home__main">
-        <section className="panel">
+        <Constellation />
+
+        <button type="button" className="start-btn hero__start" onClick={revealUnits}>
+          시작하기
+        </button>
+      </section>
+
+      <main className="home__main" ref={listRef}>
+        <section className="panel" aria-label="단원 고르기">
           <ul className="unit-list">
             {UNITS.map((unit, i) => {
               const done = progress.isDone(unit.id)

@@ -536,7 +536,14 @@ describe('a file holds one thing', () => {
     const declared = new Set<string>()
     for (const file of readdirSync(join(root, 'src', 'styles'))) {
       const css = readFileSync(join(root, 'src', 'styles', file), 'utf8')
-      for (const [, name] of css.matchAll(/\.([a-zA-Z][\w-]*)/g)) declared.add(name)
+      /*
+       * Asset addresses are not classes: a font's url() ends in .woff2, and
+       * without this the first @font-face would read as a rule for a 'woff2'
+       * that nothing uses. A class name never lives inside a url(), so what is
+       * inside one is skipped before collecting.
+       */
+      const withoutUrls = css.replace(/url\([^)]*\)/g, '')
+      for (const [, name] of withoutUrls.matchAll(/\.([a-zA-Z][\w-]*)/g)) declared.add(name)
     }
 
     const orphans = [...declared].filter((name) => !source.includes(name)).sort()

@@ -5,10 +5,13 @@
  * mirror — and the walk is watched, never answered, so its timing lives apart
  * from the answering. Three steps, then placing: corner, middle, mirror.
  *
- * Each moving step gets the same beat: the line is drawn, its mark arrives, and
- * then a pause long enough to see what stands there before the next sentence
- * replaces the last. The carry is never spoken while the leg is still being
- * drawn, and the mirror is never marked before the carried leg lands on it.
+ * Both moving steps draw their line in the same beat, and each mark arrives
+ * when its line lands. The explanations do not share that symmetry: the leg's
+ * sentence is read across two steps, the carry's across one — so the look
+ * after the carry is stretched to fill the difference, and both sentences
+ * stand for the same time. The carry is never spoken while the leg is still
+ * being drawn, and the mirror is never marked before the carried leg lands on
+ * it.
  */
 
 import { useEffect, useRef, useState } from 'react'
@@ -21,8 +24,10 @@ const LEG_MS = 3000
 const LEG_DRAWN_MS = 1200
 /** how long the carry travels, matched by .sym-carry in symmetry.css */
 const CARRY_MS = 1200
-/** how long the landed mirror is looked at before the placing starts */
-const LANDED_MS = 1800
+/** the leg's sentence: read across the corner step and the leg's own */
+const LEG_SAID_MS = WALK_MS + LEG_MS
+/** how long the landed mirror is looked at: the rest of the carry's sentence */
+const LANDED_MS = LEG_SAID_MS - CARRY_MS
 /** the carry step: the travel, the mark it earns, then a look at the marked point */
 const SHOWN_MS = CARRY_MS + LANDED_MS
 

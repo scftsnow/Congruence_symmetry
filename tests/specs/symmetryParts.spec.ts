@@ -307,6 +307,17 @@ describe('the four rows on the home screen', () => {
     expect(scene.includes('walking')).toBeTruthy()
   })
 
+  it('gives the carry the same time as the leg', () => {
+    // Two explanations, and neither may flash past. The leg's sentence is read
+    // across two steps — the lit corner and the leg's own — while the carry's
+    // is read across one, so its step is stretched to the same length: the
+    // extension through the middle keeps the floor as long as the leg did.
+    const clock = source('src/modes/useDrawWalk.ts')
+    expect(clock.includes('LEG_SAID_MS = WALK_MS + LEG_MS')).toBeTruthy()
+    expect(clock.includes('LANDED_MS = LEG_SAID_MS - CARRY_MS')).toBeTruthy()
+    expect(clock.includes('SHOWN_MS = CARRY_MS + LANDED_MS')).toBeTruthy()
+  })
+
   it('draws each joining segment instead of appearing it', () => {
     // A line that only appears reads as the system asserting it; a line drawn
     // reads as something being done. pathLength normalizes any length to one,

@@ -176,9 +176,19 @@ export function CongruenceStage({ onBack, onComplete }: CongruenceStageProps) {
   return (
     <div className="mode">
       <header className="mode__header">
-        <button type="button" className="back-btn" onClick={onBack}>
-          ← 돌아가기
-        </button>
+        {/*
+         * The way back and the way to start over sit together: the reset had a
+         * bar of its own under the board, and starting over is looked for
+         * where going back lives.
+         */}
+        <div className="mode__actions">
+          <button type="button" className="back-btn" onClick={onBack}>
+            ← 돌아가기
+          </button>
+          <button type="button" className="mini-btn mini-btn--ghost" onClick={board.reset}>
+            ↺ 처음부터
+          </button>
+        </div>
         <h2 className="mode__title">합동인 도형 찾기</h2>
         <div className="star-counter" aria-label={`찾은 개수 ${count}`}>
           {count} / {board.target}
@@ -244,15 +254,7 @@ export function CongruenceStage({ onBack, onComplete }: CongruenceStageProps) {
           onHome={onBack}
           onAgain={board.reset}
         />
-      ) : (
-        <div className="toolbar">
-          <div className="toolbar__actions">
-            <button type="button" className="mini-btn mini-btn--ghost" onClick={board.reset}>
-              ↺ 처음부터
-            </button>
-          </div>
-        </div>
-      )}
+      ) : null}
     </div>
   )
 }

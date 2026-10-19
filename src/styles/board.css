@@ -4,37 +4,6 @@
  * one screen. 
  */
 
-/* ── 도구 바 ─────────────────────────────────────────── */
-
-.toolbar {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  background: var(--color-surface-glass);
-  border-radius: var(--radius);
-  padding: 14px;
-  box-shadow: 0 2px 18px rgba(0, 0, 0, 0.35);
-}
-
-.toolbar__actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 10px;
-}
-
-/* On a tablet in landscape the hint and the reset sit side by side. */
-@media (min-width: 900px) {
-  .toolbar {
-    flex-direction: row;
-    align-items: center;
-  }
-
-  .toolbar__actions {
-    flex: 1 1 auto;
-  }
-}
-
 .mini-btn {
   min-height: 52px;
   padding: 0 18px;

@@ -54,6 +54,13 @@
   gap: 16px;
 }
 
+/* the way back and the way to start over, side by side */
+.mode__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .mode__title {
   margin: 0;
   font-size: 1.5rem;
@@ -122,8 +129,7 @@
  * Only the body size belongs here. This used to also widen the four tool
  * buttons, which were the rotate and flip controls — both of which were removed,
  * because offering a turn tells the child that direction matters and this unit
- * teaches that it does not. The toolbar's own wide-screen layout is in
- * board.css, next to the toolbar.
+ * teaches that it does not.
  */
 @media (min-width: 900px) {
   body {

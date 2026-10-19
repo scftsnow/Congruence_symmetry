@@ -163,6 +163,18 @@ describe('congruence board renders', () => {
     expect(html.includes('<line')).toBeTruthy()
   })
 
+  it('keeps the replay next to the way back, not in a bar of its own', () => {
+    /*
+     * Starting over is looked for where going back lives, and a whole strip
+     * under the board for one button is a strip too many. So the reset sits in
+     * the header beside the back button — before the title in the markup — and
+     * no toolbar markup is left behind.
+     */
+    expect(html.includes('처음부터')).toBeTruthy()
+    expect(html.includes('toolbar')).toBeFalsy()
+    expect(html.indexOf('처음부터') < html.indexOf('합동인 도형 찾기')).toBeTruthy()
+  })
+
   it('draws every shape as a path', () => {
     // twelve shapes plus hit areas and the grid
     expect((html.match(/<path/g) ?? []).length >= 12).toBeTruthy()

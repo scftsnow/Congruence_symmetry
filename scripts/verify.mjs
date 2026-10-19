@@ -127,7 +127,6 @@ section('5. css styles')
 for (const [label, s] of [
   ['unit list', '.unit-list'],
   ['unit badge', '.unit-list__badge'],
-  ['toolbar', '.toolbar'],
   ['success popup', '.toast--success'],
   ['hint popup', '.toast--hint'],
   ['popup arrival', '@keyframes toast-in'],

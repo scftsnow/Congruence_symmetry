@@ -27,17 +27,21 @@
  * turning constellation and one way in. It used to also carry a sentence about
  * the app, a panel heading, a line explaining the first unit, a caption under
  * every row — a page of sentences, on the screens that have to be quick to
- * read, saying nothing a child cannot find out by opening the door. The unit
- * list waits one tap below, and the tap only scrolls: everything is already on
- * the page, so there is no second screen to get lost on the way to.
+ * read, saying nothing a child cannot find out by opening the door.
+ *
+ * The way in changes the screen to the doors rather than scrolling to them:
+ * the cover is the place you arrive, the doors are the place you choose, and
+ * the two never share the frame. Going back from any unit lands on the doors,
+ * never on the cover — the cover is only ever the beginning.
  *
  * A unit earns its star from its own stage, at the moment the ending popup goes
  * up, and keeps it in the browser — see useUnitProgress. Nothing here decides
  * whether a unit was finished; that is the board's own business.
  */
 
-import { useRef, useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { Constellation } from './components/Constellation'
+import { SkyParticles } from './components/SkyParticles'
 import { CongruenceStage } from './modes/CongruenceStage'
 import { CorrespondenceStage } from './modes/CorrespondenceStage'
 import { SymmetryAxisStage } from './modes/SymmetryAxisStage'
@@ -48,9 +52,10 @@ import { SymmetryPointAxisStage } from './modes/SymmetryPointAxisStage'
 import { SymmetryPointPartsStage } from './modes/SymmetryPointPartsStage'
 import { SymmetryPointFactsStage } from './modes/SymmetryPointFactsStage'
 import { SymmetryPointDrawStage } from './modes/SymmetryPointDrawStage'
-import { useUnitProgress } from './modes/useUnitProgress'
+import { useUnitProgress, type UnitProgress } from './modes/useUnitProgress'
 
 type Screen =
+  | 'cover'
   | 'home'
   | 'congruence'
   | 'correspondence'
@@ -62,6 +67,9 @@ type Screen =
   | 'point-parts'
   | 'point-facts'
   | 'point-draw'
+
+/** the ten doors, as a type: everything that is neither the cover nor the list */
+export type UnitId = Exclude<Screen, 'cover' | 'home'>
 
 /**
  * The doors, in the order the textbook puts them in.
@@ -76,7 +84,7 @@ type Screen =
  * child would do inside; ten of those turned the list into a page of sentences
  * and none of them said anything the row's own name did not.
  */
-const UNITS: Array<{ id: Screen; title: string }> = [
+const UNITS: Array<{ id: UnitId; title: string }> = [
   { id: 'congruence', title: '합동인 도형 찾기' },
   { id: 'correspondence', title: '대응점 · 대응변 · 대응각 찾기' },
   { id: 'symmetry-axis', title: '선대칭도형 찾기' },
@@ -89,129 +97,134 @@ const UNITS: Array<{ id: Screen; title: string }> = [
   { id: 'point-draw', title: '점대칭도형 그리기' },
 ]
 
+/**
+ * The doors as a screen of their own.
+ *
+ * Exported so the home screen can be read without opening the app: the cover
+ * is what <App/> shows first, and a static render of that shows no doors at
+ * all. What is handed in is the progress and the way out — nothing here decides
+ * whether a unit was finished, and nothing here remembers it either.
+ */
+export function HomeUnits({
+  progress,
+  onOpen,
+}: {
+  progress: UnitProgress
+  onOpen: (unit: UnitId) => void
+}) {
+  return (
+    <main className="home__main">
+      <section className="panel" aria-label="단원 고르기">
+        <ul className="unit-list">
+          {UNITS.map((unit, i) => {
+            const done = progress.isDone(unit.id)
+            return (
+              <li
+                key={unit.id}
+                className={
+                  'unit-list__item unit-list__item--active' +
+                  (done ? ' unit-list__item--done' : '')
+                }
+              >
+                <button type="button" className="unit-open" onClick={() => onOpen(unit.id)}>
+                  {done ? (
+                    <span className="unit-list__badge unit-list__badge--star" aria-label="해낸 단원">
+                      ★
+                    </span>
+                  ) : (
+                    <span className="unit-list__badge">{i + 1}</span>
+                  )}
+                  <strong>{unit.title}</strong>
+                </button>
+              </li>
+            )
+          })}
+        </ul>
+      </section>
+    </main>
+  )
+}
+
+/** the count of finished units, worn in the top-right corner of every home screen */
+export function EarnedStars({ progress }: { progress: UnitProgress }) {
+  return (
+    <p className="home__stars" aria-label={`해낸 단원 ${progress.count} / ${UNITS.length}`}>
+      <span className="home__star" aria-hidden="true">
+        ★
+      </span>
+      {progress.count} / {UNITS.length}
+    </p>
+  )
+}
+
 export default function App() {
-  const [screen, setScreen] = useState<Screen>('home')
+  const [screen, setScreen] = useState<Screen>('cover')
   const progress = useUnitProgress()
   const goHome = () => setScreen('home')
-  const finish = (unit: Screen) => () => progress.markDone(unit)
+  const finish = (unit: UnitId) => () => progress.markDone(unit)
+
   /*
-   * The unit list lives one screenful down from the cover. The way in only
-   * scrolls there — the list is already rendered below, so opening a unit is
-   * never more than one tap away and there is no second first-screen to learn.
+   * The particles drift behind every screen — the cover, the doors and the
+   * boards alike — so the sky is one sky everywhere. They are collected here
+   * rather than in each screen because no screen may forget them: a sky with a
+   * hole in it where one unit sits is not one sky.
    */
-  const listRef = useRef<HTMLElement | null>(null)
-  const revealUnits = () => {
-    const list = listRef.current
-    if (!list) return
-    const top = list.getBoundingClientRect().top + window.scrollY
-    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    window.scrollTo({ top, behavior: reduce ? 'auto' : 'smooth' })
-    /*
-     * A parachute for a browser that accepts 'smooth' and then never moves: if
-     * half a second later nothing has happened at all, go there at once rather
-     * than stranding the child on the cover with a button that did nothing.
-     */
-    if (!reduce) {
-      const from = window.scrollY
-      window.setTimeout(() => {
-        if (Math.abs(window.scrollY - from) < 4) window.scrollTo({ top, behavior: 'auto' })
-      }, 600)
-    }
-  }
-
+  let stage: ReactNode = null
   if (screen === 'congruence') {
-    return <CongruenceStage onBack={goHome} onComplete={finish('congruence')} />
+    stage = <CongruenceStage onBack={goHome} onComplete={finish('congruence')} />
+  } else if (screen === 'correspondence') {
+    stage = <CorrespondenceStage onBack={goHome} onComplete={finish('correspondence')} />
+  } else if (screen === 'symmetry-axis') {
+    stage = <SymmetryAxisStage onBack={goHome} onComplete={finish('symmetry-axis')} />
+  } else if (screen === 'symmetry-parts') {
+    stage = <SymmetryPartsStage onBack={goHome} onComplete={finish('symmetry-parts')} />
+  } else if (screen === 'symmetry-facts') {
+    stage = <SymmetryFactsStage onBack={goHome} onComplete={finish('symmetry-facts')} />
+  } else if (screen === 'symmetry-draw') {
+    stage = <SymmetryDrawStage onBack={goHome} onComplete={finish('symmetry-draw')} />
+  } else if (screen === 'point-axis') {
+    stage = <SymmetryPointAxisStage onBack={goHome} onComplete={finish('point-axis')} />
+  } else if (screen === 'point-parts') {
+    stage = <SymmetryPointPartsStage onBack={goHome} onComplete={finish('point-parts')} />
+  } else if (screen === 'point-facts') {
+    stage = <SymmetryPointFactsStage onBack={goHome} onComplete={finish('point-facts')} />
+  } else if (screen === 'point-draw') {
+    stage = <SymmetryPointDrawStage onBack={goHome} onComplete={finish('point-draw')} />
   }
 
-  if (screen === 'correspondence') {
-    return <CorrespondenceStage onBack={goHome} onComplete={finish('correspondence')} />
-  }
+  if (screen === 'cover') {
+    return (
+      <div className="home">
+        <SkyParticles />
+        <section className="hero" aria-label="합동과 대칭 시작">
+          <header className="home__header">
+            <h1 className="home__title">합동과 대칭</h1>
+            <EarnedStars progress={progress} />
+          </header>
 
-  if (screen === 'symmetry-axis') {
-    return <SymmetryAxisStage onBack={goHome} onComplete={finish('symmetry-axis')} />
-  }
+          <Constellation />
 
-  if (screen === 'symmetry-parts') {
-    return <SymmetryPartsStage onBack={goHome} onComplete={finish('symmetry-parts')} />
-  }
-
-  if (screen === 'symmetry-facts') {
-    return <SymmetryFactsStage onBack={goHome} onComplete={finish('symmetry-facts')} />
-  }
-
-  if (screen === 'symmetry-draw') {
-    return <SymmetryDrawStage onBack={goHome} onComplete={finish('symmetry-draw')} />
-  }
-
-  if (screen === 'point-axis') {
-    return <SymmetryPointAxisStage onBack={goHome} onComplete={finish('point-axis')} />
-  }
-
-  if (screen === 'point-parts') {
-    return <SymmetryPointPartsStage onBack={goHome} onComplete={finish('point-parts')} />
-  }
-
-  if (screen === 'point-facts') {
-    return <SymmetryPointFactsStage onBack={goHome} onComplete={finish('point-facts')} />
-  }
-
-  if (screen === 'point-draw') {
-    return <SymmetryPointDrawStage onBack={goHome} onComplete={finish('point-draw')} />
+          <button type="button" className="start-btn hero__start" onClick={goHome}>
+            시작하기
+          </button>
+        </section>
+      </div>
+    )
   }
 
   return (
-    <div className="home">
-      <section className="hero" aria-label="합동과 대칭 시작">
-        <header className="home__header">
-          <h1 className="home__title">합동과 대칭</h1>
-          <p className="home__stars" aria-label={`해낸 단원 ${progress.count} / ${UNITS.length}`}>
-            <span className="home__star" aria-hidden="true">
-              ★
-            </span>
-            {progress.count} / {UNITS.length}
-          </p>
-        </header>
+    <>
+      <SkyParticles />
+      {stage ?? (
+        <div className="home">
+          <header className="home__header home__header--doors">
+            <h1 className="home__title">합동과 대칭</h1>
+            <EarnedStars progress={progress} />
+          </header>
 
-        <Constellation />
-
-        <button type="button" className="start-btn hero__start" onClick={revealUnits}>
-          시작하기
-        </button>
-      </section>
-
-      <main className="home__main" ref={listRef}>
-        <section className="panel" aria-label="단원 고르기">
-          <ul className="unit-list">
-            {UNITS.map((unit, i) => {
-              const done = progress.isDone(unit.id)
-              return (
-                <li
-                  key={unit.id}
-                  className={
-                    'unit-list__item unit-list__item--active' +
-                    (done ? ' unit-list__item--done' : '')
-                  }
-                >
-                  <button
-                    type="button"
-                    className="unit-open"
-                    onClick={() => setScreen(unit.id)}
-                  >
-                    {done ? (
-                      <span className="unit-list__badge unit-list__badge--star" aria-label="해낸 단원">
-                        ★
-                      </span>
-                    ) : (
-                      <span className="unit-list__badge">{i + 1}</span>
-                    )}
-                    <strong>{unit.title}</strong>
-                  </button>
-                </li>
-              )
-            })}
-          </ul>
-        </section>
-      </main>
-    </div>
+          <HomeUnits progress={progress} onOpen={(unit) => setScreen(unit)} />
+        </div>
+      )}
+    </>
   )
 }

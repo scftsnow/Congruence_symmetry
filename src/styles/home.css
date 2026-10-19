@@ -81,15 +81,17 @@
 }
 
 /*
- * The turning constellation.
+ * The turning constellations.
  *
- * The ring turns as one piece about its own middle — transform-box keeps the
- * middle where the stars are rather than at the corner of the canvas — one
- * revolution every two minutes: slow enough to be weather rather than motion.
- * Each star breathes on its own delay, so no two blink together.
+ * Three rings, each turning as one piece about its own middle — transform-box
+ * keeps the middle where the stars are rather than at the corner of the canvas.
+ * The great ring takes two minutes a turn; the small one turns the other way a
+ * little slower, the low arc slower still: slow enough to be weather rather
+ * than motion, and out of step so the sky never repeats itself. Each star
+ * breathes on its own delay, so no two blink together.
  */
 .constellation {
-  width: min(520px, 92vw);
+  width: min(640px, 94vw);
   height: auto;
   overflow: visible;
 }
@@ -98,6 +100,15 @@
   transform-box: fill-box;
   transform-origin: center;
   animation: constellation-turn 120s linear infinite;
+}
+
+.constellation__spin--back {
+  animation-duration: 160s;
+  animation-direction: reverse;
+}
+
+.constellation__spin--slow {
+  animation-duration: 200s;
 }
 
 @keyframes constellation-turn {
@@ -115,6 +126,16 @@
   animation: star-twinkle 3.6s ease-in-out infinite;
 }
 
+/* a bright star wears its own halo and a harder shine */
+.constellation__halo {
+  opacity: 0.28;
+  animation: star-twinkle 3.6s ease-in-out infinite;
+}
+
+.constellation__star--bright {
+  filter: drop-shadow(0 0 5px rgba(255, 224, 138, 0.9)) drop-shadow(0 0 14px rgba(255, 224, 138, 0.4));
+}
+
 @keyframes star-twinkle {
   0%,
   100% {
@@ -127,8 +148,58 @@
 
 @media (prefers-reduced-motion: reduce) {
   .constellation__spin,
-  .constellation__star {
+  .constellation__star,
+  .constellation__halo {
     animation: none;
+  }
+}
+
+/*
+ * The light drifting behind every screen.
+ *
+ * Strictly background: a negative z-index under everything the screen draws,
+ * so a mote can never sit on a shape and mean nothing. Each mote climbs past
+ * the top of the frame and fades on the way — transform and opacity only, so
+ * the tablet's painter does the cheapest work there is.
+ */
+.sky-particles {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.sky-particle {
+  position: absolute;
+  bottom: -12px;
+  border-radius: 50%;
+  box-shadow: 0 0 6px 1px currentColor;
+  animation-name: particle-rise;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+@keyframes particle-rise {
+  0% {
+    transform: translate(0, 0);
+    opacity: 0;
+  }
+  12% {
+    opacity: 0.85;
+  }
+  85% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: translate(var(--sway), -112vh);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sky-particles {
+    display: none;
   }
 }
 

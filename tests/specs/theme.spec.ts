@@ -44,6 +44,17 @@ describe('the app is drawn on a night sky', () => {
     expect(/--grid-line:\s*rgba\(\s*\d+,\s*\d+,\s*\d+,\s*0?\.\d+\s*\)/.test(base)).toBeTruthy()
     expect(source('src/components/BoardGrid.tsx')).toContain('var(--grid-line)')
   })
+
+  it('the milky way runs under the dots and never repeats', () => {
+    /*
+     * One wide soft band with a narrower heart, fixed diagonals that cover the
+     * frame once. Listed after the dot tiles so the dots stay on top, and
+     * unmoving — the blinking layers above are where the motion lives.
+     */
+    const base = source('src/styles/base.css')
+    expect((base.match(/linear-gradient\(\s*112deg/g) || []).length >= 2).toBeTruthy()
+    expect((base.match(/no-repeat/g) || []).length >= 2).toBeTruthy()
+  })
 })
 
 describe('the board a child works on is white paper', () => {
@@ -146,6 +157,20 @@ describe('a point is still a point', () => {
     expect(cover).not.toContain('★')
     expect(cover).toContain('<circle')
   })
+
+  it('the cover holds three constellations, out of step with each other', () => {
+    // One ring is a badge; three rings at three speeds turning two ways is a
+    // sky. The bright ones wear halos and a harder shine, so a few stars read
+    // as near and the rest as far.
+    const cover = source('src/components/Constellation.tsx')
+    expect((cover.match(/<Ring[\s]/g) || []).length).toBe(3)
+    expect(cover).toContain('constellation__halo')
+    expect(cover).toContain('constellation__star--bright')
+    const home = source('src/styles/home.css')
+    expect(home).toContain('constellation__spin--back')
+    expect(home).toContain('animation-direction: reverse')
+    expect(home).toContain('constellation__spin--slow')
+  })
 })
 
 describe('the whole screen speaks in 별자리', () => {
@@ -195,6 +220,27 @@ describe('the night breathes', () => {
     expect(/constellation-turn\s+120s/.test(home)).toBeTruthy()
     expect(home).toContain('prefers-reduced-motion')
     expect(source('src/styles/base.css')).toContain('prefers-reduced-motion')
+  })
+
+  it('motes rise behind every screen, and never on the work', () => {
+    /*
+     * One sky everywhere: the layer is collected in the shell rather than in
+     * each screen, so no screen can forget it. Strictly background — a negative
+     * z-index under everything drawn, the finger passing through, gone entirely
+     * on request — because a mote sitting on a shape would be a mark meaning
+     * nothing. Fixed numbers, not random: the same sky on every visit.
+     */
+    const sky = source('src/components/SkyParticles.tsx')
+    const count = Number(sky.match(/const COUNT = (\d+)/)?.[1] ?? 0)
+    expect(count >= 20).toBeTruthy()
+    expect(sky).toContain('aria-hidden')
+    expect(sky).toContain('--sway')
+    expect(sky).toContain('animationDelay')
+    expect(source('src/App.tsx').includes('<SkyParticles />')).toBeTruthy()
+    const home = source('src/styles/home.css')
+    expect(/\.sky-particles\s*\{[^}]*z-index:\s*-1/.test(home)).toBeTruthy()
+    expect(/\.sky-particles\s*\{[^}]*pointer-events:\s*none/.test(home)).toBeTruthy()
+    expect(home).toContain('particle-rise')
   })
 })
 

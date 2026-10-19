@@ -122,14 +122,41 @@ body {
    * to two pixels and none of them is bright enough to pull the eye off a shape.
    * One tile rather than a hundred absolute positions, because a tile repeats
    * without a seam and costs nothing to hold in the file.
+   *
+   * Under the dots runs the milky way: one wide soft band and a narrower heart,
+   * both fixed diagonals that never repeat. They are listed after the dots so
+   * the dots stay on top, and they do not move — the blinking layers above are
+   * where the motion lives.
    */
   background-image:
     radial-gradient(1.6px 1.6px at 40px 36px, rgba(255, 255, 255, 0.5), transparent 60%),
     radial-gradient(1.2px 1.2px at 150px 92px, rgba(186, 214, 255, 0.38), transparent 60%),
     radial-gradient(1.1px 1.1px at 92px 168px, rgba(255, 255, 255, 0.26), transparent 60%),
-    radial-gradient(1.4px 1.4px at 232px 142px, rgba(255, 236, 190, 0.24), transparent 60%);
-  background-size: 280px 220px;
-  background-repeat: repeat;
+    radial-gradient(1.4px 1.4px at 232px 142px, rgba(255, 236, 190, 0.24), transparent 60%),
+    linear-gradient(
+      112deg,
+      transparent 38%,
+      rgba(150, 180, 240, 0.06) 46%,
+      rgba(205, 224, 255, 0.1) 50%,
+      rgba(150, 180, 240, 0.06) 54%,
+      transparent 62%
+    ),
+    linear-gradient(
+      112deg,
+      transparent 30%,
+      rgba(150, 180, 240, 0.1) 43%,
+      rgba(220, 232, 255, 0.16) 50%,
+      rgba(150, 180, 240, 0.1) 57%,
+      transparent 70%
+    );
+  background-size:
+    280px 220px,
+    280px 220px,
+    280px 220px,
+    280px 220px,
+    cover,
+    cover;
+  background-repeat: repeat, repeat, repeat, repeat, no-repeat, no-repeat;
   color: var(--color-ink);
   font-size: 18px;
   line-height: 1.5;

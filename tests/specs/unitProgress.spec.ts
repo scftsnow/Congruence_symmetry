@@ -106,20 +106,23 @@ describe('the home screen says one thing', () => {
     expect(/\.home__stars\s*\{[^}]*right:\s*0/.test(css)).toBeTruthy()
   })
 
-  it('opens with a cover, and the way in only scrolls to the doors', () => {
+  it('opens with a cover of its own, and the way in changes the screen', () => {
     /*
-     * Title, stars, one constellation, one button — and the button reveals
-     * rather than navigates, because the list is already rendered below. No
-     * second first-screen to learn, and no state deciding which half shows.
+     * Title, stars, constellations, one button — and the button goes to the
+     * doors rather than scrolling to them. The cover is the place you arrive
+     * and the doors are the place you choose; going back from any unit lands
+     * on the doors, so the cover is only ever the beginning.
      */
     const app = source('src/App.tsx')
+    expect(app).toContain("useState<Screen>('cover')")
+    expect(app).toContain("screen === 'cover'")
     expect(app).toContain('className="hero"')
     expect(app).toContain('<Constellation />')
     expect(app).toContain('시작하기')
-    // reveals by scrolling, with an instant fallback if smooth never moves
-    expect(app).toContain('scrollTo')
-    expect(app).toContain("'smooth'")
-    expect(app).toContain("behavior: 'auto'")
+    expect(app).toContain('export function HomeUnits')
+    expect(app).toContain("setScreen('home')")
+    expect(app).not.toContain('scrollIntoView')
+    expect(app).not.toContain('scrollTo')
   })
 })
 

@@ -17,7 +17,8 @@ import { join } from 'node:path'
 import { describe, it, expect } from '../harness/api'
 import expected from '../harness/expected.json' with { type: 'json' }
 import { renderToStaticMarkup } from 'react-dom/server'
-import App from '../../src/App'
+import App, { HomeUnits } from '../../src/App'
+import type { UnitProgress } from '../../src/modes/useUnitProgress'
 import { CongruenceStage } from '../../src/modes/CongruenceStage'
 import { CorrespondenceStage } from '../../src/modes/CorrespondenceStage'
 import { SymmetryAxisStage } from '../../src/modes/SymmetryAxisStage'
@@ -48,8 +49,8 @@ function strip(path: string): string {
   return source(path).replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '')
 }
 
-// ── home ──────────────────────────────────────────────────
-describe('home screen renders', () => {
+// ── cover ─────────────────────────────────────────────────
+describe('the cover opens the app', () => {
   const html = renderToStaticMarkup(<App />)
 
   it('produces markup', () => {
@@ -58,6 +59,32 @@ describe('home screen renders', () => {
 
   it('shows the title', () => {
     expect(html.includes(expected.home.title)).toBeTruthy()
+  })
+
+  it('shows the way in, and no doors yet', () => {
+    /*
+     * The cover is the place you arrive and the doors are the place you
+     * choose: the two never share the frame, so a static render of the first
+     * shows the button but none of the ten rows.
+     */
+    expect(html.includes('시작하기')).toBeTruthy()
+    expect(html.includes('단원 고르기')).toBeFalsy()
+    expect(html.includes(expected.home.unitTitle)).toBeFalsy()
+  })
+
+  it('turns constellations over the cover', () => {
+    expect(html.includes('aria-label="별자리"')).toBeTruthy()
+  })
+})
+
+// ── home ──────────────────────────────────────────────────
+describe('home screen renders', () => {
+  // The doors live one screen past the cover, so they are read on their own.
+  const fresh: UnitProgress = { done: [], isDone: () => false, count: 0, markDone: () => {} }
+  const html = renderToStaticMarkup(<HomeUnits progress={fresh} onOpen={() => {}} />)
+
+  it('produces markup', () => {
+    expect(html.length > 500).toBeTruthy()
   })
 
   it('offers the congruence unit', () => {
@@ -98,18 +125,19 @@ describe('home screen renders', () => {
 
   it('has no second way into a unit', () => {
     /*
-     * The cover carries one button, but it opens nothing — it only scrolls down
-     * to the list, which is already on the page. The failure this guards is the
-     * old duplicate: a big button under the list pointing at the first unit
-     * next to its small row, two doors into one room. So what has to hold is
-     * that every screen change into a unit comes from a unit row, and home is
-     * the only other place a button may go.
+     * The cover carries one button, but it goes to the doors, not into a unit.
+     * The failure this guards is the old duplicate: a big button under the
+     * list pointing at the first unit next to its small row, two doors into
+     * one room. So what has to hold is that no button names a unit to jump to:
+     * a literal names its destination, and only home may be named — a unit is
+     * always the row's own id travelling through, never a jump to a fixed one.
      */
     const app = strip('src/App.tsx')
     const targets = [...app.matchAll(/setScreen\(([^)]+)\)/g)].map((m) => m[1].trim())
     expect(targets.length).toBeGreaterThan(0)
     for (const target of targets) {
-      expect(target === 'unit.id' || target === "'home'" ? 'ok' : target).toBe('ok')
+      const named = /^'([^']+)'$/.exec(target)?.[1]
+      expect(!named || named === 'home' ? 'ok' : target).toBe('ok')
     }
   })
 

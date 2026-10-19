@@ -133,6 +133,17 @@
   display: block;
   width: 100%;
   height: auto;
+  /*
+   * Never taller than the screen minus its chrome: on a tablet held sideways
+   * the widest board (1100 by 760) would otherwise run past the fold and the
+   * child would have to scroll mid-activity to see every shape. The cap binds
+   * only there — upright the board is far shorter — and the viewBox ratio
+   * survives it, so a capped board is narrower, never stretched. 215px is the
+   * header, the gaps, the wrap's own padding and a foot of dots, with room.
+   */
+  max-height: calc(100vh - 215px);
+  max-height: calc(100svh - 215px);
+  margin: 0 auto;
   touch-action: none;
   user-select: none;
 }
@@ -154,6 +165,27 @@
 @media (min-width: 900px) {
   body {
     font-size: 19px;
+  }
+}
+
+/*
+ * A narrow header stacks instead of overlapping.
+ *
+ * The title is centred absolutely across the screen, which is exact until the
+ * screen runs out of room for it between the buttons: below 900px the longest
+ * titles slide under them. Wrapped, the buttons keep the first row and the
+ * title takes the second, centred in flow — the same middle, without anything
+ * behind anything.
+ */
+@media (max-width: 900px) {
+  .mode__header {
+    flex-wrap: wrap;
+  }
+  .mode__title {
+    position: static;
+    transform: none;
+    order: 3;
+    width: 100%;
   }
 }
 

@@ -233,6 +233,26 @@ describe('congruence board renders', () => {
     expect(parts.includes('touchAction')).toBeTruthy()
     expect(/touch-action:\s*none/.test(source('src/styles/ui.css'))).toBeTruthy()
   })
+
+  it('fits a sideways tablet without scrolling mid-activity', () => {
+    /*
+     * Upright there is room to spare, but sideways the widest board runs past
+     * the fold and shapes hide below it. The canvas is capped against the small
+     * viewport height instead, so it binds only there — and the ratio survives
+     * the cap, so a capped board is narrower, never stretched.
+     */
+    const ui = source('src/styles/ui.css')
+    expect(/\.canvas\s*\{[^}]*max-height:\s*calc\(100svh/.test(ui)).toBeTruthy()
+  })
+
+  it('stacks a narrow header instead of sliding the title under its buttons', () => {
+    // Absolutely centred is exact until the screen runs out of room for the
+    // title between the buttons. Wrapped, the buttons keep the first row and
+    // the title takes a centred second one.
+    const ui = source('src/styles/ui.css')
+    expect(/@media\s*\(max-width:\s*900px\)[\s\S]*?\.mode__header\s*\{[^}]*flex-wrap:\s*wrap/.test(ui)).toBeTruthy()
+    expect(/@media\s*\(max-width:\s*900px\)[\s\S]*?\.mode__title\s*\{[^}]*position:\s*static/.test(ui)).toBeTruthy()
+  })
 })
 
 // ── the popup waits for the let-go ─────────────────────────

@@ -74,13 +74,27 @@
 
 /* ── home: unit list ──────────────────────────────────── */
 
+/*
+ * The list of units, two to a row.
+ *
+ * Ten rows in one column made the first screen a page of scrolling to reach the
+ * tenth unit; two to a row puts all ten in view at once, which is the whole job
+ * of a list of doors. Below one column's width it returns to a single column —
+ * a long unit name would otherwise wrap to three lines in a phone's half.
+ */
 .unit-list {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
-  margin: 14px 0 0;
+  margin: 0;
   padding: 0;
   list-style: none;
+}
+
+@media (max-width: 620px) {
+  .unit-list {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 .unit-list__item {
@@ -141,15 +155,9 @@
 
 .unit-list__item strong {
   display: block;
+  min-width: 0;
   font-size: 1.05rem;
   color: var(--color-ink);
-}
-
-.unit-list__item em {
-  display: block;
-  font-style: normal;
-  font-size: 0.92rem;
-  color: var(--color-ink-soft);
 }
 
 /* a unit row as a button

@@ -182,7 +182,7 @@ ok(
   'every unit row is a real button',
   appSrc.includes('className="unit-open"') &&
     /UNITS\.map\(/.test(appSrc) &&
-    (appSrc.match(/^\s+id: '/gm) || []).length >= 10,
+    (appSrc.match(/\bid: '/g) || []).length >= 10,
 )
 
 /*

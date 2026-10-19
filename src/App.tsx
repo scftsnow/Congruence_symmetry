@@ -23,11 +23,12 @@
  *
  * WHAT THE HOME SAYS, AND WHAT IT DOES NOT
  * --------------------------------------
- * The header carries the count of finished units and the list carries a star per
- * finished unit. It used to carry a sentence about the app, a panel heading and a
- * line explaining the first unit: three pieces of text that said nothing a child
- * cannot already see, in the one place that has to be quick to read. What is left
- * is the title, the stars, and the doors.
+ * The header carries the count of finished units, and each row says only what
+ * the unit is. It used to also carry a sentence about the app, a panel heading,
+ * a line explaining the first unit and a caption under every row: a page of
+ * sentences, on the one screen that has to be quick to read, saying nothing a
+ * child cannot find out by opening the door. Ten rows of a name and a star take
+ * half the height they did and read at a glance.
  *
  * A unit earns its star from its own stage, at the moment the ending popup goes
  * up, and keeps it in the browser — see useUnitProgress. Nothing here decides
@@ -68,58 +69,22 @@ type Screen =
  * and what it says — and a list is where those three can only be written once.
  * The screen id doubles as the stored id: they are the same name for the same
  * unit, and a second name for it would be a second thing to keep in step.
+ *
+ * A name and nothing else. Each row once carried a line describing what the
+ * child would do inside; ten of those turned the list into a page of sentences
+ * and none of them said anything the row's own name did not.
  */
-const UNITS: Array<{ id: Screen; title: string; hint: string }> = [
-  {
-    id: 'congruence',
-    title: '합동인 도형 찾기',
-    hint: '도형을 끌어다 겹치고, 돌리고, 뒤집어 확인',
-  },
-  {
-    id: 'correspondence',
-    title: '대응점 · 대응변 · 대응각 찾기',
-    hint: '빛나는 점·변·각의 짝을 찾아보기',
-  },
-  {
-    id: 'symmetry-axis',
-    title: '선대칭도형 찾기',
-    hint: '접으면 겹치는 선을 직접 그어 찾기',
-  },
-  {
-    id: 'symmetry-parts',
-    title: '선대칭도형의 대응점·대응변·대응각',
-    hint: '대칭축을 사이에 두고 마주 보는 짝 찾기',
-  },
-  {
-    id: 'symmetry-facts',
-    title: '선대칭도형의 성질',
-    hint: '마주 보는 점을 이으면 수직, 거리는 같음',
-  },
-  {
-    id: 'symmetry-draw',
-    title: '선대칭도형 그리기',
-    hint: '반대쪽 대응점을 찾아 완성하기',
-  },
-  {
-    id: 'point-axis',
-    title: '점대칭도형 찾기',
-    hint: '반 바퀴 돌려 겹치는 대칭의 중심을 눌러 찾기',
-  },
-  {
-    id: 'point-parts',
-    title: '점대칭도형의 대응점·대응변·대응각',
-    hint: '대칭의 중심을 사이에 두고 마주 보는 짝 찾기',
-  },
-  {
-    id: 'point-facts',
-    title: '점대칭도형의 성질',
-    hint: '잇는 선분은 중심을 지나고 거리는 같음',
-  },
-  {
-    id: 'point-draw',
-    title: '점대칭도형 그리기',
-    hint: '반대쪽 대응점을 찾아 완성하기',
-  },
+const UNITS: Array<{ id: Screen; title: string }> = [
+  { id: 'congruence', title: '합동인 도형 찾기' },
+  { id: 'correspondence', title: '대응점 · 대응변 · 대응각 찾기' },
+  { id: 'symmetry-axis', title: '선대칭도형 찾기' },
+  { id: 'symmetry-parts', title: '선대칭도형의 대응점·대응변·대응각' },
+  { id: 'symmetry-facts', title: '선대칭도형의 성질' },
+  { id: 'symmetry-draw', title: '선대칭도형 그리기' },
+  { id: 'point-axis', title: '점대칭도형 찾기' },
+  { id: 'point-parts', title: '점대칭도형의 대응점·대응변·대응각' },
+  { id: 'point-facts', title: '점대칭도형의 성질' },
+  { id: 'point-draw', title: '점대칭도형 그리기' },
 ]
 
 export default function App() {
@@ -205,10 +170,7 @@ export default function App() {
                     ) : (
                       <span className="unit-list__badge">{i + 1}</span>
                     )}
-                    <span>
-                      <strong>{unit.title}</strong>
-                      <em>{unit.hint}</em>
-                    </span>
+                    <strong>{unit.title}</strong>
                   </button>
                 </li>
               )

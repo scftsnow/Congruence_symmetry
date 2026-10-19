@@ -79,6 +79,22 @@ describe('the home screen says one thing', () => {
     for (const gone of ['home__subtitle', 'panel__title', 'panel__hint']) {
       expect(app).not.toContain(gone)
     }
+    // and no row carries a second line describing it
+    expect(app).not.toContain('<em>')
+    expect(source('src/styles/home.css')).not.toContain('unit-list__item em')
+  })
+
+  it('puts the ten doors two to a row, so the tenth is in view with the first', () => {
+    /*
+     * One column made the first screen a page of scrolling to reach the tenth
+     * unit. Two to a row is the fix, and it is only given up on a phone-width
+     * screen where the longer unit names would wrap to three lines in half a
+     * row.
+     */
+    const css = source('src/styles/home.css')
+    expect(/\.unit-list\s*\{[^}]*display:\s*grid/.test(css)).toBeTruthy()
+    expect(css).toContain('grid-template-columns: repeat(2, minmax(0, 1fr))')
+    expect(/@media \(max-width: 620px\)/.test(css)).toBeTruthy()
   })
 })
 

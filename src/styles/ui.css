@@ -48,6 +48,7 @@
 }
 
 .mode__header {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -61,9 +62,28 @@
   gap: 10px;
 }
 
+/*
+ * The title holds the middle of the screen, not the middle of what is left
+ * between the buttons: with a way back on one side and a counter — or nothing
+ * — on the other, space-between leaves it off-centre by half the difference.
+ * Centred absolutely it reads in the same place on every board, and it takes
+ * no taps itself so the buttons around it keep theirs.
+ */
 .mode__title {
+  position: absolute;
+  inset-inline: 0;
+  top: 50%;
+  transform: translateY(-50%);
   margin: 0;
   font-size: 1.5rem;
+  text-align: center;
+  pointer-events: none;
+}
+
+@media (max-width: 600px) {
+  .mode__title {
+    font-size: 1.15rem;
+  }
 }
 
 .back-btn {

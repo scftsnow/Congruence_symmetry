@@ -163,6 +163,20 @@ describe('congruence board renders', () => {
     expect(html.includes('<line')).toBeTruthy()
   })
 
+  it('holds the title across the middle of the screen', () => {
+    /*
+     * With a way back on one side and a counter — or nothing — on the other,
+     * space-between leaves the title off-centre by half the difference. It is
+     * centred absolutely instead, on every board the same way, and it takes no
+     * taps itself so the buttons around it keep theirs.
+     */
+    const ui = source('src/styles/ui.css')
+    expect(/\.mode__header\s*\{[^}]*position:\s*relative/.test(ui)).toBeTruthy()
+    expect(/\.mode__title\s*\{[^}]*position:\s*absolute/.test(ui)).toBeTruthy()
+    expect(/\.mode__title\s*\{[^}]*text-align:\s*center/.test(ui)).toBeTruthy()
+    expect(/\.mode__title\s*\{[^}]*pointer-events:\s*none/.test(ui)).toBeTruthy()
+  })
+
   it('keeps the replay next to the way back, not in a bar of its own', () => {
     /*
      * Starting over is looked for where going back lives, and a whole strip

@@ -1,10 +1,11 @@
 /**
  * The light drifting behind every screen.
  *
- * Twenty-six motes rising slowly through the sky on every screen — the cover,
- * the doors and the boards alike — because the sky is one sky everywhere. Each
- * one is fixed numbers, not random: the same sky on every visit, and nothing a
- * test cannot count.
+ * Ninety motes rising slowly through the sky on every screen — the cover, the
+ * doors and the boards alike — because the sky is one sky everywhere. Most are
+ * dust, every tenth is a brighter spark: a fuller sky reads as weather, and the
+ * sparks are what the eye catches. Each one is fixed numbers, not random: the
+ * same sky on every visit, and nothing a test cannot count.
  *
  * They live strictly behind the work (a negative z-index under everything the
  * screen draws), they ignore the finger, and they vanish entirely for a child
@@ -13,7 +14,7 @@
  * night.
  */
 
-const COUNT = 26
+const COUNT = 90
 
 interface Mote {
   left: number
@@ -26,17 +27,19 @@ interface Mote {
 
 function mote(i: number): Mote {
   const tones = ['#ffffff', '#ffe9b8', '#a8c8ff']
+  // every tenth mote is a spark: bigger, brighter, quicker
+  const spark = i % 10 === 0
   return {
     // spread across the width with no two sharing a lane
     left: (i * 37 + 11) % 100,
-    // two to four pixels: dust, not snow
-    size: 2 + ((i * 7) % 3),
-    // nine to eighteen seconds a rise: slower than any child waits
-    duration: 9 + ((i * 13) % 10),
+    // dust at two to four pixels, sparks at five
+    size: spark ? 5 : 2 + ((i * 7) % 3),
+    // eight to twenty seconds a rise: slower than any child waits
+    duration: (spark ? 7 : 9) + ((i * 13) % 12),
     // already aloft on arrival, so the sky is full on the first paint
-    delay: -((i * 29) % 20),
+    delay: -((i * 29) % 22),
     // a sidestep on the way up, so no mote climbs a plumb line
-    sway: ((i * 17) % 40) - 20,
+    sway: ((i * 17) % 56) - 28,
     tone: tones[i % tones.length],
   }
 }

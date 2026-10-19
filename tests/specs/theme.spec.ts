@@ -232,7 +232,7 @@ describe('the night breathes', () => {
      */
     const sky = source('src/components/SkyParticles.tsx')
     const count = Number(sky.match(/const COUNT = (\d+)/)?.[1] ?? 0)
-    expect(count >= 20).toBeTruthy()
+    expect(count >= 80).toBeTruthy()
     expect(sky).toContain('aria-hidden')
     expect(sky).toContain('--sway')
     expect(sky).toContain('animationDelay')

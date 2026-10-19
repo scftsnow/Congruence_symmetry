@@ -35,7 +35,7 @@ export function CorrFly({
   part,
   landed,
   move,
-  wedge = 90,
+  wedge = 45,
   swap = false,
 }: {
   part: Flyable | null

@@ -30,7 +30,8 @@ export function CorrMarks({
   sides,
   angles,
   fresh,
-  wedge = 90,
+  flight,
+  wedge = 60,
 }: {
   corr: Correspondence
   points: number[]
@@ -38,9 +39,32 @@ export function CorrMarks({
   angles: number[]
   /** the ones just found, so a right answer is unmistakable */
   fresh?: { points?: number[]; sides?: number[]; angles?: number[] }
+  /**
+   * The demonstration flight, whose travelling pair stands down while it moves.
+   *
+   * A travelling part is drawn over the board already carrying its own line,
+   * so leaving its static marks up would draw it twice — a new set appearing
+   * beside the original. With them down the traveller IS the mark lifting off,
+   * and landing puts it where the other stood. The pair on its way is the fly
+   * step counted against the two asked lists in order — sides first, then
+   * angles, the same boundary the traveller itself is drawn from. Points never
+   * travel, so they never stand down.
+   */
+  flight?: { flying: boolean; flyStep: number; flySides: number[]; flyAngles: number[] }
   /** radius of a drawn angle wedge */
   wedge?: number
 }) {
+  const down =
+    !flight?.flying
+      ? { sides: [] as number[], angles: [] as number[] }
+      : flight.flyStep < flight.flySides.length
+        ? { sides: [flight.flySides[flight.flyStep]], angles: [] as number[] }
+        : {
+            sides: [] as number[],
+            angles: [flight.flyAngles[flight.flyStep - flight.flySides.length]],
+          }
+  const showSides = sides.filter((i) => !down.sides.includes(i))
+  const showAngles = angles.filter((i) => !down.angles.includes(i))
   return (
     <>
       {points.map((i) => {
@@ -54,7 +78,7 @@ export function CorrMarks({
           </g>
         )
       })}
-      {sides.map((i) => {
+      {showSides.map((i) => {
         const s = corr.sides[i]
         return (
           <g key={`s${i}`} className="corr-pairside">
@@ -69,17 +93,17 @@ export function CorrMarks({
           </g>
         )
       })}
-      {angles.map((i) => {
+      {showAngles.map((i) => {
         const g = corr.angles[i]
         return (
           <g key={`g${i}`}>
-            <path className="corr-wedge" d={angleWedge(g.a, wedge * 0.72)} />
-            <path className="corr-wedge" d={angleWedge(g.b, wedge * 0.72)} />
+            <path className="corr-wedge" d={angleWedge(g.a, wedge)} />
+            <path className="corr-wedge" d={angleWedge(g.b, wedge)} />
             {fresh?.angles?.includes(i) && (
-              <path className="corr-fresh" d={angleWedge(g.a, wedge * 0.9)} />
+              <path className="corr-fresh" d={angleWedge(g.a, wedge)} />
             )}
             {fresh?.angles?.includes(i) && (
-              <path className="corr-fresh" d={angleWedge(g.b, wedge * 0.9)} />
+              <path className="corr-fresh" d={angleWedge(g.b, wedge)} />
             )}
           </g>
         )

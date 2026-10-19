@@ -23,8 +23,8 @@ import type { Phase } from './corrText'
 const W = 1100
 const H = 600
 const MID = { x: 550, y: 300 }
-/** radius of a drawn angle wedge, and the scale of the tap target around it */
-const WEDGE = 90
+/** radius of every drawn angle wedge on this board, marks and targets alike */
+const WEDGE = 45
 
 export function SymmetryPartsScene({
   vertices, axis, pairs, phase, step, asked, flySides, flyAngles, flyStep,
@@ -87,7 +87,7 @@ export function SymmetryPartsScene({
     <svg className="canvas" viewBox={`0 0 ${W} ${H}`} role="img" aria-label="대칭축을 사이에 둔 도형">
       <path className="corr-shape corr-shape--a" d={pointsToPath(vertices)} fill="#bde0fe" />
       <line className="sym-axis" x1={axis.a.x} y1={axis.a.y} x2={axis.b.x} y2={axis.b.y} />
-      <CorrMarks corr={corr} points={markPoints} sides={markSides} angles={markAngles} fresh={fresh} wedge={WEDGE} />
+      <CorrMarks corr={corr} points={markPoints} sides={markSides} angles={markAngles} fresh={fresh} flight={{ flying, flyStep, flySides, flyAngles }} wedge={WEDGE} />
 
       {target >= 0 && phase === 'points' && (
         <circle className="corr-target" cx={corr.vertices[target].a.x} cy={corr.vertices[target].a.y} r={30} />

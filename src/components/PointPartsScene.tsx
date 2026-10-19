@@ -33,8 +33,8 @@ const W = 1100
 const H = 600
 /** where this unit's shapes sit, the same crossing every board shares */
 const MID = { x: 550, y: 300 }
-/** radius of a drawn angle wedge, and the scale of the tap target around it */
-const WEDGE = 90
+/** radius of every drawn angle wedge on this board, marks and targets alike */
+const WEDGE = 45
 
 export function PointPartsScene({
   vertices, center, pairs, phase, step, asked, flySides, flyAngles, flyStep,
@@ -108,7 +108,7 @@ export function PointPartsScene({
 
       <circle className="sym-hub sym-hub--given" cx={center.x} cy={center.y} r={10} />
 
-      <CorrMarks corr={corr} points={markPoints} sides={markSides} angles={markAngles} fresh={fresh} wedge={WEDGE} />
+      <CorrMarks corr={corr} points={markPoints} sides={markSides} angles={markAngles} fresh={fresh} flight={{ flying, flyStep, flySides, flyAngles }} wedge={WEDGE} />
 
       {target >= 0 && phase === 'points' && (
         <circle className="corr-target" cx={corr.vertices[target].a.x} cy={corr.vertices[target].a.y} r={30} />

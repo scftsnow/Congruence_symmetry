@@ -18,6 +18,9 @@
  */
 
 import { describe, it, expect } from '../harness/api'
+import { createElement } from 'react'
+import { renderToStaticMarkup } from 'react-dom/server'
+import { CorrMarks } from '../../src/components/CorrMarks'
 import {
   angleTransform,
   angleWedge,
@@ -469,6 +472,53 @@ describe('a part travels onto its partner exactly', () => {
     expect(source('src/components/PointPartsScene.tsx').includes('swap')).toBeTruthy()
     expect(source('src/components/PointFactsScene.tsx').includes('swap')).toBeTruthy()
     expect(source('src/components/SymmetryFactsScene.tsx').includes('swap') ? 'the span stops landing' : 'ok').toBe('ok')
+  })
+
+  it('stands the flying pair down while it travels', () => {
+    // The traveller is drawn carrying its own line, so leaving its static
+    // marks up would draw it twice — a new set appearing beside the original.
+    // The pair on its way is the fly step counted against the two asked lists
+    // in order: sides first, then angles, the same boundary the traveller is
+    // drawn from. Points never travel, so they never stand down.
+    const corr = placed[0].corr
+    const count = (html: string, cls: string) => (html.match(new RegExp(cls, 'g')) || []).length
+    const shown = (flight?: { flying: boolean; flyStep: number; flySides: number[]; flyAngles: number[] }) =>
+      renderToStaticMarkup(
+        createElement(CorrMarks, { corr, points: [], sides: [0, 1], angles: [0], flight }),
+      )
+    // at rest everything asked stays up
+    expect(count(shown(undefined), 'corr-pairside')).toBe(2)
+    expect(count(shown({ flying: false, flyStep: 0, flySides: [0, 1], flyAngles: [0] }), 'corr-pairside')).toBe(2)
+    // sides first, then angles, one pair at a time
+    expect(count(shown({ flying: true, flyStep: 0, flySides: [0, 1], flyAngles: [0] }), 'corr-pairside')).toBe(1)
+    expect(count(shown({ flying: true, flyStep: 1, flySides: [0, 1], flyAngles: [0] }), 'corr-pairside')).toBe(1)
+    // one angle mark is a wedge on each end, and both stand down together
+    expect(count(shown(undefined), 'corr-wedge')).toBe(2)
+    expect(count(shown({ flying: true, flyStep: 2, flySides: [0, 1], flyAngles: [0] }), 'corr-wedge')).toBe(0)
+  })
+
+  it('every demonstration hands its flight to the marks the same way', () => {
+    for (const scene of [
+      'src/components/CorrespondenceScene.tsx',
+      'src/components/SymmetryPartsScene.tsx',
+      'src/components/PointPartsScene.tsx',
+    ]) {
+      expect(source(scene).includes('flight={{ flying, flyStep,')).toBeTruthy()
+    }
+  })
+
+  it('every wedge on every board reads at one smaller size', () => {
+    // Ninety pixels of wedge on a six-hundred board buried the corner it
+    // belonged to. One size everywhere — marks, bursts, targets and travellers
+    // alike, no relative tuning left behind.
+    const sizes = [
+      ...['CorrespondenceScene.tsx', 'SymmetryPartsScene.tsx', 'PointPartsScene.tsx'].map(
+        (f) => source(`src/components/${f}`).match(/const WEDGE = (\d+)/)?.[1],
+      ),
+      source('src/components/CorrFly.tsx').match(/wedge = (\d+)/)?.[1],
+    ]
+    expect(sizes.every((s) => s === '45')).toBeTruthy()
+    expect(/angleWedge\([^)]*, wedge\s*\*/.test(source('src/components/CorrMarks.tsx'))).toBeFalsy()
   })
 })
 

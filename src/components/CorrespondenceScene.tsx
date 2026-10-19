@@ -39,8 +39,8 @@ const H = 600
 /** far enough apart that neither shape reads as touching the other */
 const LEFT = { x: 250, y: 280 }
 const RIGHT = { x: 850, y: 280 }
-/** radius of a drawn angle wedge, and the scale of the tap target around it */
-const WEDGE = 90
+/** radius of every drawn angle wedge on this board, marks and targets alike */
+const WEDGE = 45
 
 export function CorrespondenceScene({
   pair,
@@ -101,7 +101,7 @@ export function CorrespondenceScene({
       <path className="corr-shape corr-shape--a" d={pointsToPath(a)} fill={pair.a.color} />
       <path className="corr-shape corr-shape--b" d={pointsToPath(b)} fill={pair.a.color} />
 
-      <CorrMarks corr={corr} points={points} sides={sides} angles={angles} fresh={fresh} wedge={WEDGE} />
+      <CorrMarks corr={corr} points={points} sides={sides} angles={angles} fresh={fresh} flight={{ flying, flyStep, flySides: range(n), flyAngles: range(n) }} wedge={WEDGE} />
 
       {/* the part being asked about, lit on the left shape */}
       {target >= 0 && phase === 'points' && (

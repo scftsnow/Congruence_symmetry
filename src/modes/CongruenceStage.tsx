@@ -27,15 +27,17 @@ import { BoardShapeView } from '../components/BoardShapeView'
 import { congruenceDonePanelFor, congruenceMessageFor } from '../components/verdictText'
 import type { Message } from '../components/tone'
 import { useStageMessage } from './useStageMessage'
+import { useMarkComplete } from './useUnitProgress'
 
 /** nothing to say; the board is finished and the ending popup has it */
 const NEUTRAL = { tone: 'neutral', icon: '', text: '' } as const
 
 interface CongruenceStageProps {
   onBack: () => void
+  onComplete?: () => void
 }
 
-export function CongruenceStage({ onBack }: CongruenceStageProps) {
+export function CongruenceStage({ onBack, onComplete }: CongruenceStageProps) {
   const svgRef = useRef<SVGSVGElement | null>(null)
   const [justFound, setJustFound] = useState(false)
   /** true only after the child lets go, so a mere touch never turns a shape */
@@ -133,6 +135,8 @@ export function CongruenceStage({ onBack }: CongruenceStageProps) {
   const verdict = board.verdict
 
   const cleared = count >= board.target
+  // the unit is done the moment every pair is found, which is when its ending goes up
+  useMarkComplete(cleared, onComplete)
   const message = congruenceMessageFor(verdict, turned, count, board.target)
   /*
    * Before the first release, the standing instruction crosses the top of the

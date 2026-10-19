@@ -10,9 +10,13 @@
  * The two shapes are the same figure at different opacities rather than two
  * different colours. Tinting them differently would make "these are the same
  * shape" something the colours say instead of something the outlines show.
+ *
+ * Both are a little stronger than they were on the white board: at night a
+ * forty-percent pastel is barely a shape at all, and the fainter of the pair has
+ * to be readable as well as visibly fainter.
  */
 .corr-shape {
-  stroke: #1d3557;
+  stroke: var(--ink-on-shape);
   stroke-width: 3;
   stroke-linejoin: round;
 }
@@ -22,7 +26,7 @@
 }
 
 .corr-shape--b {
-  fill-opacity: 0.4;
+  fill-opacity: 0.5;
 }
 
 .corr-caption {
@@ -34,7 +38,7 @@
 /* A corner that has been paired up. Solid, so it reads as part of the figure. */
 .corr-mark {
   fill: #e63946;
-  stroke: #fff;
+  stroke: var(--ink-on-shape);
   stroke-width: 3;
 }
 
@@ -49,7 +53,7 @@
  */
 .corr-fresh {
   fill: none;
-  stroke: #2a9d8f;
+  stroke: var(--color-success);
   stroke-width: 6;
   pointer-events: none;
   animation: corr-found 700ms ease-out forwards;
@@ -72,17 +76,18 @@
 
 /* Two sides that correspond, one on each shape. */
 .corr-pairside line {
-  stroke: #2a9d8f;
+  stroke: var(--color-success);
   stroke-width: 9;
   stroke-linecap: round;
+  filter: var(--glow-svg);
 }
 
 /* A pair of angles. Filled rather than outlined: the size is the point, and an
  * outline would have to be told how far round to go. */
 .corr-wedge {
-  fill: #2a9d8f;
+  fill: var(--color-success);
   fill-opacity: 0.45;
-  stroke: #1b6b4a;
+  stroke: var(--color-success-deep);
   stroke-width: 2;
 }
 
@@ -139,8 +144,8 @@
 }
 
 .corr-tap:hover {
-  fill: rgba(33, 158, 188, 0.12);
-  stroke: rgba(33, 158, 188, 0.25);
+  fill: rgba(92, 200, 232, 0.12);
+  stroke: rgba(92, 200, 232, 0.25);
 }
 
 /* Where the travelling part is heading. Pale but solid — a dashed outline would
@@ -148,7 +153,7 @@
 .corr-ghost {
   fill: #ffffff;
   fill-opacity: 0.55;
-  stroke: #8d99ae;
+  stroke: var(--board-ink-soft);
   stroke-width: 6;
   stroke-linecap: round;
 }
@@ -192,7 +197,7 @@
 
 .corr-pair--now {
   border-color: var(--color-primary);
-  background: #e8f6fa;
+  background: rgba(92, 200, 232, 0.12);
   font-weight: 700;
 }
 
@@ -222,6 +227,7 @@
 .corr-dot--done {
   border-color: var(--color-success);
   background: var(--color-success);
+  box-shadow: var(--glow-shadow);
 }
 
 .corr-dot--now {

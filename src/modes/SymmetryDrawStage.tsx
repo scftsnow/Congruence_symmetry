@@ -12,10 +12,18 @@ import { symmetryDrawDonePanelFor } from '../components/symmPartsText'
 import { symmetryNextLabelFor } from '../components/symmText'
 import { SYMM_DRAW_BOARDS } from '../geometry/symmetryShapes'
 import { useSymmetryRun } from './useSymmetryRun'
+import { useMarkComplete } from './useUnitProgress'
 import { DrawBoard } from './DrawBoard'
 
-export function SymmetryDrawStage({ onBack }: { onBack: () => void }) {
+export function SymmetryDrawStage({
+  onBack,
+  onComplete,
+}: {
+  onBack: () => void
+  onComplete?: () => void
+}) {
   const run = useSymmetryRun(SYMM_DRAW_BOARDS)
+  useMarkComplete(run.finished, onComplete)
   const done = symmetryDrawDonePanelFor()
   const board = run.board
   const key = board.kind === 'axis' ? board.item.id : board.id

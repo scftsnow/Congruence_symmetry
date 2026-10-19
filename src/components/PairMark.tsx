@@ -18,9 +18,9 @@ export function PairMark({ a, b }: { a: BoardShape; b: BoardShape }) {
   const cy = (polygonCentroid(shapePoints(a)).y + polygonCentroid(shapePoints(b)).y) / 2
 
   return (
-    <g pointerEvents="none">
-      <circle cx={cx} cy={cy} r={22} fill="#2a9d8f" />
-      <text x={cx} y={cy + 9} fontSize={26} fontWeight={700} fill="#fff" textAnchor="middle">
+    <g className="pair-mark" pointerEvents="none">
+      <circle cx={cx} cy={cy} r={22} fill="var(--color-success)" />
+      <text x={cx} y={cy + 9} fontSize={26} fontWeight={700} fill="#3a2c07" textAnchor="middle">
         ✓
       </text>
     </g>

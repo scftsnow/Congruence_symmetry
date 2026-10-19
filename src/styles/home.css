@@ -24,10 +24,33 @@
   color: var(--color-ink);
 }
 
-.home__subtitle {
-  margin: 8px 0 0;
+/*
+ * The stars a child has earned, told as one count at the top of the sky.
+ *
+ * The number counts units, not boards: a unit is the door the child actually
+ * chooses, so it is the thing that is finished or not. The star is drawn in the
+ * same starlight the proved marks use, which is what ties the two together — the
+ * thing that glows on a board is the thing that left a star up here.
+ */
+.home__stars {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 0 0;
+  padding: 8px 18px;
+  border: 1px solid var(--color-line);
+  border-radius: 999px;
+  background: var(--color-surface-glass);
   font-size: 1.05rem;
-  color: var(--color-ink-soft);
+  font-weight: 700;
+  color: var(--color-ink);
+}
+
+.home__star {
+  font-size: 1.25rem;
+  line-height: 1;
+  color: var(--color-success);
+  text-shadow: var(--glow-shadow);
 }
 
 .home__main {
@@ -37,37 +60,10 @@
 }
 
 .panel {
-  background: var(--color-surface);
+  background: var(--color-surface-glass);
   border-radius: var(--radius);
   padding: 22px;
-  box-shadow: 0 2px 12px rgba(2, 48, 71, 0.06);
-}
-
-.panel__title {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin: 0 0 4px;
-  font-size: 1.25rem;
-}
-
-.panel__step {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  background: var(--color-primary);
-  color: #fff;
-  font-size: 1rem;
-  font-weight: 700;
-}
-
-.panel__hint {
-  margin: 0 0 16px;
-  font-size: 0.95rem;
-  color: var(--color-ink-soft);
+  box-shadow: 0 2px 18px rgba(0, 0, 0, 0.35);
 }
 
 /* the list of units
@@ -94,12 +90,25 @@
   padding: 14px 16px;
   border: 2px solid var(--color-line);
   border-radius: var(--radius-sm);
-  background: #fff;
+  background: var(--color-surface-2);
 }
 
 .unit-list__item--active {
   border-color: var(--color-primary);
-  background: #e8f6fa;
+  background: rgba(92, 200, 232, 0.1);
+}
+
+/*
+ * A unit that has been finished.
+ *
+ * The border warms to the starlight rather than the asking cyan, so a row that
+ * has been done reads as settled at a glance without the child having to read
+ * anything. The row itself stays as dark as the rest: the light is on the star,
+ * not on the words.
+ */
+.unit-list__item--done {
+  border-color: rgba(255, 224, 138, 0.45);
+  background: rgba(255, 224, 138, 0.07);
 }
 
 .unit-list__badge {
@@ -111,8 +120,23 @@
   flex: 0 0 auto;
   border-radius: 50%;
   background: var(--color-primary);
-  color: #fff;
+  color: #06202f;
   font-weight: 700;
+}
+
+/*
+ * The star a finished unit leaves in place of its number.
+ *
+ * A star glyph rather than a drawn shape, because this is the one place on
+ * screen where a star belongs: it is a mark of record, not something the child
+ * placed, which is why the points on a board are still circles.
+ */
+.unit-list__badge--star {
+  background: rgba(255, 224, 138, 0.14);
+  color: var(--color-success);
+  font-size: 1.15rem;
+  line-height: 1;
+  text-shadow: var(--glow-shadow);
 }
 
 .unit-list__item strong {

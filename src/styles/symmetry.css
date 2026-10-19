@@ -32,6 +32,7 @@
 .sym-dot--done {
   border-color: var(--color-success);
   background: var(--color-success);
+  box-shadow: var(--glow-shadow);
 }
 
 .sym-dot--now {
@@ -48,10 +49,15 @@
  * The fill is see-through on purpose, and only just: the grid stays readable
  * underneath it, because the grid is the reference a child measures the shape
  * against and a solid fill hides exactly the thing that shows a shape has not
- * moved. The outline stays solid — the figure is read from its edges.
+ * moved.
+ *
+ * The outline is dark ink on that pale fill rather than a light line: on a night
+ * sky the pale fill is already the silhouette — it is what says where the shape
+ * is — so the outline is left to do the other half of the job, which is holding
+ * the figure's own edges together.
  */
 .sym-shape {
-  stroke: #1d3557;
+  stroke: var(--ink-on-shape);
   stroke-width: 3;
   stroke-linejoin: round;
   fill-opacity: 0.65;
@@ -90,17 +96,18 @@
 /*
  * An axis already found, staying on screen.
  *
- * Settled answers are drawn in the success teal rather than the asking orange:
- * orange is the line under discussion, teal is what has been proved. Same job
- * as the teal pair marks on the congruence board.
+ * Settled answers are drawn in the starlight rather than the asking orange:
+ * orange is the line under discussion, starlight is what has been proved. Same
+ * job as the pair marks on the congruence board.
  */
 .sym-axis--found {
-  stroke: #2a9d8f;
+  stroke: var(--color-success);
   stroke-width: 5;
+  filter: var(--glow-svg);
 }
 
 .sym-draft {
-  stroke: #8d99ae;
+  stroke: var(--board-ink-soft);
   stroke-width: 6;
   stroke-linecap: round;
   stroke-dasharray: 14 12;
@@ -111,14 +118,15 @@
  * The axis when it is given rather than asked for.
  *
  * On the parts, facts and drawing boards the line is not the answer — it was
- * found or handed over already — so it is drawn in the settled teal rather than
+ * found or handed over already — so it is drawn in the starlight rather than
  * the asking orange. Same distinction the found-axis line makes one board
- * earlier: orange is what is being decided, teal is what stands.
+ * earlier: orange is what is being decided, starlight is what stands.
  */
 .sym-axis--given {
-  stroke: #2a9d8f;
+  stroke: var(--color-success);
   stroke-width: 4;
   stroke-dasharray: none;
+  filter: var(--glow-svg);
 }
 
 /*
@@ -129,19 +137,20 @@
  * larger, so it reads without a sentence on the board.
  */
 .sym-corner {
-  fill: #1d3557;
+  fill: var(--ink-on-shape);
   pointer-events: none;
 }
 
 .sym-placed {
-  fill: #2a9d8f;
-  stroke: #ffffff;
+  fill: var(--color-success);
+  stroke: var(--ink-on-shape);
   stroke-width: 3;
+  filter: var(--glow-svg);
   pointer-events: none;
 }
 
 /*
- * Everything the child has just proved, in the settled teal.
+ * Everything the child has just proved, in the starlight.
  *
  * One group for all of it, because all of it means the same thing: a claim the
  * unit has made good, rather than a thing being asked. The marks inside are the
@@ -153,9 +162,10 @@
 }
 
 .sym-join {
-  stroke: #2a9d8f;
+  stroke: var(--color-success);
   stroke-width: 5;
   stroke-linecap: round;
+  filter: var(--glow-svg);
 }
 
 /*
@@ -189,10 +199,11 @@
 
 .sym-right,
 .sym-tick {
-  stroke: #2a9d8f;
+  stroke: var(--color-success);
   stroke-width: 4;
   fill: none;
   stroke-linecap: round;
+  filter: var(--glow-svg);
 }
 
 .sym-tick {
@@ -209,9 +220,10 @@
  * moment it lands rather than when it starts.
  */
 .sym-carry {
-  stroke: #2a9d8f;
+  stroke: var(--color-success);
   stroke-width: 5;
   stroke-linecap: round;
+  filter: var(--glow-svg);
   transition: transform 1200ms cubic-bezier(0.34, 0.9, 0.3, 1);
   pointer-events: none;
 }
@@ -282,9 +294,10 @@
  * axis boards draw between the asking orange and the settled teal.
  */
 .sym-hub {
-  fill: #2a9d8f;
-  stroke: #ffffff;
+  fill: var(--color-success);
+  stroke: var(--ink-on-shape);
   stroke-width: 3;
+  filter: var(--glow-svg);
   pointer-events: none;
 }
 
@@ -332,6 +345,7 @@
 .sym-board--done {
   border-color: var(--color-success);
   background: var(--color-success);
+  box-shadow: var(--glow-shadow);
 }
 
 .sym-board--now {

@@ -10,10 +10,10 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  background: var(--color-surface);
+  background: var(--color-surface-glass);
   border-radius: var(--radius);
   padding: 14px;
-  box-shadow: 0 2px 12px rgba(2, 48, 71, 0.06);
+  box-shadow: 0 2px 18px rgba(0, 0, 0, 0.35);
 }
 
 .toolbar__actions {
@@ -40,7 +40,7 @@
   padding: 0 18px;
   border: 2px solid var(--color-line);
   border-radius: var(--radius-sm);
-  background: #fff;
+  background: var(--color-surface-2);
   font-family: inherit;
   font-size: 1rem;
   font-weight: 600;
@@ -50,7 +50,7 @@
 }
 
 .mini-btn:hover {
-  background: #f1f5f9;
+  background: rgba(92, 200, 232, 0.12);
 }
 
 .mini-btn--ghost {
@@ -58,13 +58,23 @@
   color: var(--color-ink-soft);
 }
 
-/* a shape being turned by the system
+/* The tick that says a pair is confirmed.
  *
- * Split out of src/index.css, which was one file because there was
- * one screen. 
+ * It carries the same starlight as every other proved mark on the boards, and it
+ * glows for the same reason: on a night sky it is the answer, and it should be
+ * the brightest thing in the middle of the pair.
  */
+.pair-mark {
+  filter: var(--glow-svg);
+}
 
 /* ── 도형이 돌아가는 모션 ────────────────────────────── */
+
+/* A shape being turned by the system
+ *
+ * Split out of src/index.css, which was one file because there was
+ * one screen.
+ */
 
 /*
  * A quarter turn takes 600ms.

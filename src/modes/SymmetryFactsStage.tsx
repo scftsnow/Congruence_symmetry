@@ -12,10 +12,18 @@ import { symmetryFactsDonePanelFor } from '../components/symmPartsText'
 import { symmetryNextLabelFor } from '../components/symmText'
 import { SYMM_FACTS_BOARDS } from '../geometry/symmetryShapes'
 import { useSymmetryRun } from './useSymmetryRun'
+import { useMarkComplete } from './useUnitProgress'
 import { FactsBoard } from './FactsBoard'
 
-export function SymmetryFactsStage({ onBack }: { onBack: () => void }) {
+export function SymmetryFactsStage({
+  onBack,
+  onComplete,
+}: {
+  onBack: () => void
+  onComplete?: () => void
+}) {
   const run = useSymmetryRun(SYMM_FACTS_BOARDS)
+  useMarkComplete(run.finished, onComplete)
   const done = symmetryFactsDonePanelFor()
   const board = run.board
   const key = board.kind === 'axis' ? board.item.id : board.id

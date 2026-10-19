@@ -14,9 +14,18 @@ import { correspondenceDonePanelFor } from '../components/corrText'
 import { CORRESPONDENCE_PAIRS } from '../geometry/correspondenceShapes'
 import { useCorrespondence } from './useCorrespondence'
 import { useStageMessage } from './useStageMessage'
+import { useMarkComplete } from './useUnitProgress'
 
-export function CorrespondenceStage({ onBack }: { onBack: () => void }) {
+export function CorrespondenceStage({
+  onBack,
+  onComplete,
+}: {
+  onBack: () => void
+  onComplete?: () => void
+}) {
   const c = useCorrespondence()
+  // the last pair's last part is answered, which is when the ending goes up
+  useMarkComplete(c.done, onComplete)
   const last = c.pairIndex + 1 >= CORRESPONDENCE_PAIRS.length
   const done = correspondenceDonePanelFor()
 

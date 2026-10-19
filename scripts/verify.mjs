@@ -172,7 +172,18 @@ ok('stage title', stageSrc.includes(ui.unitTitle))
  * cannot creep back.
  */
 ok('home has no start button of its own', !appSrc.includes('className="start-btn"'))
-ok('every unit row is a real button', (appSrc.match(/className="unit-open"/g) || []).length >= 2)
+/*
+ * The list used to hold ten hand-written rows, so this counted the buttons. The
+ * rows come out of one list now — which is the point of the list: one button, ten
+ * doors — so what has to hold is that the row is a real button and that it is
+ * rendered for every unit rather than once.
+ */
+ok(
+  'every unit row is a real button',
+  appSrc.includes('className="unit-open"') &&
+    /UNITS\.map\(/.test(appSrc) &&
+    (appSrc.match(/^\s+id: '/gm) || []).length >= 10,
+)
 
 /*
  * Every unit ends somewhere.

@@ -62,19 +62,21 @@ export function BoardShapeView({
           d={d}
           fill={item.shape.color}
           fillOpacity={held ? 0.55 : 0.65}
-          stroke={held ? '#023047' : '#1d3557'}
+          stroke="var(--ink-on-shape)"
           strokeWidth={held ? 4.5 : 2.5}
           strokeLinejoin="round"
         />
         {held &&
-          item.shape.vertices.map((p, i) => <circle key={i} cx={p.x} cy={p.y} r={6} fill="#023047" />)}
+          item.shape.vertices.map((p, i) => (
+            <circle key={i} cx={p.x} cy={p.y} r={6} fill="var(--ink-on-shape)" />
+          ))}
       </g>
       <text
         x={item.x}
         y={item.y + 82}
         fontSize={26}
         fontWeight={700}
-        fill="#023047"
+        fill="var(--board-ink)"
         textAnchor="middle"
         style={{ pointerEvents: 'none' }}
       >

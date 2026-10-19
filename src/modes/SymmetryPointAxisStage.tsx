@@ -11,10 +11,18 @@ import { DonePanel } from '../components/DonePanel'
 import { pointSymmetryDonePanelFor, pointSymmetryNextLabelFor } from '../components/pointSymmText'
 import { POINT_CENTER_BOARDS } from '../geometry/pointSymmetryShapes'
 import { useSymmetryRun } from './useSymmetryRun'
+import { useMarkComplete } from './useUnitProgress'
 import { CenterBoard } from './CenterBoard'
 
-export function SymmetryPointAxisStage({ onBack }: { onBack: () => void }) {
+export function SymmetryPointAxisStage({
+  onBack,
+  onComplete,
+}: {
+  onBack: () => void
+  onComplete?: () => void
+}) {
   const run = useSymmetryRun(POINT_CENTER_BOARDS)
+  useMarkComplete(run.finished, onComplete)
   const done = pointSymmetryDonePanelFor()
   const board = run.board
   const key = board.kind === 'center' ? board.item.id : board.id

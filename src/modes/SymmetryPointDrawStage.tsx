@@ -12,10 +12,18 @@ import { pointDrawDonePanelFor } from '../components/pointSymmPartsText'
 import { pointSymmetryNextLabelFor } from '../components/pointSymmText'
 import { POINT_DRAW_BOARDS } from '../geometry/pointSymmetryShapes'
 import { useSymmetryRun } from './useSymmetryRun'
+import { useMarkComplete } from './useUnitProgress'
 import { PointDrawBoard } from './PointDrawBoard'
 
-export function SymmetryPointDrawStage({ onBack }: { onBack: () => void }) {
+export function SymmetryPointDrawStage({
+  onBack,
+  onComplete,
+}: {
+  onBack: () => void
+  onComplete?: () => void
+}) {
   const run = useSymmetryRun(POINT_DRAW_BOARDS)
+  useMarkComplete(run.finished, onComplete)
   const done = pointDrawDonePanelFor()
   const board = run.board
 

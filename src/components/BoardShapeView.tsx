@@ -56,10 +56,12 @@ export function BoardShapeView({
       >
         {/* generous hit area, sized for a child's finger */}
         <path d={d} fill="transparent" stroke="transparent" strokeWidth={48} />
+        {/* see-through so the board's grid shows through the shape, as on every
+            other board; a shape in hand fades further while it is being moved */}
         <path
           d={d}
           fill={item.shape.color}
-          fillOpacity={held ? 0.55 : 0.75}
+          fillOpacity={held ? 0.55 : 0.65}
           stroke={held ? '#023047' : '#1d3557'}
           strokeWidth={held ? 4.5 : 2.5}
           strokeLinejoin="round"

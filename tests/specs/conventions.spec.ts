@@ -625,6 +625,27 @@ describe('a file holds one thing', () => {
     expect(fixed).toBeTruthy()
     expect(read('src/components/DonePanel.tsx').includes('role="dialog"')).toBeTruthy()
   })
+
+  it('every shape on a grid board lets the grid show through', () => {
+    /*
+     * The grid is how a child judges that a shape has not moved, so a shape may
+     * not cover it. Both ways a shape is filled over a grid — the shared
+     * .sym-shape family and the congruence board's own path — keep the fill
+     * see-through enough to read the squares through it; a near-solid tint is
+     * what this replaces. The outline is untouched: the figure is read from its
+     * edges, the grid only needs to be discerned through the middle.
+     */
+    const css = read('src/styles/symmetry.css')
+    const levels = [...css.matchAll(/\.sym-shape[^{]*\{([^}]*)\}/g)]
+      .map((m) => Number(m[1].match(/fill-opacity:\s*([\d.]+)/)?.[1]))
+      .filter((v) => !Number.isNaN(v))
+    expect(levels.length).toBeGreaterThan(0)
+    expect(levels.every((v) => v <= 0.65)).toBeTruthy()
+
+    const view = read('src/components/BoardShapeView.tsx')
+    const resting = view.match(/fillOpacity=\{held \? [\d.]+ : ([\d.]+)\}/)
+    expect(resting ? Number(resting[1]) <= 0.65 : false).toBeTruthy()
+  })
 })
 
 /*

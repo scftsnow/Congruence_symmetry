@@ -86,12 +86,20 @@
 
 /* ── 캔버스 ──────────────────────────────────────────── */
 
+/*
+ * The board is white paper.
+ *
+ * The app around it is a night sky, but the board a child works on is the one
+ * surface the sky never covers: shapes belong on paper, with the grid faint
+ * behind them. So this is the only card in the app that is light rather than
+ * glass, and everything drawn on it below is written for that.
+ */
 .canvas-wrap {
   position: relative;
-  background: var(--color-surface-glass);
+  background: var(--paper);
   border-radius: var(--radius);
   padding: 12px;
-  box-shadow: 0 2px 18px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
 }
 
 .canvas {
@@ -165,7 +173,9 @@
   overflow-y: auto;
   padding: 26px 24px;
   border-radius: var(--radius);
-  background: var(--color-surface-glass);
+  /* paper as well: the ending sits over the board, and reads as a sheet on it */
+  background: var(--paper);
+  color: var(--ink-on-shape);
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
   text-align: center;
 }
@@ -183,8 +193,8 @@
 }
 
 .done__title strong {
-  color: var(--color-success);
-  text-shadow: 0 0 10px rgba(255, 224, 138, 0.4);
+  /* gold on paper: the same claim the boards draw, at the strength paper reads */
+  color: var(--board-success);
 }
 
 /*
@@ -197,7 +207,7 @@
   margin: 0 0 6px;
   max-width: 30em;
   font-size: 1.02rem;
-  color: var(--color-ink-soft);
+  color: #4c6784;
   line-height: 1.6;
 }
 
@@ -233,8 +243,10 @@
   max-width: min(640px, calc(100% - 20px));
   padding: 16px 22px;
   border-radius: var(--radius);
-  background: var(--color-surface-glass);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+  /* the same card as the ending popup, smaller: same shape, same lift */
+  background: var(--paper);
+  color: var(--ink-on-shape);
+  box-shadow: 0 12px 40px rgba(4, 12, 24, 0.45);
   pointer-events: none;
   animation: toast-in 260ms cubic-bezier(0.34, 0.9, 0.3, 1);
 }
@@ -248,7 +260,7 @@
 .toast__text {
   font-size: 1.1rem;
   font-weight: 600;
-  color: var(--color-ink);
+  color: var(--ink-on-shape);
   line-height: 1.4;
   white-space: nowrap;
 }
@@ -267,7 +279,7 @@
 }
 
 .toast__text strong {
-  color: var(--color-success);
+  color: var(--board-success);
 }
 
 /*
@@ -275,25 +287,24 @@
  *
  * Amber and the magnifier rather than a tick, because the child has just been
  * told something is not right and the card must not read as praise at a glance.
- * On a night sky that means a dark amber card rather than the old cream one: the
- * hint still reads as its own colour without becoming the brightest thing on
- * screen.
+ * Cream rather than gold, and a shade warmer than the card beneath it, so the
+ * two are told apart at a glance without either shouting.
  */
 .toast--success {
-  background: var(--color-surface-glass);
+  background: var(--paper);
 }
 
 .toast--hint {
-  background: rgba(74, 56, 16, 0.94);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+  background: #fdf3d8;
+  box-shadow: 0 10px 28px rgba(6, 16, 30, 0.45);
 }
 
 .toast--hint .toast__text {
-  color: #ffd97a;
+  color: #7a5c00;
 }
 
 .toast--hint .toast__text strong {
-  color: #ffd97a;
+  color: #7a5c00;
 }
 
 @keyframes toast-in {

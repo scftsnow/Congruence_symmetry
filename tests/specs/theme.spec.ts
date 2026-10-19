@@ -39,10 +39,49 @@ describe('the app is drawn on a night sky', () => {
     expect(base).toContain('background-repeat')
   })
 
-  it('the grid is a faint line on the dark board, not a dark line on white', () => {
+  it('the grid is a faint line on the paper, not a dark line on white', () => {
     const base = source('src/styles/base.css')
     expect(/--grid-line:\s*rgba\(\s*\d+,\s*\d+,\s*\d+,\s*0?\.\d+\s*\)/.test(base)).toBeTruthy()
     expect(source('src/components/BoardGrid.tsx')).toContain('var(--grid-line)')
+  })
+})
+
+describe('the board a child works on is white paper', () => {
+  it('the night sky never covers it', () => {
+    /*
+     * The one surface the theme keeps light. Shapes belong on paper with the
+     * grid faint behind them, so the board is the one card that is not glass —
+     * and every board in the app is wrapped in that one class, which is what
+     * makes "the board" a single thing to get right.
+     */
+    expect(source('src/styles/base.css')).toContain('--paper')
+    expect(/\.canvas-wrap\s*\{[^}]*var\(--paper\)/.test(source('src/styles/ui.css'))).toBeTruthy()
+    for (const stage of readdirSync(join(process.cwd(), 'src/modes'))) {
+      if (!stage.endsWith('.tsx')) continue
+      if (source(`src/modes/${stage}`).includes('<svg')) {
+        expect(source(`src/modes/${stage}`).includes('canvas-wrap')).toBeTruthy()
+      }
+    }
+  })
+
+  it('the popup that sits on the board is paper too', () => {
+    // It is a card over the paper, so it lifts off it by shadow rather than by
+    // being a different night.
+    const ui = source('src/styles/ui.css')
+    expect(/\.toast\s*\{[^}]*var\(--paper\)/.test(ui)).toBeTruthy()
+    expect(/\.done__card\s*\{[^}]*var\(--paper\)/.test(ui)).toBeTruthy()
+  })
+
+  it('a proved mark is gold on paper, because starlight on white is nothing', () => {
+    // The same claim as the home screen's stars, at the strength paper can
+    // read: pale yellow on white has no contrast, and a glow has nothing darker
+    // to shine against.
+    const base = source('src/styles/base.css')
+    expect(base).toContain('--board-success')
+    expect(/\.sym-join\s*\{[^}]*var\(--board-success\)/.test(source('src/styles/symmetry.css'))).toBeTruthy()
+    expect(/\.corr-wedge\s*\{[^}]*var\(--board-success\)/.test(source('src/styles/correspondence.css'))).toBeTruthy()
+    // and the popup emphasis says the same thing in the same strength
+    expect(/\.done__title strong\s*\{[^}]*var\(--board-success\)/.test(source('src/styles/ui.css'))).toBeTruthy()
   })
 })
 

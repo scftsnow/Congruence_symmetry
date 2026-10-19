@@ -10,10 +10,6 @@
  * The two shapes are the same figure at different opacities rather than two
  * different colours. Tinting them differently would make "these are the same
  * shape" something the colours say instead of something the outlines show.
- *
- * Both are a little stronger than they were on the white board: at night a
- * forty-percent pastel is barely a shape at all, and the fainter of the pair has
- * to be readable as well as visibly fainter.
  */
 .corr-shape {
   stroke: var(--ink-on-shape);
@@ -26,13 +22,13 @@
 }
 
 .corr-shape--b {
-  fill-opacity: 0.5;
+  fill-opacity: 0.4;
 }
 
 .corr-caption {
   font-size: 26px;
   font-weight: 700;
-  fill: var(--color-ink);
+  fill: var(--ink-on-shape);
 }
 
 /* A corner that has been paired up. Solid, so it reads as part of the figure. */
@@ -53,7 +49,7 @@
  */
 .corr-fresh {
   fill: none;
-  stroke: var(--color-success);
+  stroke: var(--board-success);
   stroke-width: 6;
   pointer-events: none;
   animation: corr-found 700ms ease-out forwards;
@@ -76,7 +72,7 @@
 
 /* Two sides that correspond, one on each shape. */
 .corr-pairside line {
-  stroke: var(--color-success);
+  stroke: var(--board-success);
   stroke-width: 9;
   stroke-linecap: round;
   filter: var(--glow-svg);
@@ -85,9 +81,9 @@
 /* A pair of angles. Filled rather than outlined: the size is the point, and an
  * outline would have to be told how far round to go. */
 .corr-wedge {
-  fill: var(--color-success);
+  fill: var(--board-success);
   fill-opacity: 0.45;
-  stroke: var(--color-success-deep);
+  stroke: var(--board-success);
   stroke-width: 2;
 }
 
@@ -149,10 +145,11 @@
 }
 
 /* Where the travelling part is heading. Pale but solid — a dashed outline would
- * have to mean "not here yet", and dashes read as broken rather than pending. */
+ * have to mean "not here yet", and dashes read as broken rather than pending.
+ * A grey wash rather than white: this is drawn on white paper, where a white
+ * ghost would be nothing at all. */
 .corr-ghost {
-  fill: #ffffff;
-  fill-opacity: 0.55;
+  fill: rgba(107, 127, 158, 0.12);
   stroke: var(--board-ink-soft);
   stroke-width: 6;
   stroke-linecap: round;

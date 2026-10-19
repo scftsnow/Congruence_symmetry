@@ -51,10 +51,9 @@
  * against and a solid fill hides exactly the thing that shows a shape has not
  * moved.
  *
- * The outline is dark ink on that pale fill rather than a light line: on a night
- * sky the pale fill is already the silhouette — it is what says where the shape
- * is — so the outline is left to do the other half of the job, which is holding
- * the figure's own edges together.
+ * The outline is dark ink, and that is what the paper needs: a pastel fill at
+ * two-thirds strength is a pale thing on white, and the edge is the only part
+ * of the figure that says where it ends.
  */
 .sym-shape {
   stroke: var(--ink-on-shape);
@@ -96,12 +95,12 @@
 /*
  * An axis already found, staying on screen.
  *
- * Settled answers are drawn in the starlight rather than the asking orange:
- * orange is the line under discussion, starlight is what has been proved. Same
- * job as the pair marks on the congruence board.
+ * Settled answers are drawn in gold rather than the asking orange: orange is
+ * the line under discussion, gold is what has been proved. Same job as the pair
+ * marks on the congruence board.
  */
 .sym-axis--found {
-  stroke: var(--color-success);
+  stroke: var(--board-success);
   stroke-width: 5;
   filter: var(--glow-svg);
 }
@@ -118,12 +117,12 @@
  * The axis when it is given rather than asked for.
  *
  * On the parts, facts and drawing boards the line is not the answer — it was
- * found or handed over already — so it is drawn in the starlight rather than
- * the asking orange. Same distinction the found-axis line makes one board
- * earlier: orange is what is being decided, starlight is what stands.
+ * found or handed over already — so it is drawn in gold rather than the asking
+ * orange. Same distinction the found-axis line makes one board earlier: orange
+ * is what is being decided, gold is what stands.
  */
 .sym-axis--given {
-  stroke: var(--color-success);
+  stroke: var(--board-success);
   stroke-width: 4;
   stroke-dasharray: none;
   filter: var(--glow-svg);
@@ -142,7 +141,7 @@
 }
 
 .sym-placed {
-  fill: var(--color-success);
+  fill: var(--board-success);
   stroke: var(--ink-on-shape);
   stroke-width: 3;
   filter: var(--glow-svg);
@@ -150,7 +149,7 @@
 }
 
 /*
- * Everything the child has just proved, in the starlight.
+ * Everything the child has just proved, in gold.
  *
  * One group for all of it, because all of it means the same thing: a claim the
  * unit has made good, rather than a thing being asked. The marks inside are the
@@ -162,7 +161,7 @@
 }
 
 .sym-join {
-  stroke: var(--color-success);
+  stroke: var(--board-success);
   stroke-width: 5;
   stroke-linecap: round;
   filter: var(--glow-svg);
@@ -199,7 +198,7 @@
 
 .sym-right,
 .sym-tick {
-  stroke: var(--color-success);
+  stroke: var(--board-success);
   stroke-width: 4;
   fill: none;
   stroke-linecap: round;
@@ -220,7 +219,7 @@
  * moment it lands rather than when it starts.
  */
 .sym-carry {
-  stroke: var(--color-success);
+  stroke: var(--board-success);
   stroke-width: 5;
   stroke-linecap: round;
   filter: var(--glow-svg);
@@ -288,13 +287,13 @@
 }
 
 /*
- * The middle under discussion. One teal dot rather than a line: a point has no
+ * The middle under discussion. One dot rather than a line: a point has no
  * direction to draw, so there is nothing here that could be the answer. The
  * given middle stands paler, the proved one solid — the same distinction the
- * axis boards draw between the asking orange and the settled teal.
+ * axis boards draw between the asking orange and the settled gold.
  */
 .sym-hub {
-  fill: var(--color-success);
+  fill: var(--board-success);
   stroke: var(--ink-on-shape);
   stroke-width: 3;
   filter: var(--glow-svg);

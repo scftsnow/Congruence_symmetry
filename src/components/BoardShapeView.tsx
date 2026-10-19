@@ -76,7 +76,7 @@ export function BoardShapeView({
         y={item.y + 82}
         fontSize={26}
         fontWeight={700}
-        fill="var(--board-ink)"
+        fill="var(--ink-on-shape)"
         textAnchor="middle"
         style={{ pointerEvents: 'none' }}
       >

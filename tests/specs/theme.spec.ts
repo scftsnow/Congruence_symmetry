@@ -158,18 +158,24 @@ describe('a point is still a point', () => {
     expect(cover).toContain('<circle')
   })
 
-  it('the cover holds three constellations, out of step with each other', () => {
-    // One ring is a badge; three rings at three speeds turning two ways is a
-    // sky. The bright ones wear halos and a harder shine, so a few stars read
-    // as near and the rest as far.
+  it('the cover holds famous constellations beside its turning rings', () => {
+    /*
+     * Cassiopeia's W, the Dipper's ladle and Orion's belt in their real shapes
+     * — a sky with names in it, even if the names are never printed. The famous
+     * three only twinkle and never turn (a Dipper hanging upside down would read
+     * as broken); the two abstract rings keep the slow turning. The bright ones
+     * wear halos and a harder shine, so a few stars read as near and the rest
+     * as far.
+     */
     const cover = source('src/components/Constellation.tsx')
-    expect((cover.match(/<Ring[\s]/g) || []).length).toBe(3)
+    for (const name of ['cassiopeia', 'dipper', 'orion', 'great-ring', 'high-ring']) {
+      expect(cover).toContain(`name="${name}"`)
+    }
     expect(cover).toContain('constellation__halo')
     expect(cover).toContain('constellation__star--bright')
     const home = source('src/styles/home.css')
     expect(home).toContain('constellation__spin--back')
     expect(home).toContain('animation-direction: reverse')
-    expect(home).toContain('constellation__spin--slow')
   })
 })
 

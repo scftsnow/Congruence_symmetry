@@ -91,7 +91,7 @@
  * breathes on its own delay, so no two blink together.
  */
 .constellation {
-  width: min(640px, 94vw);
+  width: min(720px, 96vw);
   height: auto;
   overflow: visible;
 }
@@ -105,10 +105,6 @@
 .constellation__spin--back {
   animation-duration: 160s;
   animation-direction: reverse;
-}
-
-.constellation__spin--slow {
-  animation-duration: 200s;
 }
 
 @keyframes constellation-turn {

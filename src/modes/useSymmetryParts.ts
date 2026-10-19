@@ -6,13 +6,14 @@
  * useCorrPass. What is left here is this unit's own business — where the shape
  * sits, which pairs are asked about, and what is said while it happens.
  *
- * WHY EACH PAIR IS ASKED ONCE, AND THE APEX TOO
+ * WHY EACH PAIR IS ASKED ONCE, AND THE AXIS NEVER
  * --------------------------------------------
  * A pair has two ends, so asking every corner would ask every pair twice. The
- * board asks the lower index of each pair instead — and then the apex as well,
- * whose partner is itself: three point questions of five corners. The sides and
- * angles keep to their pairs, because a side or an angle meeting itself across
- * the axis is not a pair anyone can point at twice.
+ * board asks the lower index of each pair instead. A corner standing on the
+ * axis is never asked: it has no counterpart to find, and asking it would make
+ * "itself" an answer — which teaches that a 대응점 can be the absence of one.
+ * The sides and angles keep to their pairs, because a side or an angle meeting
+ * itself across the axis is not a pair anyone can point at twice.
  */
 
 import { useEffect, useMemo } from 'react'
@@ -66,17 +67,11 @@ export function useSymmetryParts(board: PartsBoard, onSettled: () => void): Symm
   const corners = vertices.length
   const pairs = useMemo(() => mirrorPairs(vertices, board.axis), [vertices, board.axis])
   /*
-   * Two pairs plus the apex: the lower index of each pair, then every corner
-   * standing on the axis, whose partner is itself.
+   * One question per pair, and none for the axis: the lower index of each
+   * mirrored pair is asked, and a corner standing on the axis — mirror of
+   * nothing — is asked never.
    */
-  const pointAsk = useMemo(() => {
-    const reps = pairs.points.map(([a]) => a)
-    const self: number[] = []
-    vertices.forEach((_, i) => {
-      if (!pairs.points.some(([a, b]) => a === i || b === i)) self.push(i)
-    })
-    return [...reps, ...self]
-  }, [pairs, vertices])
+  const pointAsk = useMemo(() => pairs.points.map(([a]) => a), [pairs])
   const ask = useMemo<PassAsk>(
     () => ({
       points: pointAsk,

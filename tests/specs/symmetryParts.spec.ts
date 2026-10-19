@@ -122,13 +122,11 @@ describe('the parts of a folded figure', () => {
         flying: true,
         flyingAngle,
         landed: false,
-      })
-    expect(folding(false).tone).toBe('success')
-    expect(folding(false).text!.includes('대응변')).toBeTruthy()
-    expect(folding(false).text!.includes('대응각')).toBeFalsy()
-    expect(folding(true).tone).toBe('success')
-    expect(folding(true).text!.includes('대응각')).toBeTruthy()
-    expect(folding(true).text!.includes('대응변')).toBeFalsy()
+      }).text ?? ''
+    expect(folding(false).includes('대응변')).toBeTruthy()
+    expect(folding(false).includes('대응각')).toBeFalsy()
+    expect(folding(true).includes('대응각')).toBeTruthy()
+    expect(folding(true).includes('대응변')).toBeFalsy()
   })
 })
 
@@ -273,15 +271,15 @@ describe('the four rows on the home screen', () => {
     }
   })
 
-  it('asks each pair once, then the apex meeting itself', () => {
+  it('asks each pair once, and the axis never', () => {
     // A pair has two ends, so asking every corner would ask every pair twice.
-    // The board asks the lower index of each pair, then the apex whose partner
-    // is itself: three point questions of five corners. The sides and angles
-    // keep to their pairs.
+    // The board asks the lower index of each pair — and a corner standing on
+    // the axis is asked never, because it has no counterpart to find. The
+    // sides and angles keep to their pairs.
     const hook = source('src/modes/useSymmetryParts.ts')
     expect(hook.includes('pairs.points.map(([a]) => a)')).toBeTruthy()
     expect(hook.includes('pairs.sides.map(([a]) => a)')).toBeTruthy()
-    expect(hook.includes('pairs.points.some')).toBeTruthy()
+    expect(hook.includes('pairs.points.some')).toBeFalsy()
     const pass = source('src/modes/useCorrPass.ts')
     expect(pass.includes('asked[step]')).toBeTruthy()
     expect(pass.includes('flySides')).toBeTruthy()

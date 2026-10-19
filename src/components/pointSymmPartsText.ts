@@ -76,9 +76,8 @@ export function pointPartsMessageFor(input: {
     }
   }
   if (input.flying) {
-    /* A popup: no strip is left for a standing line, so neutral says nothing. */
     return {
-      tone: 'success',
+      tone: 'neutral',
       icon: '👉',
       text: input.flyingAngle ? PARTS_MOVING.angle : PARTS_MOVING.side,
     }

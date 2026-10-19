@@ -74,10 +74,8 @@ export function symmetryPartsMessageFor(input: {
     }
   }
   if (input.flying) {
-    /* A popup, not a standing line: no strip is left for one to live in, so a
-     * neutral sentence here would say nothing at all. */
     return {
-      tone: 'success',
+      tone: 'neutral',
       icon: '👉',
       text: input.flyingAngle ? PARTS_MOVING.angle : PARTS_MOVING.side,
     }

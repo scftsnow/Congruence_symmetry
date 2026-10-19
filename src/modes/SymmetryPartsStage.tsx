@@ -22,6 +22,7 @@ export function SymmetryPartsStage({
   onComplete?: () => void
 }) {
   const run = useSymmetryRun(SYMM_PARTS_BOARDS)
+  const settledCount = run.settled.filter(Boolean).length
   useMarkComplete(run.finished, onComplete)
   const done = symmetryPartsDonePanelFor()
   const board = run.board
@@ -33,6 +34,9 @@ export function SymmetryPartsStage({
           ← 홈으로
         </button>
         <h1 className="mode__title">선대칭도형의 대응점·대응변·대응각</h1>
+        <div className="star-counter" aria-label={`진행 ${settledCount} / ${SYMM_PARTS_BOARDS.length}`}>
+          {settledCount} / {SYMM_PARTS_BOARDS.length}
+        </div>
       </header>
 
       {run.finished ? (

@@ -48,6 +48,9 @@ export function CorrespondenceStage({
           ← 홈으로
         </button>
         <h1 className="mode__title">대응점 · 대응변 · 대응각</h1>
+        <div className="star-counter" aria-label={`도형 ${c.pairIndex + 1} / ${CORRESPONDENCE_PAIRS.length}`}>
+          {c.pairIndex + 1} / {CORRESPONDENCE_PAIRS.length}
+        </div>
       </header>
 
       <nav className="corr-pairs" aria-label="도형 고르기">

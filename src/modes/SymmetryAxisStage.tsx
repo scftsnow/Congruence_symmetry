@@ -22,6 +22,7 @@ export function SymmetryAxisStage({
   onComplete?: () => void
 }) {
   const run = useSymmetryRun(SYMM_AXIS_BOARDS)
+  const settledCount = run.settled.filter(Boolean).length
   useMarkComplete(run.finished, onComplete)
   const done = symmetryAxisDonePanelFor()
   const board = run.board
@@ -34,6 +35,9 @@ export function SymmetryAxisStage({
           ← 홈으로
         </button>
         <h1 className="mode__title">선대칭도형 찾기</h1>
+        <div className="star-counter" aria-label={`진행 ${settledCount} / ${SYMM_AXIS_BOARDS.length}`}>
+          {settledCount} / {SYMM_AXIS_BOARDS.length}
+        </div>
       </header>
 
       {run.finished ? (

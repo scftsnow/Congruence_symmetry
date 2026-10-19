@@ -421,6 +421,13 @@ describe('correspondence stage renders', () => {
     expect(html.includes(expected.corr.stageTitle)).toBeTruthy()
   })
 
+  it('counts which figure is up, the way the congruence board counts', () => {
+    // The congruence header keeps "n / m" on the right; every other header
+    // keeps one too. Here the work comes in figures, so it is the figure's
+    // number — the first of three before anything is answered.
+    expect(html.includes('1 / 3')).toBeTruthy()
+  })
+
   it('draws both shapes and labels them', () => {
     expect(html.includes(expected.corr.firstShape)).toBeTruthy()
     expect(html.includes(expected.corr.secondShape)).toBeTruthy()
@@ -756,6 +763,15 @@ describe('symmetry rows render', () => {
     expect(draw.includes(expected.symm.drawTitle)).toBeTruthy()
   })
 
+  it('counts settled boards in the header, the way the congruence board counts', () => {
+    // Nothing settled on a fresh row, so every row opens on zero — over its
+    // own board count, the way "0 / 5" opens the congruence board.
+    expect(axis.includes('0 / 5')).toBeTruthy()
+    expect(parts.includes('0 / 1')).toBeTruthy()
+    expect(facts.includes('0 / 1')).toBeTruthy()
+    expect(draw.includes('0 / 3')).toBeTruthy()
+  })
+
   it('draws one shape and asks over the panel', () => {
     expect((axis.match(/class="sym-shape"/g) || []).length).toBe(1)
     // The bottom line is gone: the first ask is a popup, checked in the hook.
@@ -812,6 +828,13 @@ describe('point-symmetry rows render', () => {
     expect(parts.includes(expected.ptsym.partsTitle)).toBeTruthy()
     expect(facts.includes(expected.ptsym.factsTitle)).toBeTruthy()
     expect(draw.includes(expected.ptsym.drawTitle)).toBeTruthy()
+  })
+
+  it('counts settled boards in the header, the way the congruence board counts', () => {
+    expect(axis.includes('0 / 5')).toBeTruthy()
+    expect(parts.includes('0 / 1')).toBeTruthy()
+    expect(facts.includes('0 / 1')).toBeTruthy()
+    expect(draw.includes('0 / 1')).toBeTruthy()
   })
 
   it('draws one shape and asks over the panel', () => {

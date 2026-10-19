@@ -22,6 +22,7 @@ export function SymmetryPointFactsStage({
   onComplete?: () => void
 }) {
   const run = useSymmetryRun(POINT_FACTS_BOARDS)
+  const settledCount = run.settled.filter(Boolean).length
   useMarkComplete(run.finished, onComplete)
   const done = pointFactsDonePanelFor()
   const board = run.board
@@ -33,6 +34,9 @@ export function SymmetryPointFactsStage({
           ← 홈으로
         </button>
         <h1 className="mode__title">점대칭도형의 성질</h1>
+        <div className="star-counter" aria-label={`진행 ${settledCount} / ${POINT_FACTS_BOARDS.length}`}>
+          {settledCount} / {POINT_FACTS_BOARDS.length}
+        </div>
       </header>
 
       {run.finished ? (

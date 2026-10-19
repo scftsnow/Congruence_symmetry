@@ -189,13 +189,25 @@ const VERTICAL: Line = {
   b: { x: SYMM_CENTER.x, y: SYMM_CENTER.y + 250 },
 }
 
+/**
+ * The same line, turned to run corner to corner.
+ *
+ * The last drawing folds on this one, because a 대칭축 need not stand straight
+ * up — the first two drawings teach the completing, and this teaches that the
+ * fold line itself can be any line at all.
+ */
+const SLANT: Line = {
+  a: { x: SYMM_CENTER.x - 250, y: SYMM_CENTER.y - 250 },
+  b: { x: SYMM_CENTER.x + 250, y: SYMM_CENTER.y + 250 },
+}
+
 const PENTA_SHAPE = shape('sym-penta', '오각형', '#bde0fe', PENTAGON)
 const HEART_SHAPE = shape('sym-heart2', '하트', '#ff8fa3', HEART)
 
 /**
  * A pointed octagon, symmetric about a vertical axis.
  *
- * The shape the drawing board completes. Every corner stands on a lattice
+ * The shape the first drawing completes. Every corner stands on a lattice
  * crossing — placing means pointing exactly, and a corner between grid lines is
  * one the child cannot point at. Two corners stand on the axis itself, so the
  * given half closes along the axis rather than across empty space, and the
@@ -215,12 +227,12 @@ const OCTAGON: Point[] = [
 const OCT_SHAPE = shape('sym-oct', '팔각형', '#8ecae6', OCTAGON)
 
 /**
- * Two wide and tall hexagons, each symmetric about a vertical axis.
+ * A wide hexagon, symmetric about a vertical axis.
  *
- * The second and third drawings. Same lattice discipline as the octagon — every
- * corner on a crossing, two corners on the axis so the given half closes along
- * it — with different silhouettes, so completing the second is not retracing
- * the first from memory. Two points to place each, where the octagon asks three.
+ * The second drawing. Same lattice discipline as the octagon — every corner on
+ * a crossing, two corners on the axis so the given half closes along it — with
+ * a different silhouette, so completing it is not retracing the first from
+ * memory. Two points to place, where the octagon asks three.
  */
 const HEX_WIDE: Point[] = [
   { x: 0, y: -150 },
@@ -231,17 +243,31 @@ const HEX_WIDE: Point[] = [
   { x: -150, y: -50 },
 ]
 
-const HEX_NARROW: Point[] = [
-  { x: 0, y: -150 },
-  { x: 100, y: -50 },
-  { x: 50, y: 100 },
-  { x: 0, y: 150 },
-  { x: -50, y: 100 },
-  { x: -100, y: -50 },
+const HEX_WIDE_SHAPE = shape('sym-hexw', '육각형', '#a3d5a1', HEX_WIDE)
+
+/**
+ * A four-pointed star, the last drawing and the only one folded on a slant.
+ *
+ * The first two drawings are upright, convex outlines, so completing the third
+ * the same way would be doing the second again. This one is neither upright nor
+ * convex: its axis runs tip to tip at 45°, and its outline turns both ways —
+ * so the fold, the half given, and the corners to find all read as their own
+ * question. Every tip and inner corner stands on a lattice crossing, and the
+ * two tips the axis passes through are their own mirror images, so the given
+ * half closes along the axis like the others.
+ */
+const STAR: Point[] = [
+  { x: 150, y: 150 },
+  { x: 100, y: 0 },
+  { x: 150, y: -150 },
+  { x: 0, y: -100 },
+  { x: -150, y: -150 },
+  { x: -100, y: 0 },
+  { x: -150, y: 150 },
+  { x: 0, y: 100 },
 ]
 
-const HEX_WIDE_SHAPE = shape('sym-hexw', '육각형', '#a3d5a1', HEX_WIDE)
-const HEX_NARROW_SHAPE = shape('sym-hexn', '육각형', '#ffd166', HEX_NARROW)
+const STAR_SHAPE = shape('sym-star', '별', '#ffd166', STAR)
 
 /**
  * The boards of the unit, in the textbook's order.
@@ -253,8 +279,10 @@ const HEX_NARROW_SHAPE = shape('sym-hexn', '육각형', '#ffd166', HEX_NARROW)
  * The pentagon comes first of the new boards because all but one of its corners
  * have a partner, so 대응점 is a question with answers; the heart carries the two
  * facts, where its two corners standing on the axis are exactly the ones that
- * have no partner and so cannot be joined to anything; and the pointed octagon
- * closes the unit, because completing it uses both facts at once.
+ * have no partner and so cannot be joined to anything; and the three drawings
+ * close the unit, because completing one uses both facts at once. The last of
+ * them folds on a slant and its outline is a star, so the end of the row is not
+ * a third upright polygon.
  */
 export type SymmetryBoard =
   | { kind: 'axis'; item: SymmetryItem }
@@ -299,12 +327,12 @@ export const SYMM_BOARDS: SymmetryBoard[] = [
   },
   {
     kind: 'draw',
-    id: 'sym-draw-narrow',
-    shape: HEX_NARROW_SHAPE,
-    axis: VERTICAL,
-    note: '육각형',
-    half: HEX_NARROW.slice(0, 4),
-    place: [1, 2],
+    id: 'sym-draw-slant',
+    shape: STAR_SHAPE,
+    axis: SLANT,
+    note: '별',
+    half: STAR.slice(0, 5),
+    place: [1, 2, 3],
   },
 ]
 

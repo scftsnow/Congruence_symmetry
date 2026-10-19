@@ -264,8 +264,10 @@ describe('the four rows on the home screen', () => {
     // Placing starts from a walk watched rather than a sentence read: the first
     // given corner draws its square leg, carries it across, and marks where it
     // lands — one popup per leg, because the two legs are two different claims —
-    // and no press counts until the walk is done. The leg is drawn, and its mark
-    // arrives the moment it finishes, so the drawing is watched being drawn.
+    // and no press counts until the walk is done. The leg is drawn with its
+    // square, and only after a look does the carry's sentence arrive; the mirror
+    // is marked only once the carried leg has landed on it, because the point is
+    // where the line arrives.
     const unit = source('src/modes/useSymmetryDraw.ts')
     expect(unit.includes('SYMM_PARTS_HOW_LEG')).toBeTruthy()
     expect(unit.includes('SYMM_PARTS_HOW_CARRY')).toBeTruthy()
@@ -278,10 +280,12 @@ describe('the four rows on the home screen', () => {
     const clock = source('src/modes/useDrawWalk.ts')
     expect(clock.includes('walk < 3')).toBeTruthy()
     expect(clock.includes('WALK_MS = 3600')).toBeTruthy()
-    // the mark arrives once the line is drawn, not on a fixed later delay
+    // the square arrives once the line is drawn, not on a fixed later delay
     expect(clock.includes('LEG_DRAWN_MS = 1200')).toBeTruthy()
+    // and the leg's sentence holds until the carry's own step begins, so the
+    // explanation follows the drawing rather than racing it
     const shared = source('src/modes/useDrawBoard.ts')
-    expect(shared.includes('legDrawn ? texts.howCarry : texts.howLeg')).toBeTruthy()
+    expect(shared.includes('walk < 2 ? texts.howLeg : texts.howCarry')).toBeTruthy()
     const scene = source('src/components/SymmetryDrawScene.tsx')
     expect(scene.includes('sym-carry')).toBeTruthy()
     expect(scene.includes('sym-draw--slow')).toBeTruthy()
@@ -290,6 +294,13 @@ describe('the four rows on the home screen', () => {
     // can observe and test.
     expect(scene.includes('legDrawn')).toBeTruthy()
     expect(clock.includes('LEG_DRAWN_MS')).toBeTruthy()
+    // the mirror waits for the carry to land: no mark may appear before the
+    // line that finds it. The travel is one beat written in two places, so the
+    // timer that marks the landing and the CSS that slides the line must agree.
+    expect(clock.includes('CARRY_MS = 1200')).toBeTruthy()
+    expect(source('src/styles/symmetry.css').includes('transition: transform 1200ms')).toBeTruthy()
+    expect(clock.includes('landed')).toBeTruthy()
+    expect(scene.includes('landed')).toBeTruthy()
     // the carry stays invisible until its turn: it lies exactly on the leg
     // being drawn, and would cover the drawing with a finished line.
     expect(scene.includes('opacity: walk >= 2 ? 1 : 0')).toBeTruthy()
@@ -464,35 +475,73 @@ describe('the four rows on the home screen', () => {
         const sy = p.y + SYMM_CENTER.y
         expect(sx % SNAP_PITCH === 0 && sy % SNAP_PITCH === 0 ? 'ok' : `off lattice: ${sx},${sy}`).toBe('ok')
       }
-      // and each given half closes along the axis rather than across empty space
+      // and each given half closes along the axis rather than across empty
+      // space — on the slant board too, where "along the axis" is no longer
+      // "both ends have x === 0"
       const first = draw.half[0]
       const last = draw.half[draw.half.length - 1]
-      expect(first && last && first.x === 0 && last.x === 0 ? 'ok' : 'the half leaves the axis').toBe('ok')
+      const onAxis = (p: { x: number; y: number }) => offLine(screen(p), draw.axis) < 0.5
+      expect(first && last && onAxis(first) && onAxis(last) ? 'ok' : 'the half leaves the axis').toBe('ok')
     }
+  })
+
+  it('folds the last drawing on a slant, on a shape the first two are not', () => {
+    // The first two drawings are upright, convex outlines, so completing the
+    // third the same way would be doing the second again. The last one changes
+    // both at once: its axis runs tip to tip at 45°, and its outline turns both
+    // ways — a four-pointed star. A child who has completed two hexagons cannot
+    // complete this one from memory.
+    const [octagon, wide, last] = SYMM_DRAW_BOARDS
+    expect([octagon, wide, last].every((b) => b.kind === 'draw')).toBe(true)
+    if (octagon.kind !== 'draw' || wide.kind !== 'draw' || last.kind !== 'draw') return
+    // upright: the first two fold on a vertical line
+    expect(octagon.axis.a.x === octagon.axis.b.x).toBe(true)
+    expect(wide.axis.a.x === wide.axis.b.x).toBe(true)
+    // slanted: the last one crosses both ways, so "left of the axis" is not
+    // "x smaller" and the fold has to be read rather than pointed at
+    const dx = last.axis.b.x - last.axis.a.x
+    const dy = last.axis.b.y - last.axis.a.y
+    expect(dx !== 0 && dy !== 0 && Math.abs(dx) === Math.abs(dy)).toBe(true)
+    // convex: the first two only ever turn one way, the star turns both
+    const ways = (pts: Array<{ x: number; y: number }>) =>
+      new Set(pts.map((_, i) => {
+        const a = pts[i]
+        const b = pts[(i + 1) % pts.length]
+        const c = pts[(i + 2) % pts.length]
+        return Math.sign((b.x - a.x) * (c.y - b.y) - (b.y - a.y) * (c.x - b.x))
+      })).size
+    expect(ways(octagon.shape.vertices)).toBe(1)
+    expect(ways(wide.shape.vertices)).toBe(1)
+    expect(ways(last.shape.vertices) > 1).toBe(true)
+    // and the star is symmetric about the slant itself: every corner has its
+    // mirror among the corners, and only the two tips on the axis are their
+    // own partners — the same shape of answer the octagon and hexagon give
+    const partners = mirrorIndex(last.shape.vertices.map(screen), last.axis)
+    expect(partners.every((p, i) => partners[p] === i)).toBe(true)
+    expect(partners.filter((p, i) => p === i).length).toBe(2)
   })
 
   it('snaps a placed point exactly onto the mirror image', () => {
     // The drawing that results is the true one, because the true one is the
-    // answer; what is the child's is knowing where it goes.
-    const draw = SYMM_BOARDS[7]
-    const board = draw.kind === 'draw' ? draw : null
-    const axis = board ? board.axis : VERTICAL
-    const half = board ? board.half : []
-    const screen =
-      board && board.shape
-        ? board.place.map((i) => ({
-            x: board.shape.vertices[i].x + SYMM_CENTER.x,
-            y: board.shape.vertices[i].y + SYMM_CENTER.y,
-          }))
-        : []
-    expect(screen.length).toBe(3)
-    for (const p of screen) {
-      const image = mirrorOf(p, axis)
-      expect(image.x < axis.a.x ? 'ok' : 'the answer was already on the board').toBe('ok')
-      // and the given half is entirely on the other side of the axis from it
-      expect(
-        half.every((h) => h.x + SYMM_CENTER.x >= axis.a.x) ? 'ok' : 'the half crosses the axis',
-      ).toBe('ok')
+    // answer; what is the child's is knowing where it goes. The answer always
+    // stands across the axis from the half it completes — square across on the
+    // upright boards, and diagonally across on the slant one — and it is always
+    // a real corner of the shape, never a spot the scene conjured.
+    for (const draw of SYMM_DRAW_BOARDS) {
+      if (draw.kind !== 'draw') continue
+      const half = draw.half.map(screen)
+      const corners = draw.shape.vertices.map(screen)
+      const given = draw.place.map((i) => screen(draw.shape.vertices[i]))
+      expect(given.length > 0).toBe(true)
+      for (const p of given) {
+        const image = mirrorOf(p, draw.axis)
+        const own = side(p, draw.axis)
+        // nothing to place was already on the board: the given half stands on
+        // its own side of the axis, the answer squarely on the other
+        expect(half.every((h) => side(h, draw.axis) * own >= 0) ? 'ok' : 'the half crosses the axis').toBe('ok')
+        expect(side(image, draw.axis) * own < 0 ? 'ok' : 'the answer was already on the board').toBe('ok')
+        expect(corners.some((c) => near(c, image)) ? 'ok' : 'the mirror is not a corner').toBe('ok')
+      }
     }
   })
 
@@ -546,6 +595,35 @@ describe('the four rows on the home screen', () => {
 
 function near(a: { x: number; y: number }, b: { x: number; y: number }): boolean {
   return Math.hypot(a.x - b.x, a.y - b.y) < 0.5
+}
+
+/** A point of a board's own frame, placed on the canvas. */
+function screen(p: { x: number; y: number }): { x: number; y: number } {
+  return { x: p.x + SYMM_CENTER.x, y: p.y + SYMM_CENTER.y }
+}
+
+/**
+ * Which side of a line a point stands on, sign only.
+ *
+ * The cross product of the line's direction with the point's offset — the one
+ * measure that reads the same on a vertical axis and on the slant the last
+ * drawing folds over, where "left of the axis" is no longer "x smaller".
+ */
+function side(
+  p: { x: number; y: number },
+  line: { a: { x: number; y: number }; b: { x: number; y: number } },
+): number {
+  return (p.x - line.a.x) * (line.b.y - line.a.y) - (p.y - line.a.y) * (line.b.x - line.a.x)
+}
+
+/** How far a point stands off a line, in pixels. */
+function offLine(
+  p: { x: number; y: number },
+  line: { a: { x: number; y: number }; b: { x: number; y: number } },
+): number {
+  const dx = line.b.x - line.a.x
+  const dy = line.b.y - line.a.y
+  return Math.abs(side(p, line)) / Math.hypot(dx, dy)
 }
 
 const { report } = await import('../harness/spec.mjs')

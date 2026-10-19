@@ -307,6 +307,11 @@ describe('the four rows on the home screen', () => {
     const scene = source('src/components/PointDrawScene.tsx')
     expect(scene.includes('sym-join')).toBeTruthy()
     expect(scene.includes('walking')).toBeTruthy()
+    // the walk is two strokes, not one: to the middle (곧게 가는 선), and then
+    // past it (같은 만큼 더 가는 연장) — and the mirror's mark waits for the
+    // second stroke to land, because the point is where the line arrives
+    expect(scene.includes('demo.mid')).toBeTruthy()
+    expect(scene.includes('landed')).toBeTruthy()
     expect(POINT_PARTS_HOW_LEG).toContain('중심을 향해')
     expect(POINT_PARTS_HOW_CARRY).toContain('대응점이에요')
   })

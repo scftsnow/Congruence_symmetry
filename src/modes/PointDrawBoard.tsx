@@ -42,6 +42,7 @@ export function PointDrawBoard({ board, onSettled, onNext, nextLabel }: {
           walk={d.walk}
           flying={d.flying}
           legDrawn={d.legDrawn}
+          landed={d.landed}
           onDrawStart={d.beginDraw}
           onDrawMove={d.moveDraw}
           onDrawEnd={d.endDraw}

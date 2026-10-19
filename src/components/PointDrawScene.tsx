@@ -28,6 +28,7 @@ export function PointDrawScene({
   walk,
   flying,
   legDrawn,
+  landed,
   onDrawStart,
   onDrawMove,
   onDrawEnd,
@@ -51,8 +52,10 @@ export function PointDrawScene({
   walk: number
   /** the point now flying across, from its given corner to its mirror spot */
   flying: { from: Point; to: Point } | null
-  /** the walk has reached the mirror, so its mark may arrive */
+  /** the line has reached the middle, so its hub may arrive */
   legDrawn: boolean
+  /** the extension has reached the mirror, so its mark may arrive */
+  landed: boolean
   onDrawStart: (p: Point) => void
   onDrawMove: (p: Point) => void
   onDrawEnd: (up: Point | null) => void
@@ -104,7 +107,7 @@ export function PointDrawScene({
         <circle key={`h${i}`} className="sym-corner" cx={p.x} cy={p.y} r={7} />
       ))}
 
-      {/* the walk: the corner lit, the straight segment drawn, the mirror marked */}
+      {/* the walk: the corner lit, the line drawn to the middle, then past it */}
       {walking && (
         <g className="sym-walk">
           {walk === 0 && (
@@ -116,14 +119,28 @@ export function PointDrawScene({
               pathLength={1}
               x1={demo.from.x}
               y1={demo.from.y}
-              x2={demo.to.x}
-              y2={demo.to.y}
+              x2={demo.mid.x}
+              y2={demo.mid.y}
             />
           )}
           {walk >= 1 && legDrawn && (
             <circle className="sym-hub sym-in" cx={center.x} cy={center.y} r={10} />
           )}
+          {/* the same length again, drawn only once the first line has been
+              watched arriving at the middle */}
           {walk >= 2 && (
+            <line
+              className="sym-join sym-draw sym-draw--slow"
+              pathLength={1}
+              x1={demo.mid.x}
+              y1={demo.mid.y}
+              x2={demo.to.x}
+              y2={demo.to.y}
+            />
+          )}
+          {/* the mirror is where the extension lands, so its mark arrives once
+              the line has landed there — never while it is on its way */}
+          {walk >= 2 && landed && (
             <g>
               <circle className="corr-mark" cx={demo.to.x} cy={demo.to.y} r={13} />
               <circle className="corr-fresh" cx={demo.to.x} cy={demo.to.y} r={26} />

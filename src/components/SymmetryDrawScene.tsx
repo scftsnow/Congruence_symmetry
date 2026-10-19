@@ -32,6 +32,7 @@ export function SymmetryDrawScene({
   walk,
   flying,
   legDrawn,
+  landed,
   onDrawStart,
   onDrawMove,
   onDrawEnd,
@@ -57,6 +58,8 @@ export function SymmetryDrawScene({
   flying: { from: Point; to: Point } | null
   /** the leg has finished being drawn, so its square may arrive */
   legDrawn: boolean
+  /** the carried leg has landed, so the mirror may be marked */
+  landed: boolean
   onDrawStart: (p: Point) => void
   onDrawMove: (p: Point) => void
   onDrawEnd: (up: Point | null) => void
@@ -148,8 +151,9 @@ export function SymmetryDrawScene({
               }}
             />
           )}
-          {/* where the carried leg lands is the mirror point, so it is marked */}
-          {walk >= 2 && (
+          {/* where the carried leg lands is the mirror point, so it is marked
+              once the leg has landed there — never while it is on its way */}
+          {walk >= 2 && landed && (
             <g>
               <circle className="corr-mark" cx={demo.to.x} cy={demo.to.y} r={13} />
               <circle className="corr-fresh" cx={demo.to.x} cy={demo.to.y} r={26} />

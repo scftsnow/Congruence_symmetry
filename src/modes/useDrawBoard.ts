@@ -53,6 +53,7 @@ export interface DrawBoardState {
   walk: number
   flying: { from: Point; to: Point } | null
   legDrawn: boolean
+  landed: boolean
   waiting: number
   complete: boolean
   resolved: boolean
@@ -64,9 +65,9 @@ export interface DrawBoardState {
   endDraw: (up: Point | null) => void
 }
 
-/** The standing guide, one line per stage; the leg's explanation holds until its mark arrives. */
-function guide(texts: DrawTexts, walking: boolean, legDrawn: boolean, waiting: number, flying: boolean, joining: boolean): Message {
-  const text = walking ? (legDrawn ? texts.howCarry : texts.howLeg)
+/** The standing guide, one line per stage; the leg's explanation holds until the carry begins. */
+function guide(texts: DrawTexts, walk: number, waiting: number, flying: boolean, joining: boolean): Message {
+  const text = walk < 3 ? (walk < 2 ? texts.howLeg : texts.howCarry)
     : waiting > 0 && !flying ? texts.instructionFor(waiting)
     : joining ? texts.linkAsk
     : ''
@@ -98,7 +99,7 @@ export function useDrawBoard(input: DrawBoardInput, onSettled: () => void): Draw
   const joining = waiting === 0 && joined.length < joinEdges.length
   const complete = waiting === 0 && joined.length >= joinEdges.length
 
-  const { walk, walking, legDrawn } = useDrawWalk()
+  const { walk, walking, legDrawn, landed } = useDrawWalk()
 
   const fail = useCallback((kind: 'spot' | 'join') => {
     setMiss(kind)
@@ -183,6 +184,7 @@ export function useDrawBoard(input: DrawBoardInput, onSettled: () => void): Draw
     walk,
     flying,
     legDrawn,
+    landed,
     waiting,
     complete,
     resolved,
@@ -192,7 +194,7 @@ export function useDrawBoard(input: DrawBoardInput, onSettled: () => void): Draw
       ? { tone: 'hint', icon: '💡', text: miss === 'spot' ? texts.missedFor().text : texts.linkMiss }
       : foundText
         ? { tone: 'success', icon: '⭐', text: foundText }
-        : guide(texts, walking, legDrawn, waiting, !!flying, joining),
+        : guide(texts, walk, waiting, !!flying, joining),
     beginDraw,
     moveDraw,
     endDraw,

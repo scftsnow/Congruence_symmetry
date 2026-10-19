@@ -44,9 +44,14 @@ export function CorrespondenceStage({
   return (
     <div className="mode">
       <header className="mode__header">
-        <button type="button" className="back-btn" onClick={onBack}>
-          ← 홈으로
-        </button>
+        <div className="mode__actions">
+          <button type="button" className="back-btn" onClick={onBack}>
+            ← 홈으로
+          </button>
+          <button type="button" className="mini-btn mini-btn--ghost" onClick={() => c.startPair(0)}>
+            ↺ 처음부터
+          </button>
+        </div>
         <h1 className="mode__title">대응점 · 대응변 · 대응각</h1>
         <div className="star-counter" aria-label={`도형 ${c.pairIndex + 1} / ${CORRESPONDENCE_PAIRS.length}`}>
           {c.pairIndex + 1} / {CORRESPONDENCE_PAIRS.length}

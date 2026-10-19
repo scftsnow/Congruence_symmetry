@@ -428,6 +428,10 @@ describe('correspondence stage renders', () => {
     expect(html.includes('1 / 3')).toBeTruthy()
   })
 
+  it('offers a fresh start next to the way back', () => {
+    expect(html.includes('↺ 처음부터')).toBeTruthy()
+  })
+
   it('draws both shapes and labels them', () => {
     expect(html.includes(expected.corr.firstShape)).toBeTruthy()
     expect(html.includes(expected.corr.secondShape)).toBeTruthy()
@@ -772,6 +776,12 @@ describe('symmetry rows render', () => {
     expect(draw.includes('0 / 3')).toBeTruthy()
   })
 
+  it('offers a fresh start next to the way back', () => {
+    for (const [name, markup] of Object.entries({ axis, parts, facts, draw })) {
+      expect(markup.includes('↺ 처음부터') ? 'ok' : name + ' has no reset').toBe('ok')
+    }
+  })
+
   it('draws one shape and asks over the panel', () => {
     expect((axis.match(/class="sym-shape"/g) || []).length).toBe(1)
     // The bottom line is gone: the first ask is a popup, checked in the hook.
@@ -835,6 +845,12 @@ describe('point-symmetry rows render', () => {
     expect(parts.includes('0 / 1')).toBeTruthy()
     expect(facts.includes('0 / 1')).toBeTruthy()
     expect(draw.includes('0 / 1')).toBeTruthy()
+  })
+
+  it('offers a fresh start next to the way back', () => {
+    for (const [name, markup] of Object.entries({ axis, parts, facts, draw })) {
+      expect(markup.includes('↺ 처음부터') ? 'ok' : name + ' has no reset').toBe('ok')
+    }
   })
 
   it('draws one shape and asks over the panel', () => {

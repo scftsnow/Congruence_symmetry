@@ -31,9 +31,14 @@ export function SymmetryPointDrawStage({
   return (
     <div className="mode">
       <header className="mode__header">
-        <button type="button" className="back-btn" onClick={onBack}>
-          ← 홈으로
-        </button>
+        <div className="mode__actions">
+          <button type="button" className="back-btn" onClick={onBack}>
+            ← 홈으로
+          </button>
+          <button type="button" className="mini-btn mini-btn--ghost" onClick={() => run.startAt(0)}>
+            ↺ 처음부터
+          </button>
+        </div>
         <h1 className="mode__title">점대칭도형 그리기</h1>
         <div className="star-counter" aria-label={`진행 ${settledCount} / ${POINT_DRAW_BOARDS.length}`}>
           {settledCount} / {POINT_DRAW_BOARDS.length}

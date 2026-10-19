@@ -545,12 +545,42 @@ describe('the four rows on the home screen', () => {
     }
   })
 
-  it('asks for the next point without saying how many are left', () => {
-    expect(symmetryDrawInstructionFor(3)).toBe('대응점을 찾아 누르세요')
-    expect(symmetryDrawInstructionFor(1)).toContain('마지막 점')
+  it('joins every drawing along its sides, never across it', () => {
+    // The child's joins have to land on the figure's own edges: the chain runs
+    // from the first corner of the given half, through the found points, to
+    // its last corner — every consecutive pair a side. A list in the wrong
+    // order would ask the child to draw across the figure instead.
+    for (const draw of SYMM_DRAW_BOARDS) {
+      if (draw.kind !== 'draw') continue
+      const corners = draw.shape.vertices.map(screen)
+      const half = draw.half.map(screen)
+      const answers = draw.place.map((i) => mirrorOf(screen(draw.shape.vertices[i]), draw.axis))
+      const joins = [
+        { a: half[0], b: answers[0] },
+        ...answers.slice(0, -1).map((a, i) => ({ a, b: answers[i + 1] })),
+        { a: answers[answers.length - 1], b: half[half.length - 1] },
+      ]
+      const isSide = (a: { x: number; y: number }, b: { x: number; y: number }) =>
+        corners.some((v, i) => {
+          const w = corners[(i + 1) % corners.length]
+          return (near(v, a) && near(w, b)) || (near(v, b) && near(w, a))
+        })
+      for (const join of joins) {
+        expect(isSide(join.a, join.b) ? 'ok' : `a join cuts across ${draw.id}`).toBe('ok')
+      }
+    }
+  })
+
+  it('asks for the corresponding point without saying how many are left', () => {
+    expect(symmetryDrawInstructionFor(3)).toBe('대응점을 찾아 눌러보세요')
+    expect(symmetryDrawInstructionFor(2)).toBe('대응점을 찾아 눌러보세요')
+    expect(symmetryDrawInstructionFor(1)).toContain('마지막 대응점')
     expect(symmetryDrawInstructionFor(0)).not.toContain('0')
     expect(symmetryDrawMissedFor().text).toContain('같은 거리')
+    expect(symmetryDrawMissedFor().text).toContain('대응점')
     expect(symmetryDrawSuccessFor(2).text).toContain('같은 거리')
+    expect(symmetryDrawSuccessFor(1).text).toContain('대응점')
+    expect(symmetryDrawSuccessFor(0).text).toContain('대응점')
     for (const n of [0, 1, 2, 3]) {
       expect(/[0-9]/.test(symmetryDrawInstructionFor(n)) ? 'counts what is left' : 'ok').toBe('ok')
       expect(/[0-9]/.test(symmetryDrawSuccessFor(n).text) ? 'counts what is left' : 'ok').toBe('ok')

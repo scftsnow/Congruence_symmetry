@@ -132,17 +132,17 @@ export function symmetryFactsSuccessFor(stage: string): Message {
  * in a sentence: the points already placed are the count the child can see. */
 
 const DRAW_ASK: Record<number, string> = {
-  3: '대응점을 찾아 누르세요',
-  2: '다음 점을 눌러 보세요',
-  1: '마지막 점을 눌러 보세요',
+  3: '대응점을 찾아 눌러보세요',
+  2: '대응점을 찾아 눌러보세요',
+  1: '마지막 대응점을 찾아 눌러보세요',
 }
 
-const DRAW_MISSED = '조금만 아쉬워요. 축에서 같은 거리, 반대쪽 점을 눌러 보세요'
+const DRAW_MISSED = '조금만 아쉬워요. 축에서 같은 거리, 반대쪽 대응점을 찾아 눌러보세요'
 
 const DRAW_DONE: Record<number, string> = {
-  2: '맞아요! 대칭점은 축에서 같은 거리에 있어요',
-  1: '잘했어요! 다음 점도 찾아 보세요',
-  0: '마지막 점도 마주 보는 자리에 왔어요',
+  2: '맞아요! 대응점은 축에서 같은 거리에 있어요',
+  1: '잘했어요! 다음 대응점도 찾아보세요',
+  0: '마지막 대응점도 마주 보는 자리에 왔어요',
 }
 
 export function symmetryDrawInstructionFor(waiting: number): string {

@@ -24,9 +24,9 @@ export const PASSES = ['points', 'sides', 'angles'] as const
 export type Pass = (typeof PASSES)[number]
 
 const ASK: Record<Pass, string> = {
-  points: '왼쪽에서 빛나는 점을 오른쪽에서 찾아 눌러요',
-  sides: '왼쪽에서 빛나는 변을 오른쪽에서 찾아 눌러요',
-  angles: '왼쪽에서 빛나는 각을 오른쪽에서 찾아 눌러요',
+  points: '왼쪽에서 빛나는 점의 대응점을 오른쪽에서 찾아 눌러요',
+  sides: '왼쪽에서 빛나는 변의 대응변을 오른쪽에서 찾아 눌러요',
+  angles: '왼쪽에서 빛나는 각의 대응각을 오른쪽에서 찾아 눌러요',
 }
 
 /**

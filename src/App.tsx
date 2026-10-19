@@ -180,7 +180,7 @@ export default function App() {
                 <span className="unit-list__badge">6</span>
                 <span>
                   <strong>선대칭도형 그리기</strong>
-                  <em>반대쪽 점을 완성하기</em>
+                  <em>반대쪽 대응점을 찾아 완성하기</em>
                 </span>
               </button>
             </li>
@@ -193,7 +193,7 @@ export default function App() {
                 <span className="unit-list__badge">7</span>
                 <span>
                   <strong>점대칭도형 찾기</strong>
-                  <em>반 바퀴 돌려 겹치는 점을 눌러 찾기</em>
+                  <em>반 바퀴 돌려 겹치는 대칭의 중심을 눌러 찾기</em>
                 </span>
               </button>
             </li>
@@ -232,7 +232,7 @@ export default function App() {
                 <span className="unit-list__badge">10</span>
                 <span>
                   <strong>점대칭도형 그리기</strong>
-                  <em>반대쪽 점을 완성하기</em>
+                  <em>반대쪽 대응점을 찾아 완성하기</em>
                 </span>
               </button>
             </li>

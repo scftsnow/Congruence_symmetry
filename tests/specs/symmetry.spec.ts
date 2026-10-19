@@ -443,6 +443,23 @@ describe('the child draws, the system folds', () => {
     expect(words.includes('대칭축이 없어요')).toBeTruthy()
   })
 
+  it('"there is none" rides the foot of the grid, not a strip below it', () => {
+    // An answer about the board sits on the board. Both finding boards say so
+    // the same way: the button lives inside the board's own wrap, pinned to
+    // its bottom edge, and no foot strip is left behind for it.
+    for (const board of ['src/modes/AxisBoard.tsx', 'src/modes/CenterBoard.tsx']) {
+      const code = source(board)
+      expect(code.includes('sym-deny')).toBeTruthy()
+      expect(code.indexOf('sym-deny') > code.indexOf('canvas-wrap')).toBeTruthy()
+      // and whatever foot strip remains holds only the way onward, never the denial
+      const afterFoot = code.slice(code.indexOf('sym-foot'))
+      expect(afterFoot.includes('denyClaim')).toBeFalsy()
+    }
+    const css = source('src/styles/symmetry.css')
+    expect(/\.sym-deny\s*\{[^}]*position:\s*absolute/.test(css)).toBeTruthy()
+    expect(/\.sym-deny\s*\{[^}]*bottom:\s*14px/.test(css)).toBeTruthy()
+  })
+
   it('asks for more axes after a find, and counts none of them', () => {
     // The wrong line said "this is the axis" on the first hit, so a correct
     // answer read as the end of the shape and the square never moved on. The

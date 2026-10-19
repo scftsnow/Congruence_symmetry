@@ -42,25 +42,26 @@ export function AxisBoard({
           onDrawMove={s.moveDraw}
           onDrawEnd={s.endDraw}
         />
-      </div>
-      <div className="sym-foot">
-        {s.resolved ? (
-          <button type="button" className="start-btn" onClick={onNext}>
-            {nextLabel}
-          </button>
-        ) : (
+        {!s.resolved && (
           /*
-           * The "there is none" answer, on every shape.
-           *
+           * The "there is none" answer, on every shape — and on the board
+           * itself, at the foot of the grid, rather than in a strip below it.
            * Only on the shape with no axis would leak which one it is, so it
            * stands everywhere and is judged everywhere: right once, wrong
            * everywhere else. Its words live in symmText, like all wording.
            */
-          <button type="button" className="mini-btn" onClick={s.denyClaim}>
+          <button type="button" className="mini-btn sym-deny" onClick={s.denyClaim}>
             {SYMM_DENY_LABEL}
           </button>
         )}
       </div>
+      {s.resolved && (
+        <div className="sym-foot">
+          <button type="button" className="start-btn" onClick={onNext}>
+            {nextLabel}
+          </button>
+        </div>
+      )}
     </>
   )
 }

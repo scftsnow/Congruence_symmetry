@@ -352,3 +352,19 @@
   background: #e76f51;
   transform: scale(1.3);
 }
+
+/*
+ * The "there is none" answer, riding the foot of the grid.
+ *
+ * It is an answer about the board, so it sits on the board — centred on its
+ * bottom edge, lifted off the paper by shadow — rather than in a strip below
+ * it. The toast keeps the top edge, so the two never meet.
+ */
+.sym-deny {
+  position: absolute;
+  bottom: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  box-shadow: 0 8px 24px rgba(6, 16, 30, 0.35);
+  white-space: nowrap;
+}

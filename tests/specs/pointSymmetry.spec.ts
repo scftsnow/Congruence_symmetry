@@ -284,6 +284,31 @@ describe('the four rows on the home screen', () => {
     }
   })
 
+  it('narrates the turn itself, sides first and angles after', () => {
+    /*
+     * The turning pair is watched, not read off afterwards — so the sentence
+     * about it has to cross the board as a popup while it turns. A neutral
+     * sentence with a 👉 reads as a popup that never comes: there is no strip
+     * left for it to live in. And the boundary is the asked sides' own length,
+     * the one the demonstration itself turns on — never the corner count.
+     */
+    const turning = (flyingAngle: boolean) =>
+      pointPartsMessageFor({
+        phase: 'compare',
+        wrong: false,
+        done: false,
+        flying: true,
+        flyingAngle,
+        landed: false,
+      })
+    expect(turning(false).tone).toBe('success')
+    expect(turning(false).text).toContain('대응변을 돌려 보고 있어요')
+    expect(turning(true).tone).toBe('success')
+    expect(turning(true).text).toContain('대응각을 돌려 보고 있어요')
+    const hook = source('src/modes/usePointSymmetryParts.ts')
+    expect((hook.match(/pass\.flyStep >= pass\.flySides\.length/g) || []).length).toBe(2)
+  })
+
   it('shows both facts after the join, in the textbook\'s order', () => {
     const hook = source('src/modes/usePointSymmetryFacts.ts')
     expect(hook.includes("'join' | 'hub' | 'equal'")).toBeTruthy()

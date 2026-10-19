@@ -121,7 +121,7 @@ export function useSymmetryParts(board: PartsBoard, onSettled: () => void): Symm
               wrong: true,
               done: pass.done,
               flying: pass.flying,
-              flyingAngle: pass.flying && pass.flyStep >= corners,
+              flyingAngle: pass.flying && pass.flyStep >= pass.flySides.length,
               landed: pass.flying && pass.landed,
             })
           : pass.phase !== 'compare' && pass.step === 0 && pass.instruction
@@ -136,7 +136,7 @@ export function useSymmetryParts(board: PartsBoard, onSettled: () => void): Symm
                 wrong: pass.wrong,
                 done: pass.done,
                 flying: pass.flying,
-                flyingAngle: pass.flying && pass.flyStep >= corners,
+                flyingAngle: pass.flying && pass.flyStep >= pass.flySides.length,
                 landed: pass.flying && pass.landed,
               })) ?? { tone: 'neutral' as const, icon: '', text: '' },
     answer: pass.answer,

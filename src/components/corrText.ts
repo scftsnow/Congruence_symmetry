@@ -158,7 +158,13 @@ export function correspondenceMessageFor(input: {
     }
   }
   if (input.flying) {
-    return { tone: 'neutral', icon: '👉', text: input.flyingAngle ? MOVING.angle : MOVING.side }
+    /*
+     * Said as a popup, not as a standing line: there is no strip any more for
+     * a standing line to live in, so a neutral sentence here would say nothing
+     * at all — and the fold with no sentence is exactly the silence this
+     * demonstration was written to fill.
+     */
+    return { tone: 'success', icon: '👉', text: input.flyingAngle ? MOVING.angle : MOVING.side }
   }
   if (input.wrong && input.phase !== 'compare') {
     return { tone: 'hint', icon: '💡', text: HINT[input.phase as Pass] }

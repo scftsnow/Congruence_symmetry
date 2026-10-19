@@ -98,6 +98,38 @@ describe('the parts of a folded figure', () => {
     // and the travel is written as that fold, not as a turn
     expect(foldTransform(VERTICAL, -1).includes('scale(1, -1)')).toBeTruthy()
   })
+
+  it('names the part that is actually folding, sides first and angles after', () => {
+    /*
+     * The demonstration folds the asked sides, then the asked angles — two and
+     * two on this board, not five and five. The sentence used to change sides
+     * at the corner count instead, so every folding angle was announced as a
+     * 대응변: the words and the picture said different things. The message and
+     * the scene now change sides at the same step, the length of the asked
+     * sides, which is the only boundary the demonstration itself knows.
+     */
+    const hook = source('src/modes/useSymmetryParts.ts')
+    expect((hook.match(/pass\.flyStep >= pass\.flySides\.length/g) || []).length).toBe(2)
+    expect(hook.includes('flyStep >= corners')).toBeFalsy()
+    const scene = source('src/components/SymmetryPartsScene.tsx')
+    expect(scene.includes('flyStep < flySides.length')).toBeTruthy()
+    // and the words themselves keep side and angle apart
+    const folding = (flyingAngle: boolean) =>
+      symmetryPartsMessageFor({
+        phase: 'compare',
+        wrong: false,
+        done: false,
+        flying: true,
+        flyingAngle,
+        landed: false,
+      })
+    expect(folding(false).tone).toBe('success')
+    expect(folding(false).text!.includes('대응변')).toBeTruthy()
+    expect(folding(false).text!.includes('대응각')).toBeFalsy()
+    expect(folding(true).tone).toBe('success')
+    expect(folding(true).text!.includes('대응각')).toBeTruthy()
+    expect(folding(true).text!.includes('대응변')).toBeFalsy()
+  })
 })
 
 describe('the two facts about the axis', () => {

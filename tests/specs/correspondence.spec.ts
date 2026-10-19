@@ -206,6 +206,29 @@ describe('every shape has parts the child can tell apart', () => {
       expect(/HOLD_MS/.test(pass)).toBeTruthy()
       expect(/PAUSE_MS \+ FLY_MS \+ HOLD_MS/.test(pass)).toBeTruthy()
     })
+
+    it('narrates the travel itself, not only the landing', () => {
+      /*
+       * The part is watched crossing, not read off afterwards — so the sentence
+       * about the crossing has to be a popup while it travels. It used to be
+       * neutral with a 👉: a popup that never comes, because there is no strip
+       * left for a standing line to live in. The fold with no sentence was
+       * exactly the silence the demonstration was written to fill.
+       */
+      const moving = (flyingAngle: boolean) =>
+        correspondenceMessageFor({
+          phase: 'compare',
+          wrong: false,
+          done: false,
+          flying: true,
+          flyingAngle,
+          landed: false,
+        })
+      expect(moving(false).tone).toBe('success')
+      expect(moving(false).text).toBe('대응변을 옮겨 보고 있어요')
+      expect(moving(true).tone).toBe('success')
+      expect(moving(true).text).toBe('대응각을 옮겨 보고 있어요')
+    })
   })
 
   it('celebrates a correct find the way the congruence board does', () => {

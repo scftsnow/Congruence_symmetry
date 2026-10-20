@@ -531,17 +531,18 @@ describe('a part travels onto its partner exactly', () => {
     }
   })
 
-  it('reads the conclusion slowly: twice the popup, twice the wait', () => {
+  it('reads the conclusion slowly: twice the popup, no dead wait after it', () => {
     /*
      * The sentence that closes the unit flashed past in the same short time as
      * every other popup, and the ending rose right behind it — so the claim the
      * whole unit was for had to be guessed at. Its popup stays twice as long,
-     * and the way on waits twice as long to follow it.
+     * the last ending waits twice as long, and the way on comes the moment the
+     * popup retires: no overlap, and no staring at a finished board either.
      */
     const stage = source('src/modes/CorrespondenceStage.tsx')
     expect(/useStageMessage\(c\.message, c\.attempts, c\.done \? POPUP_MS \* 2 : POPUP_MS\)/.test(stage)).toBeTruthy()
     expect(/useDoneAfter\(c\.done && last, DONE_AFTER_MS \* 2\)/.test(stage)).toBeTruthy()
-    expect(/delay=\{NEXT_AFTER_MS \* 2\}/.test(stage)).toBeTruthy()
+    expect(/delay=\{POPUP_MS \* 2 \+ 400\}/.test(stage)).toBeTruthy()
     const button = source('src/components/NextButton.tsx')
     expect(/delay = NEXT_AFTER_MS/.test(button)).toBeTruthy()
   })

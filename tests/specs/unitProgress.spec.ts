@@ -72,7 +72,8 @@ describe('a finished unit leaves a star behind', () => {
      * The record is written while the board is still up, so the doors open on
      * a count already higher. The star pops and the number turns over once, so
      * the arrival reads as an arrival — and only the row just finished pops,
-     * never the remembered ones.
+     * never the remembered ones. Big glowing stars climb out of the background
+     * behind it all, and only while the arrival is fresh.
      */
     const hook = source('src/modes/useUnitProgress.ts')
     expect(hook.includes('fresh')).toBeTruthy()
@@ -82,10 +83,18 @@ describe('a finished unit leaves a star behind', () => {
     expect(app.includes('home__stars__count--fresh')).toBeTruthy()
     expect(app.includes('unit-list__badge--fresh')).toBeTruthy()
     expect(app.includes('settleFresh')).toBeTruthy()
+    expect(app.includes('<EarnedBurst />')).toBeTruthy()
+    expect(app.includes('progress.fresh !== null')).toBeTruthy()
+    const burst = source('src/components/EarnedBurst.tsx')
+    expect(burst.includes('earned-burst__star')).toBeTruthy()
+    expect(burst.includes('aria-hidden')).toBeTruthy()
     const css = source('src/styles/home.css')
     expect(/@keyframes star-earned/.test(css)).toBeTruthy()
     expect(/@keyframes count-turn/.test(css)).toBeTruthy()
     expect(/\.home__stars--fresh\s*\{[^}]*animation:\s*star-earned/.test(css)).toBeTruthy()
+    expect(/@keyframes earned-rise/.test(css)).toBeTruthy()
+    expect(/\.earned-burst\s*\{[^}]*z-index:\s*-1/.test(css)).toBeTruthy()
+    expect(/\.earned-burst\s*\{[^}]*pointer-events:\s*none/.test(css)).toBeTruthy()
   })
 })
 

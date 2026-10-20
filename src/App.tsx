@@ -41,6 +41,7 @@
 
 import { useEffect, useState, type ReactNode } from 'react'
 import { Constellation } from './components/Constellation'
+import { EarnedBurst } from './components/EarnedBurst'
 import { SkyParticles } from './components/SkyParticles'
 import { CongruenceStage } from './modes/CongruenceStage'
 import { CorrespondenceStage } from './modes/CorrespondenceStage'
@@ -161,8 +162,10 @@ export function EarnedStars({ progress }: { progress: UnitProgress }) {
    * be nothing to tell a fresh arrival from a remembered one.
    */
   useEffect(() => {
+    // Long enough for the rising stars to finish their climb: settling takes
+    // the burst off the screen with everything else.
     if (!fresh) return
-    const timer = window.setTimeout(() => progress.settleFresh(), 1200)
+    const timer = window.setTimeout(() => progress.settleFresh(), 2400)
     return () => window.clearTimeout(timer)
   }, [fresh, progress])
   return (
@@ -245,6 +248,7 @@ export default function App() {
       <SkyParticles />
       {stage ?? (
         <div className="home">
+          {progress.fresh !== null && <EarnedBurst />}
           <header className="home__header home__header--doors">
             <h1 className="home__title">합동과 대칭</h1>
             <EarnedStars progress={progress} />

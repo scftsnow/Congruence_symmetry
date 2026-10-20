@@ -9,7 +9,7 @@
 
 import { CorrespondenceScene } from '../components/CorrespondenceScene'
 import { Toast } from '../components/Toast'
-import { NextButton, NEXT_AFTER_MS } from '../components/NextButton'
+import { NextButton } from '../components/NextButton'
 import { DonePanel } from '../components/DonePanel'
 import { correspondenceDonePanelFor, NEXT_SHAPE } from '../components/corrText'
 import { CORRESPONDENCE_PAIRS } from '../geometry/correspondenceShapes'
@@ -96,7 +96,12 @@ export function CorrespondenceStage({
           onAnswer={c.answer}
         />
         {c.done && !last && (
-          <NextButton label={NEXT_SHAPE} onClick={c.nextPair} delay={NEXT_AFTER_MS * 2} />
+          /*
+           * The moment the conclusion popup retires: the popup stays twice as
+           * long, and the way on follows it with no dead wait in between and
+           * no overlap either.
+           */
+          <NextButton label={NEXT_SHAPE} onClick={c.nextPair} delay={POPUP_MS * 2 + 400} />
         )}
       </div>
 

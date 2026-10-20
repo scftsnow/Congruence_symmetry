@@ -170,6 +170,45 @@
 }
 
 /*
+ * The big stars that rise when a new star comes home.
+ *
+ * Fixed to the window like the particles, one layer above them and under the
+ * doors' own content, taking no pointer — a celebration behind the work, never
+ * a cover over it. Each star climbs and fades once, glowing as it goes.
+ */
+.earned-burst {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.earned-burst__star {
+  position: absolute;
+  bottom: -80px;
+  color: var(--color-success);
+  text-shadow:
+    var(--glow-shadow),
+    0 0 24px rgba(255, 224, 138, 0.8);
+  animation: earned-rise 2s ease-out both;
+}
+
+@keyframes earned-rise {
+  0% {
+    transform: translateY(30vh) scale(0.6);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-70vh) scale(1.1);
+    opacity: 0;
+  }
+}
+
+/*
  * The turning constellations.
  *
  * Three rings, each turning as one piece about its own middle — transform-box
@@ -241,6 +280,9 @@
   .home__stars__count--fresh,
   .unit-list__badge--fresh {
     animation: none;
+  }
+  .earned-burst {
+    display: none;
   }
 }
 

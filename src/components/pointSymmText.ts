@@ -49,6 +49,10 @@ export function pointSymmetryNoCenterFor(): Message {
  * inside it — so it gets its own hint rather than the generic one. And claiming
  * "there is none" is judged like any other answer: right on the one figure with
  * no center, wrong everywhere else.
+ *
+ * The miss itself is not scolded. The child pressed a point and it was not the
+ * middle; saying "not yet" is being told off for trying, so what they get is
+ * what to look for instead.
  */
 export function pointSymmetryHintFor(kind: 'off' | 'miss' | 'deny'): Message {
   return {
@@ -59,7 +63,7 @@ export function pointSymmetryHintFor(kind: 'off' | 'miss' | 'deny'): Message {
         ? '도형 안을 눌러 보세요'
         : kind === 'deny'
           ? '돌리면 겹치는 점이 있어요. 찾아보세요'
-          : '아직이네요. 돌렸을 때 완전히 겹치는 중심을 찾아보세요',
+          : '돌렸을 때 완전히 겹치는 중심을 찾아보세요',
   }
 }
 

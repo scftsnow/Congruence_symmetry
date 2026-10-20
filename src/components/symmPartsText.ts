@@ -87,11 +87,13 @@ export function symmetryPartsMessageFor(input: {
 }
 
 /* Each hint names what makes the pair a pair rather than which corner to press,
- * because naming the corner would do the exercise for them. */
+ * because naming the corner would do the exercise for them. It never scolds the
+ * miss: the child pressed a corner and it was not the one, and what they get
+ * instead is what to look for. */
 const PARTS_HINT: Record<Pass, string> = {
-  points: '아직이네요. 축을 사이에 두고 마주 보는 점을 찾아보세요',
-  sides: '아직이네요. 축을 사이에 두고 마주 보는 변을 찾아보세요',
-  angles: '아직이네요. 축을 사이에 두고 마주 보는 각을 찾아보세요',
+  points: '축을 사이에 두고 마주 보는 점을 찾아보세요',
+  sides: '축을 사이에 두고 마주 보는 변을 찾아보세요',
+  angles: '축을 사이에 두고 마주 보는 각을 찾아보세요',
 }
 
 export function symmetryPartsHintFor(phase: Pass): string {
@@ -110,7 +112,7 @@ export function symmetryFactsInstructionFor(stage: string): string | null {
 }
 
 const FACTS_MISS: Record<string, string> = {
-  pair: '아직이네요. 축을 사이에 두고 마주 보는 점을 이어보세요',
+  pair: '축을 사이에 두고 마주 보는 점을 이어보세요',
   dup: '이 쌍은 이미 이었어요. 다른 대응점을 이어 보세요',
 }
 

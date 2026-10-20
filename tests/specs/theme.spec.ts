@@ -250,5 +250,43 @@ describe('the night breathes', () => {
   })
 })
 
+// ── the app does not scold ────────────────────────────────
+describe('a miss is not a telling-off', () => {
+  it('no sentence says the child is wrong', () => {
+    /*
+     * The app used to answer a wrong answer with "아직이네요" — not yet — and
+     * that is being told off for trying. A child who presses a corner and hears
+     * that has been scolded, and the board's own voice is better than that: it
+     * says what to look for instead, and says nothing about being wrong.
+     *
+     * The check is on the code, with the comments stripped: a file is allowed
+     * to explain the wording it used to have.
+     */
+    const files = [
+      'src/components/corrText.ts',
+      'src/components/symmPartsText.ts',
+      'src/components/symmText.ts',
+      'src/components/pointSymmPartsText.ts',
+      'src/components/pointSymmText.ts',
+    ]
+    for (const file of files) {
+      const body = source(file)
+        .replace(/\/\*[\s\S]*?\*\//g, '')
+        .replace(/\/\/.*$/gm, '')
+      expect(body.includes('아직이네요') ? 'still scolding' : 'ok').toBe('ok')
+    }
+  })
+
+  it('the hints still say what to look for', () => {
+    // Removing the scolding must not leave the child with nothing: each hint
+    // names the thing to compare.
+    expect(source('src/components/corrText.ts')).toContain('빛나는 점과 모양이 꼭 닮은 점')
+    expect(source('src/components/symmPartsText.ts')).toContain('축을 사이에 두고 마주 보는 점')
+    expect(source('src/components/pointSymmPartsText.ts')).toContain('중심을 사이에 두고 마주 보는 점')
+    expect(source('src/components/symmText.ts')).toContain('접었을 때 완전히 겹치는 선')
+    expect(source('src/components/pointSymmText.ts')).toContain('돌렸을 때 완전히 겹치는 중심')
+  })
+})
+
 const { report } = await import('../harness/spec.mjs')
 report()

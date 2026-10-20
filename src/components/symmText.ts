@@ -76,6 +76,10 @@ export function symmetryNoAxisFor(): Message {
  * anything, because the count of axes stays out of the sentences. And
  * claiming "there is none" is judged like any other answer: right on the
  * one shape with no axis, wrong everywhere else.
+ *
+ * The miss itself is not scolded. The child drew a line and it was not the
+ * axis; saying "not yet" is being told off for trying, so what they get is
+ * what to look for instead.
  */
 export function symmetryHintFor(kind: 'off' | 'miss' | 'dup' | 'deny'): Message {
   return {
@@ -88,7 +92,7 @@ export function symmetryHintFor(kind: 'off' | 'miss' | 'dup' | 'deny'): Message 
           ? '이 축은 이미 찾았어요. 다른 선을 그어 보세요'
           : kind === 'deny'
             ? '접으면 겹치는 선이 있어요. 찾아보세요'
-            : '아직이네요. 접었을 때 완전히 겹치는 선을 찾아보세요',
+            : '접었을 때 완전히 겹치는 선을 찾아보세요',
   }
 }
 

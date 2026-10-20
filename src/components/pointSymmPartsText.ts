@@ -18,9 +18,8 @@
 import type { Message } from './tone'
 import type { Pass, Phase } from './corrText'
 
-/* The same three questions the congruence unit asks, on one turned shape. The pass
- * machinery is shared; the sentences are not, and every find says which of the
- * three it was, because stars cannot. */
+/* The same three questions the congruence unit asks, on one turned shape. The
+ * sentences are the point unit's own, and every find names which of the three. */
 
 const PARTS_ASK: Record<Pass, string> = {
   points: '빛나는 점의 대응점을 찾아요',
@@ -89,11 +88,13 @@ export function pointPartsMessageFor(input: {
 }
 
 /* Each hint names what makes the pair a pair rather than which corner to press,
- * because naming the corner would do the exercise for them. */
+ * because naming the corner would do the exercise for them. It never scolds the
+ * miss: the child pressed a corner and it was not the one, and what they get
+ * instead is what to look for. */
 const PARTS_HINT: Record<Pass, string> = {
-  points: '아직이네요. 중심을 사이에 두고 마주 보는 점을 찾아보세요',
-  sides: '아직이네요. 중심을 사이에 두고 마주 보는 변을 찾아보세요',
-  angles: '아직이네요. 중심을 사이에 두고 마주 보는 각을 찾아보세요',
+  points: '중심을 사이에 두고 마주 보는 점을 찾아보세요',
+  sides: '중심을 사이에 두고 마주 보는 변을 찾아보세요',
+  angles: '중심을 사이에 두고 마주 보는 각을 찾아보세요',
 }
 
 export function pointPartsHintFor(phase: Pass): string {
@@ -112,7 +113,7 @@ export function pointFactsInstructionFor(stage: string): string | null {
 }
 
 const FACTS_MISS: Record<string, string> = {
-  pair: '아직이네요. 중심을 사이에 두고 마주 보는 점을 이어보세요',
+  pair: '중심을 사이에 두고 마주 보는 점을 이어보세요',
   dup: '이 쌍은 이미 이었어요. 다른 대응점을 이어 보세요',
 }
 

@@ -56,11 +56,15 @@ export function foundFor(phase: Phase): Message | null {
  * Each hint names the thing to compare rather than the shape to press, because
  * the child did press something — they pressed the wrong one, and telling them
  * which corner is the answer would do the exercise for them.
+ *
+ * No "아직이네요". The child pressed a point and it was not the one; saying so
+ * is being told off for trying, and the board has better things to say. What
+ * they get is what to look for, and nothing about being wrong.
  */
 const HINT: Record<Pass, string> = {
-  points: '아직이네요. 빛나는 점과 모양이 꼭 닮은 점을 찾아보세요',
-  sides: '아직이네요. 빛나는 변과 길이가 똑같은 변을 찾아보세요',
-  angles: '아직이네요. 빛나는 각과 크기가 똑같은 각을 찾아보세요',
+  points: '빛나는 점과 모양이 꼭 닮은 점을 찾아보세요',
+  sides: '빛나는 변과 길이가 똑같은 변을 찾아보세요',
+  angles: '빛나는 각과 크기가 똑같은 각을 찾아보세요',
 }
 
 /**

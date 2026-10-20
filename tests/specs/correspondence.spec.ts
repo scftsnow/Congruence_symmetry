@@ -474,28 +474,40 @@ describe('a part travels onto its partner exactly', () => {
     expect(source('src/components/SymmetryFactsScene.tsx').includes('swap') ? 'the span stops landing' : 'ok').toBe('ok')
   })
 
-  it('takes the exchange in turns where the claim is that the two are the same', () => {
+  it('takes the exchange in one motion, both parts at once', () => {
     /*
-     * Both parts moving at once is unreadable where the claim is sameness: the
-     * two cross in the middle, and because the parts are mirror images of each
-     * other the picture at the end is the picture at the start — so nothing was
-     * shown. There the first part travels and comes to rest exactly on its
-     * partner, which is the claim itself, and only then does the second set off.
+     * The exchange used to be taken in turns on the boards where the claim is
+     * sameness: the first part travels and rests exactly on its partner, and
+     * only then does the second set off. That reads as two separate happenings,
+     * and the picture in between is the picture at the start — the parts are
+     * mirror images of each other, so a half-finished swap shows nothing.
      *
-     * The timing lives in the hook, not in a CSS delay: the second part needs
-     * to start when the first has come to rest, and a transition delay would
-     * have to know the travel time twice over.
+     * So the two change places together, in one motion, and land together.
      */
     const demo = source('src/modes/useCorrDemo.ts')
-    expect(demo.includes('landedSecond')).toBeTruthy()
-    expect(demo.includes('REST_MS')).toBeTruthy()
+    expect(demo.includes('landedSecond') ? 'still taken in turns' : 'ok').toBe('ok')
+    expect(demo.includes('REST_MS') ? 'still a pause between the two' : 'ok').toBe('ok')
     const fly = source('src/components/CorrFly.tsx')
-    expect(fly.includes('landedSecond')).toBeTruthy()
-    // the boards whose claim is sameness take their turns
-    expect(source('src/modes/useSymmetryParts.ts').includes('sequential: true')).toBeTruthy()
-    expect(source('src/modes/usePointSymmetryParts.ts').includes('sequential: true')).toBeTruthy()
-    // and the one whose claim is that each is the other's partner still does both
+    expect(fly.includes('landedSecond') ? 'the second still waits' : 'ok').toBe('ok')
+    // no board asks for a different timing any more
+    expect(source('src/modes/useSymmetryParts.ts').includes('sequential')).toBeFalsy()
+    expect(source('src/modes/usePointSymmetryParts.ts').includes('sequential')).toBeFalsy()
     expect(source('src/modes/useCorrespondence.ts').includes('sequential')).toBeFalsy()
+  })
+
+  it('travels without sailing past the place it is going to', () => {
+    /*
+     * The old curve overshot, so each part went past the place it was heading
+     * for and came back to it. Two parts doing that across the whole board is
+     * not a movement anyone can follow, and following it is the whole point of
+     * the demonstration.
+     */
+    const css = source('src/styles/correspondence.css')
+    const curve = /\.corr-fly\s*\{[^}]*transition:\s*transform[^;]*cubic-bezier\(([^)]*)\)/.exec(css)?.[1] ?? ''
+    const overshoot = curve.split(',').map((n) => Number(n.trim())).filter((n) => !Number.isNaN(n))
+    // a bezier whose control points are outside 0..1 overshoots
+    const over = overshoot.filter((n) => n < 0 || n > 1)
+    expect(over.length === 0 ? 'ok' : 'still overshoots: ' + over.join(',')).toBe('ok')
   })
 
   it('stands the flying pair down while it travels', () => {

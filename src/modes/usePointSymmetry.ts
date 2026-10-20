@@ -21,21 +21,9 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { PointSymmetryItem } from '../geometry/pointSymmetryShapes'
-import {
-  insideFigure,
-  isDrag,
-  judgeCenter,
-  snapHalfTurn,
-  snapPointToGrid,
-  steeredRotation,
-} from '../geometry/pointSymmetry'
+import { insideFigure, isDrag, judgeCenter, snapHalfTurn, snapPointToGrid, steeredRotation } from '../geometry/pointSymmetry'
 import type { Point } from '../geometry/types'
-import {
-  pointSymmetryFoundFor,
-  pointSymmetryHintFor,
-  pointSymmetryInstructionFor,
-  pointSymmetryNoCenterFor,
-} from '../components/pointSymmText'
+import { pointSymmetryFoundFor, pointSymmetryHintFor, pointSymmetryInstructionFor, pointSymmetryNoCenterFor } from '../components/pointSymmText'
 import type { Message } from '../components/tone'
 
 /** how long a miss is explained before the ask comes back */
@@ -72,6 +60,14 @@ export function usePointSymmetry(item: PointSymmetryItem, onSettled: () => void)
   const [draft, setDraft] = useState<{ p: Point; q: Point } | null>(null)
   const [wrongKind, setWrongKind] = useState<'off' | 'miss' | 'deny' | null>(null)
   const [justFound, setJustFound] = useState(false)
+  /**
+   * The last attempt found the middle.
+   *
+   * Its sentence used to leave with the stars — a second and a half, which is
+   * not long enough to read it. It stays until the child tries again, and the
+   * popup it opens is read for as long as a success is read anywhere else.
+   */
+  const [found, setFound] = useState(false)
   const [attempts, setAttempts] = useState(0)
   const [resolved, setResolved] = useState(false)
   const timer = useRef<number | null>(null)
@@ -92,6 +88,7 @@ export function usePointSymmetry(item: PointSymmetryItem, onSettled: () => void)
     (p: Point) => {
       if (wrongKind || resolved) return
       setWrongKind(null)
+      setFound(false)
       setDraft({ p, q: p })
       pressRef.current = p
       baseRef.current = rotation
@@ -121,10 +118,8 @@ export function usePointSymmetry(item: PointSymmetryItem, onSettled: () => void)
       setWrongKind(null)
       setTapped(null)
       /*
-       * The rotation is left where the unwind put it on purpose: clearing it
-       * to zero here would swing the copy a full circle backwards through the
-       * transition. With no middle the copy is unmounted anyway, and the next
-       * tap plants zero explicitly while a remount shows no transition at all.
+       * The rotation is left where the unwind put it: clearing it to zero here
+       * would swing the copy a full circle backwards through the transition.
        */
     }, after)
   }, [])
@@ -163,10 +158,12 @@ export function usePointSymmetry(item: PointSymmetryItem, onSettled: () => void)
         // The turn is the proof either way: a middle lands exactly, and on the
         // last shape the mismatch IS the answer rather than a failure.
         setJustFound(true)
+        setFound(true)
         timer.current = window.setTimeout(() => setJustFound(false), STAR_MS)
         settle()
         return
       }
+      setFound(false)
       setWrongKind(outcome)
       // Back to where it started, animated: a wrong middle turns back while a
       // right one stays turned.
@@ -181,6 +178,7 @@ export function usePointSymmetry(item: PointSymmetryItem, onSettled: () => void)
     setAttempts((n) => n + 1)
     if (item.centers === 0) {
       setJustFound(true)
+      setFound(true)
       settle()
       timer.current = window.setTimeout(() => setJustFound(false), STAR_MS)
       return
@@ -190,7 +188,7 @@ export function usePointSymmetry(item: PointSymmetryItem, onSettled: () => void)
   }, [wrongKind, resolved, item.centers, reopen, settle])
 
   const symmetric = item.centers > 0
-  const message: Message = justFound
+  const message: Message = found
     ? resolved && !symmetric
       ? pointSymmetryNoCenterFor()
       : pointSymmetryFoundFor()

@@ -15,7 +15,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { PASSES, type Pass, type Phase } from '../components/corrText'
 import type { Message } from '../components/tone'
-import { useCorrDemo, type CorrDemoTiming } from './useCorrDemo'
+import { useCorrDemo } from './useCorrDemo'
 
 /** how long a miss is explained before the ask comes back */
 const HINT_MS = 1800
@@ -38,20 +38,6 @@ export interface PassTexts {
  */
 export type PassAsk = Partial<Record<Pass, number[]>>
 
-/**
- * How the demonstration is timed, per board.
- *
- * Where two shapes stand side by side, the two parts change places at once and
- * it reads at a glance. Where one shape is folded over its own axis, both at
- * once is unreadable: the parts cross in the middle, and being mirror images
- * of each other the picture at the end is the picture at the start, so nothing
- * was shown. There the exchange is taken in turns — the first part travels and
- * rests exactly on its partner, which is the claim itself, and only then does
- * the second set off.
- */
-export type { CorrDemoTiming as PassTiming }
-export type { CorrDemoTiming }
-
 export interface CorrPass {
   phase: Phase
   /** which entry of the ask list is being asked about */
@@ -69,13 +55,6 @@ export interface CorrPass {
   /** which fold of the demonstration is on its way */
   flyStep: number
   landed: boolean
-  /**
-   * the second part of the pair has set off
-   *
-   * The same as `landed` unless the exchange is taken in turns, in which case
-   * this waits for the first part to come to rest on its partner.
-   */
-  landedSecond: boolean
   justFound: boolean
   /** how many answers have been given, right or wrong: re-arms the popup */
   attempts: number
@@ -98,7 +77,6 @@ export function useCorrPass(
   corners: number,
   texts: PassTexts,
   ask?: PassAsk,
-  timing: CorrDemoTiming = {},
 ): CorrPass {
   const [phase, setPhase] = useState<Phase>('points')
   const [step, setStep] = useState(0)
@@ -125,7 +103,6 @@ export function useCorrPass(
   const demo = useCorrDemo({
     sides: flySides,
     angles: flyAngles,
-    sequential: timing.sequential === true,
   })
   const flying = phase === 'compare' && demo.flying
   const done = phase === 'compare' && demo.done
@@ -205,7 +182,6 @@ export function useCorrPass(
     wrong,
     flyStep: demo.flyStep,
     landed: demo.landed,
-    landedSecond: demo.landedSecond,
     justFound,
     attempts,
     flying,

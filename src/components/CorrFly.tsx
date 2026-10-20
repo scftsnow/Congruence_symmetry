@@ -18,19 +18,13 @@
  * exchange places, each landing where the other stood. Neither is the original
  * and neither is the copy, which is exactly what 대응 means.
  *
- * ONE AT A TIME WHERE THE CLAIM IS SAMENESS
- * -----------------------------------------
- * On the boards where the claim is that two parts are the same, both moving at
- * once is unreadable: the two cross in the middle, and because the parts are
- * mirror images of each other the picture at the end is the picture at the
- * start, so nothing was shown. There the exchange is taken in turns — the first
- * part travels and comes to rest exactly on its partner, which is the claim
- * itself, and only then does the second set off. The eye follows one part, and
- * sees the two fit one another.
- *
- * The span on the line facts board is the exception, and it stays one-way:
- * there the claim is that one length lands exactly on the other, and two parts
- * crossing mid-way would never land on anything.
+ * ONE MOTION, NOT TWO
+ * -------------------
+ * The exchange is one thing that happens, not two that happen in turn. Taken in
+ * turns — the first part travelling and resting on its partner, and only then
+ * the second setting off — the picture in between is the picture at the start,
+ * because the two parts are mirror images of each other, so the child watches a
+ * swap half-finished rather than the swap itself.
  */
 
 import { angleTransform, angleWedge, sideTransform, type Angle } from '../geometry/correspondence'
@@ -44,20 +38,12 @@ export type Flyable =
 export function CorrFly({
   part,
   landed,
-  landedSecond,
   move,
   wedge = 45,
   swap = false,
 }: {
   part: Flyable | null
   landed: boolean
-  /**
-   * the second part of the pair has set off
-   *
-   * The same as `landed` unless the exchange is taken in turns, in which case
-   * the second waits for the first to come to rest on its partner.
-   */
-  landedSecond?: boolean
   /** the transform to travel by; the turn is worked out from the part if absent */
   move?: string
   wedge?: number
@@ -97,7 +83,7 @@ export function CorrFly({
         <g
           className="corr-fly"
           style={{
-            transform: (landedSecond ?? landed) ? back : undefined,
+            transform: landed ? back : undefined,
           }}
         >
           {part.kind === 'side' ? (

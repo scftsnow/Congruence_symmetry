@@ -69,6 +69,15 @@ export function useSymmetry(item: SymmetryItem, onSettled: () => void): Symmetry
   const [folded, setFolded] = useState(false)
   const [wrongKind, setWrongKind] = useState<'off' | 'miss' | 'dup' | 'deny' | null>(null)
   const [justFound, setJustFound] = useState(false)
+  /**
+   * The last attempt found the axis.
+   *
+   * Its sentence is the one thing on the board that says what just happened, and
+   * it used to leave with the stars — a second and a half, which is not long
+   * enough to read it. It stays until the child tries again, and the popup it
+   * opens is read for as long as a success is read anywhere else in the app.
+   */
+  const [found, setFound] = useState(false)
   const [attempts, setAttempts] = useState(0)
   const [resolved, setResolved] = useState(false)
   /** which true axes have been found, by index into findAxes */
@@ -88,6 +97,7 @@ export function useSymmetry(item: SymmetryItem, onSettled: () => void): Symmetry
   const beginDraw = useCallback((p: Point) => {
     if (folding || resolved) return
     setWrongKind(null)
+    setFound(false)
     setDraft({ p, q: p })
   }, [folding, resolved])
 
@@ -128,12 +138,14 @@ export function useSymmetry(item: SymmetryItem, onSettled: () => void): Symmetry
         setFoundIdx((prev) => (idx >= 0 ? [...prev, idx] : prev))
         setFoundLines((prev) => [...prev, line])
         setJustFound(true)
+        setFound(true)
         timer.current = window.setTimeout(() => setJustFound(false), STAR_MS)
         if (shape.axes === 0 || foundIdx.length + 1 >= shape.axes) {
           settle()
         } else reopen(UNFOLD_MS)
         return
       }
+      setFound(false)
       setWrongKind(outcome === 'hit' ? 'dup' : outcome)
       reopen(HINT_MS)
     }, FOLD_MS)
@@ -144,6 +156,7 @@ export function useSymmetry(item: SymmetryItem, onSettled: () => void): Symmetry
     setAttempts((n) => n + 1)
     if (item.axes === 0) {
       setJustFound(true)
+      setFound(true)
       settle()
       timer.current = window.setTimeout(() => setJustFound(false), STAR_MS)
       return
@@ -155,7 +168,7 @@ export function useSymmetry(item: SymmetryItem, onSettled: () => void): Symmetry
   const symmetric = item.axes > 0
   // A find says one thing when it settles the shape, another when axes remain; the
   // teal lines on the board show how many, never the sentence.
-  const message: Message = justFound
+  const message: Message = found
     ? resolved
       ? symmetric
         ? symmetryFoundFor()

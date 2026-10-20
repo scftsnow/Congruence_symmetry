@@ -28,7 +28,7 @@ const WEDGE = 45
 
 export function SymmetryPartsScene({
   vertices, axis, pairs, phase, step, asked, flySides, flyAngles, flyStep,
-  landed, landedSecond, justFound, onAnswer,
+  landed, justFound, onAnswer,
 }: {
   vertices: Point[]
   axis: Line
@@ -40,8 +40,6 @@ export function SymmetryPartsScene({
   flyAngles: number[]
   flyStep: number
   landed: boolean
-  /** the second part of the pair, which sets off after the first has come to rest */
-  landedSecond: boolean
   justFound: boolean
   onAnswer: (index: number) => void
 }) {
@@ -110,7 +108,6 @@ export function SymmetryPartsScene({
         key={flyStep}
         part={fly}
         landed={landed}
-        landedSecond={landedSecond}
         move={foldTransform({ a: axis.a, b: axis.b }, -1)}
         wedge={WEDGE}
         swap

@@ -170,6 +170,14 @@
   position: relative;
   flex: 1;
   min-height: 0;
+  /*
+   * The board's own cap plus this padding back: the wrap never stands taller
+   * than its drawing, so no bare paper is left below it. Uncapped the wrap
+   * would outgrow a capped drawing on a short screen.
+   */
+  max-height: calc(100svh - 191px);
+  display: flex;
+  flex-direction: column;
   background: var(--paper);
   border-radius: var(--radius);
   padding: 12px;
@@ -178,8 +186,10 @@
 
 .canvas {
   display: block;
+  flex: 1;
+  min-height: 0;
   width: 100%;
-  height: 100%;
+  height: auto;
   /*
    * Never taller than the screen minus its chrome, and never shorter than
    * what is left: the wrap takes the column's remainder, and the drawing

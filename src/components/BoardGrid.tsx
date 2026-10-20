@@ -11,15 +11,24 @@
  * with the shapes, which are the thing being read.
  */
 export function Grid({ width, height }: { width: number; height: number }) {
+  /*
+   * Past the viewBox on every side: the panel fills the screen now, so on any
+   * screen shaped differently from the board the drawing letterboxes and the
+   * margin around it would be bare paper. Lines drawn out here land in that
+   * margin in the drawing's own coordinates, so the whole panel reads as one
+   * grid that always lines up. Far past any real margin, and clipped harmlessly
+   * where the box already matches.
+   */
+  const PAD = 2000
   const lines = []
-  for (let x = 0; x <= width; x += 50) {
+  for (let x = -PAD; x <= width + PAD; x += 50) {
     lines.push(
-      <line key={`v${x}`} x1={x} y1={0} x2={x} y2={height} stroke="var(--grid-line)" strokeWidth={1} />,
+      <line key={`v${x}`} x1={x} y1={-PAD} x2={x} y2={height + PAD} stroke="var(--grid-line)" strokeWidth={1} />,
     )
   }
-  for (let y = 0; y <= height; y += 50) {
+  for (let y = -PAD; y <= height + PAD; y += 50) {
     lines.push(
-      <line key={`h${y}`} x1={0} y1={y} x2={width} y2={y} stroke="var(--grid-line)" strokeWidth={1} />,
+      <line key={`h${y}`} x1={-PAD} y1={y} x2={width + PAD} y2={y} stroke="var(--grid-line)" strokeWidth={1} />,
     )
   }
   return <g>{lines}</g>

@@ -15,6 +15,7 @@ import { CORRESPONDENCE_PAIRS } from '../geometry/correspondenceShapes'
 import { useCorrespondence } from './useCorrespondence'
 import { useStageMessage } from './useStageMessage'
 import { useMarkComplete } from './useUnitProgress'
+import { useDoneAfter } from './useDoneAfter'
 
 export function CorrespondenceStage({
   onBack,
@@ -28,6 +29,14 @@ export function CorrespondenceStage({
   useMarkComplete(c.done, onComplete)
   const last = c.pairIndex + 1 >= CORRESPONDENCE_PAIRS.length
   const done = correspondenceDonePanelFor()
+  /*
+   * The ending waits for the last part to be looked at landing.
+   *
+   * The part flying onto its partner is the last thing the board does, and the
+   * popup covers the board while it is up — so a popup that rises the instant
+   * the last answer is given hides the very thing it is congratulating.
+   */
+  const showDone = useDoneAfter(c.done && last)
 
   /*
    * The same rule as the congruence board, in the same place: every answer is
@@ -85,7 +94,7 @@ export function CorrespondenceStage({
       </div>
 
       <div className="corr-foot">
-        {c.done ? (
+        {c.done && !last ? (
           /*
            * Two different endings, and the difference matters.
            *
@@ -94,20 +103,18 @@ export function CorrespondenceStage({
            * looping back to the first pair — which is what this used to do — left
            * the unit with no ending at all. That now says so and goes home.
            */
-          last ? (
-            <DonePanel
-              title={done.title}
-              note={done.note}
-              homeLabel={done.homeLabel}
-              againLabel={done.againLabel}
-              onHome={onBack}
-              onAgain={() => c.startPair(0)}
-            />
-          ) : (
-            <button type="button" className="start-btn" onClick={c.nextPair}>
-              다음 도형 보기 →
-            </button>
-          )
+          <button type="button" className="start-btn" onClick={c.nextPair}>
+            다음 도형 보기 →
+          </button>
+        ) : showDone ? (
+          <DonePanel
+            title={done.title}
+            note={done.note}
+            homeLabel={done.homeLabel}
+            againLabel={done.againLabel}
+            onHome={onBack}
+            onAgain={() => c.startPair(0)}
+          />
         ) : (
           <ol className="corr-dots" aria-label="진행">
             {Array.from({ length: c.corners }).map((_, i) => (

@@ -231,6 +231,37 @@
   justify-content: center;
   padding: 20px;
   background: rgba(3, 8, 16, 0.72);
+  /* the dimming comes up first, so the board is seen darkening rather than cut */
+  animation: done-in 240ms ease-out both;
+}
+
+/*
+ * The ending comes up; it does not arrive.
+ *
+ * A card that is simply there is a cut, and a cut is what the child was
+ * complaining about: the words landed on the board the instant the work was
+ * judged. The card rises into place instead, a little after the work has been
+ * looked at, so the ending reads as something arriving rather than something
+ * thrown over the top.
+ */
+@keyframes done-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes done-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(26px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 .done__card {
@@ -248,6 +279,7 @@
   color: var(--ink-on-shape);
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
   text-align: center;
+  animation: done-card-in 360ms cubic-bezier(0.22, 0.9, 0.28, 1) both;
 }
 
 .done__mark {

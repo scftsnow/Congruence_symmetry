@@ -221,6 +221,13 @@ body::after {
     animation: none;
     opacity: 0.5;
   }
+
+  /* the ending still arrives, it just does not travel */
+  .done,
+  .done__card,
+  .done__mark {
+    animation: none;
+  }
 }
 
 #root {

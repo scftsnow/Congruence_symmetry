@@ -228,5 +228,45 @@ describe('the animation did not break the geometry', () => {
   })
 })
 
+// ── the ending waits for the work to be seen ──────────────
+describe('the ending waits its turn', () => {
+  it('the popup does not go up the moment the work is judged', () => {
+    /*
+     * The ending popup covers the board. The last shape easing onto its partner
+     * is the whole point of the board, and a popup that rises the instant the
+     * match is judged hides the very thing it is congratulating: the child sees
+     * a card, and never sees the overlap.
+     *
+     * So the boards ask a hook when the ending may go up, and the hook waits.
+     */
+    const congruence = source('src/modes/CongruenceStage.tsx')
+    expect(congruence.includes('useDoneAfter(cleared)')).toBeTruthy()
+    expect(/showDone\s*\?/.test(congruence)).toBeTruthy()
+    expect(/\{\s*cleared\s*\?/.test(congruence)).toBeFalsy()
+
+    const correspondence = source('src/modes/CorrespondenceStage.tsx')
+    expect(correspondence.includes('useDoneAfter(')).toBeTruthy()
+    expect(/showDone\s*\?/.test(correspondence)).toBeTruthy()
+  })
+
+  it('the wait is long enough for the landing and the stars', () => {
+    // The turn takes 600ms and the star burst lasts 1500ms, so the ending has
+    // to wait at least that long or it rises over the burst it is celebrating.
+    const hook = source('src/modes/useDoneAfter.ts')
+    const wait = /DONE_AFTER_MS = (\d+)/.exec(hook)?.[1]
+    expect(wait).toBeTruthy()
+    expect(Number(wait)).toBeGreaterThanOrEqual(1500)
+  })
+
+  it('the ending rises into place rather than being there', () => {
+    // A card that is simply there is a cut. The card comes up, so the ending
+    // reads as something arriving.
+    const ui = source('src/styles/ui.css')
+    expect(/@keyframes done-card-in/.test(ui)).toBeTruthy()
+    expect(/\.done__card\s*\{[^}]*animation:\s*done-card-in/.test(ui)).toBeTruthy()
+    expect(/\.done\s*\{[^}]*animation:\s*done-in/.test(ui)).toBeTruthy()
+  })
+})
+
 const { report } = await import('../harness/spec.mjs')
 report()

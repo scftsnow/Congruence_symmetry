@@ -7,8 +7,7 @@
  *
  * There is deliberately no rotate button and no flip button. Offering one
  * would tell the child that direction matters, which is the opposite of what
- * this unit teaches, and it would turn a judgement about shape into a puzzle
- * about controls. The angle is the system's problem, not the child's.
+ * this unit teaches. The angle is the system's problem, not the child's.
  *
  * On a match the shape eases into place, so the child watches the coincidence
  * rather than assembling it.
@@ -28,6 +27,7 @@ import { congruenceDonePanelFor, congruenceMessageFor } from '../components/verd
 import type { Message } from '../components/tone'
 import { useStageMessage } from './useStageMessage'
 import { useMarkComplete } from './useUnitProgress'
+import { useDoneAfter } from './useDoneAfter'
 
 /** nothing to say; the board is finished and the ending popup has it */
 const NEUTRAL = { tone: 'neutral', icon: '', text: '' } as const
@@ -110,10 +110,7 @@ export function CongruenceStage({ onBack, onComplete }: CongruenceStageProps) {
       setReleased(true)
       /*
        * One release, one attempt. This is the nonce that re-arms the popup, so a
-       * second stack on the same wrong partner gets the same sentence again — the
-       * words do not change between the first miss and the second, and keying on
-       * the words alone would mean the hint faded after one try and said nothing
-       * for the next three.
+       * second stack on the same wrong partner gets the same sentence again.
        */
       setAttempts((n) => n + 1)
     }
@@ -136,6 +133,8 @@ export function CongruenceStage({ onBack, onComplete }: CongruenceStageProps) {
   const cleared = count >= board.target
   // the unit is done the moment every pair is found, which is when its ending goes up
   useMarkComplete(cleared, onComplete)
+  // the ending waits, so the last landing is looked at before the words arrive
+  const showDone = useDoneAfter(cleared)
   const message = congruenceMessageFor(verdict, turned, count, board.target, flipped)
   /*
    * Before the first release, the standing instruction crosses the top of the
@@ -236,7 +235,7 @@ export function CongruenceStage({ onBack, onComplete }: CongruenceStageProps) {
         </svg>
       </div>
 
-      {cleared ? (
+      {showDone ? (
         /*
          * The ending, and it stays.
          *

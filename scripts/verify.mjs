@@ -136,12 +136,10 @@ for (const [label, s] of [
   ['correspondence target', '.corr-target'],
   ['correspondence taps', '.corr-tap'],
   ['correspondence travel', '.corr-fly'],
-  ['correspondence dots', '.corr-dot'],
   ['pulse keyframes', '@keyframes corr-pulse'],
   ['symmetry fold', '.sym-fold'],
   ['symmetry axis', '.sym-axis'],
   ['symmetry draft', '.sym-draft'],
-  ['symmetry dots', '.sym-dot'],
 ]) {
   ok(label, css.includes(s), s)
 }

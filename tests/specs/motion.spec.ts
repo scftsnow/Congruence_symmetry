@@ -306,6 +306,18 @@ describe('the way on is in the middle of the board', () => {
     expect(/\.next-overlay\s*\{[^}]*pointer-events:\s*none/.test(ui)).toBeTruthy()
     expect(/\.next-overlay \.start-btn\s*\{[^}]*pointer-events:\s*auto/.test(ui)).toBeTruthy()
   })
+
+  it('the way on waits for the explanation to be read first', () => {
+    /*
+     * It used to come up together with the sentence about what just happened,
+     * and the two competed for the same glance. The explanation is read first,
+     * and the button follows five seconds later.
+     */
+    const button = source('src/components/NextButton.tsx')
+    expect(/NEXT_AFTER_MS = 5000/.test(button)).toBeTruthy()
+    expect(button.includes('setTimeout')).toBeTruthy()
+    expect(button.includes('if (!shown) return null')).toBeTruthy()
+  })
 })
 
 const { report } = await import('../harness/spec.mjs')

@@ -6,17 +6,34 @@
  * altogether, so the way forward was somewhere they had to scroll to find.
  *
  * It now stands in the middle of the board itself, the white panel the child
- * has been working on, over a dimming of that same panel. The board is still
- * there behind it — the shape they just did, the marks they found — and the
- * board underneath keeps its own pointer events, so nothing about the screen is
- * locked: only the button itself takes the touch.
+ * has been working on. The board is left alone — no dimming, no covering — so
+ * the shape that was just finished is still there to be seen, and the board
+ * underneath keeps its own pointer events: nothing about the screen is locked,
+ * and only the button takes the touch.
+ *
+ * It does not arrive with the explanation. The sentence about what just
+ * happened is read first, and the way on comes up five seconds later, so the
+ * two never compete for the same glance.
  *
  * Pure presentation. It is handed the words and the way on, and decides
  * nothing, for the same reason DonePanel does: the wording lives apart from
  * the markup so it can be read as wording.
  */
 
+import { useEffect, useState } from 'react'
+
+/** how long the explanation is read before the way on comes up */
+export const NEXT_AFTER_MS = 5000
+
 export function NextButton({ label, onClick }: { label: string; onClick: () => void }) {
+  const [shown, setShown] = useState(false)
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setShown(true), NEXT_AFTER_MS)
+    return () => window.clearTimeout(timer)
+  }, [])
+
+  if (!shown) return null
   return (
     <div className="next-overlay">
       <button type="button" className="start-btn" onClick={onClick}>

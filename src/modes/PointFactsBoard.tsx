@@ -37,7 +37,6 @@ export function PointFactsBoard({ board, onSettled, onNext, nextLabel, last }: {
           pairs={f.pairs}
           current={f.current}
           landed={f.landed}
-          turning={f.turning}
           draft={f.draft}
           joinedList={f.joinedList}
           justFound={f.justFound}

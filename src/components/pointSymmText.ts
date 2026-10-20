@@ -23,7 +23,7 @@ export function pointSymmetryInstructionFor(): string {
 
 /** Said the moment a tapped center proves itself in the turn. */
 export function pointSymmetryFoundFor(): Message {
-  return { tone: 'success', icon: '⭐', text: '점대칭도형이에요! 이 점이 대칭의 중심이에요' }
+  return { tone: 'success', icon: '⭐', text: '한 점을 기준으로 180도 돌렸더니 완전히 겹쳤어요. 점대칭도형이에요!' }
 }
 
 /**
@@ -37,7 +37,7 @@ export function pointSymmetryNoCenterFor(): Message {
   return {
     tone: 'success',
     icon: '🎉',
-    text: '이 도형은 어떻게 돌려도 겹치지 않아요. 점대칭도형이 아니에요',
+    text: '이 도형은 180도 돌려도 겹치지 않아요. 점대칭도형이 아니에요',
     // As long as any found sentence — three times the star burst — so the
     // ending, which waits the same, never cuts these words short.
     ms: 4500,

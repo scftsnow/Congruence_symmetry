@@ -404,8 +404,9 @@ ok('point-symmetry has ten boards', /POINT_SYMM_BOARDS: PointSymmetryBoard\[\] =
 for (const c of ['.sym-hub', '.sym-turn']) {
   ok(`point-symmetry style ${c}`, symmCss.includes(c), c)
 }
-// No figure is quoted anywhere in the unit either.
-ok('point-symmetry quotes no degree', !/[0-9]+\s*도/.test(ptsymSrc))
+// No figure is quoted anywhere in the unit either. 180도는 the half turn itself —
+// the definition of the unit, named by the owner — so only other angles are banned.
+ok('point-symmetry quotes no degree', !/[0-9]+\s*도/.test(ptsymSrc.replace(/180\s*도/g, '')))
 ok('point-symmetry quotes no length', !/[0-9]+\s*(cm|mm|px)/.test(ptsymSrc))
 ok('point-symmetry quotes no degree in parts', !/[0-9]+\s*도/.test(ptsymPartsSrc))
 

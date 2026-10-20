@@ -34,6 +34,7 @@ export interface DrawBoardInput {
   demo: { from: Point; mid: Point; to: Point }
   placeTolerance: number
   texts: DrawTexts
+  last: boolean // the last board: its finishing words stay until the ending itself
 }
 
 const HINT_MS = 1800
@@ -76,7 +77,7 @@ function guide(texts: DrawTexts, walk: number, waiting: number, flying: boolean,
 }
 
 export function useDrawBoard(input: DrawBoardInput, onSettled: () => void): DrawBoardState {
-  const { half, givens, answers, demo, placeTolerance, texts } = input
+  const { half, givens, answers, demo, placeTolerance, texts, last } = input
   const [placed, setPlaced] = useState<number[]>([])
   const [joined, setJoined] = useState<number[]>([])
   const [miss, setMiss] = useState<'spot' | 'join' | null>(null)
@@ -131,12 +132,11 @@ export function useDrawBoard(input: DrawBoardInput, onSettled: () => void): Draw
     if (!complete || resolved) return
     timer.current = window.setTimeout(() => {
       setResolved(true)
-      setJustFound(false)
-      setFoundText(null)
+      if (!last) { setJustFound(false); setFoundText(null) } // last board keeps its words until the ending
       onSettled()
     }, DONE_SHOW_MS)
     return () => window.clearTimeout(timer.current ?? undefined)
-  }, [complete, resolved, onSettled])
+  }, [complete, resolved, onSettled, last])
 
   const beginDraw = useCallback((p: Point) => {
     if (walking || flying || resolved) return

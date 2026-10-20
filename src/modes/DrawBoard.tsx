@@ -25,7 +25,7 @@ export function DrawBoard({ board, onSettled, onNext, nextLabel, last }: {
   /** the last board of the row: no way on, the ending comes by itself */
   last: boolean
 }) {
-  const d = useSymmetryDraw(board, onSettled)
+  const d = useSymmetryDraw(board, onSettled, last)
   const toast = useStageMessage(d.message, d.attempts)
 
   return (
@@ -50,7 +50,13 @@ export function DrawBoard({ board, onSettled, onNext, nextLabel, last }: {
           onDrawMove={d.moveDraw}
           onDrawEnd={d.endDraw}
         />
-        {d.resolved && !last && <NextButton label={nextLabel} onClick={onNext} />}
+        {d.resolved && !last && (
+          /*
+           * resolved fires the moment the finishing popup clears (DONE_SHOW_MS),
+           * so the way on follows it with no dead wait in between.
+           */
+          <NextButton label={nextLabel} onClick={onNext} delay={400} />
+        )}
       </div>
       <div className="sym-foot">
         {!d.resolved && (

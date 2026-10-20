@@ -73,6 +73,24 @@ function allCorners(corners: number): number[] {
   return Array.from({ length: corners }, (_, i) => i)
 }
 
+/** Fisher-Yates on a seeded PRNG: pure in (items, seed), so a dealt order holds for the whole pass. */
+function shuffledWith<T>(items: T[], seed: number): T[] {
+  const order = [...items]
+  let s = (seed * 0xffffffff) >>> 0 || 1
+  const next = () => {
+    s ^= s << 13; s ^= s >>> 17; s ^= s << 5; s >>>= 0
+    return s / 0xffffffff
+  }
+  for (let i = order.length - 1; i > 0; i--) {
+    const j = Math.floor(next() * (i + 1))
+    ;[order[i], order[j]] = [order[j], order[i]]
+  }
+  return order
+}
+
+/** one seed per chapter: the questions within are dealt randomly, and re-dealt on restart */
+const dealSeeds = (): Record<Pass, number> => ({ points: Math.random(), sides: Math.random(), angles: Math.random() })
+
 export function useCorrPass(
   corners: number,
   texts: PassTexts,
@@ -93,9 +111,13 @@ export function useCorrPass(
   const [foundPhase, setFoundPhase] = useState<Phase>('points')
   /** one per tap, right or wrong; re-arms the popup so a repeat still shows */
   const [attempts, setAttempts] = useState(0)
+  const [seeds, setSeeds] = useState<Record<Pass, number>>(dealSeeds)
   const starTimer = useRef<number | null>(null)
 
-  const asked = phase === 'compare' ? allCorners(corners) : (ask?.[phase as Pass] ?? allCorners(corners))
+  const base = phase === 'compare' ? allCorners(corners) : (ask?.[phase as Pass] ?? allCorners(corners))
+  // The chapters keep the textbook's order, but the questions within one are
+  // dealt randomly. The demonstration keeps the listed order: only the asking shuffles.
+  const asked = phase === 'compare' ? base : shuffledWith(base, seeds[phase as Pass])
   const total = asked.length
   /** the demonstration folds exactly what was asked: no more, no fewer */
   const flySides = ask?.sides ?? allCorners(corners)
@@ -113,6 +135,7 @@ export function useCorrPass(
     setWrong(false)
     demo.reset()
     setJustFound(false)
+    setSeeds(dealSeeds())
     if (starTimer.current) window.clearTimeout(starTimer.current)
   }, [demo])
 

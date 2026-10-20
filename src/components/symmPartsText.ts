@@ -42,7 +42,7 @@ export function symmetryPartsInstructionFor(phase: Phase): string | null {
  * the square leg is drawn, then it is carried across. One sentence per leg,
  * because the two legs are two different claims. */
 export const SYMM_PARTS_HOW_LEG = '한 점에서 대칭축에 수직인 선을 그어요'
-export const SYMM_PARTS_HOW_CARRY = '그 길이만큼 반대쪽으로 옮기면 거기가 대응점이에요'
+export const SYMM_PARTS_HOW_CARRY = '그대로 대칭축을 지나 같은 만큼 더 가면 거기가 대응점이에요'
 
 /** While a part is folding, and the moment it lands on its partner. */
 const PARTS_MOVING = { side: '대응변을 접어 보고 있어요', angle: '대응각을 접어 보고 있어요' }
@@ -63,7 +63,7 @@ export function symmetryPartsMessageFor(input: {
     return {
       tone: 'success',
       icon: '🎉',
-      text: '선대칭도형의 마주 보는 점과 변과 각은 똑같아요',
+      text: '선대칭도형의 대응변의 길이와 대응각의 크기는 똑같아요', ms: 4500, // ending waits the same
     }
   }
   if (input.landed) {
@@ -144,7 +144,7 @@ const DRAW_MISSED = '조금만 아쉬워요. 축에서 같은 거리, 반대쪽 
 const DRAW_DONE: Record<number, string> = {
   2: '맞아요! 대응점은 축에서 같은 거리에 있어요',
   1: '잘했어요! 다음 대응점도 찾아보세요',
-  0: '마지막 대응점도 마주 보는 자리에 왔어요',
+  0: '마지막 대응점도 찾았어요',
 }
 
 export function symmetryDrawInstructionFor(waiting: number): string {
@@ -162,7 +162,7 @@ export function symmetryDrawSuccessFor(waiting: number): Message {
 /* Said once the last join is drawn: the figure is whole, and the way out waits
  * three seconds so the finish is watched rather than left. */
 export function symmetryDrawDoneAll(): Message {
-  return { tone: 'success', icon: '⭐', text: '선대칭도형을 완성했어요!' }
+  return { tone: 'success', icon: '⭐', text: '선대칭도형을 완성했어요!', ms: 9000 } // stand + ending wait: no gap
 }
 
 /* The joins. The remaining half is drawn by joining the found points in

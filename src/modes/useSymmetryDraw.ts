@@ -25,7 +25,7 @@ import { PLACE_TOLERANCE, useDrawBoard } from './useDrawBoard'
 
 type DrawBoard = Extract<SymmetryBoard, { kind: 'draw' }>
 
-export function useSymmetryDraw(board: DrawBoard, onSettled: () => void) {
+export function useSymmetryDraw(board: DrawBoard, onSettled: () => void, last: boolean) {
   const half = useMemo(
     () => board.half.map((p) => ({ x: p.x + SYMM_CENTER.x, y: p.y + SYMM_CENTER.y })),
     [board],
@@ -66,6 +66,7 @@ export function useSymmetryDraw(board: DrawBoard, onSettled: () => void) {
       answers,
       demo,
       placeTolerance: PLACE_TOLERANCE,
+      last,
       texts: {
         instructionFor: symmetryDrawInstructionFor,
         missedFor: symmetryDrawMissedFor,

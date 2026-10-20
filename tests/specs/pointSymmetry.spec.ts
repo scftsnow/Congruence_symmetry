@@ -214,7 +214,7 @@ describe('the child taps the middle and steers the turn', () => {
   })
 
   it('says the middle in the unit\'s own words', () => {
-    expect(pointSymmetryFoundFor().text).toBe('점대칭도형이에요! 이 점이 대칭의 중심이에요')
+    expect(pointSymmetryFoundFor().text).toBe('한 점을 기준으로 180도 돌렸더니 완전히 겹쳤어요. 점대칭도형이에요!')
     expect(pointSymmetryNoCenterFor().text).toContain('점대칭도형이 아니에요')
     expect(pointSymmetryNoCenterFor().tone).toBe('success')
     expect(pointSymmetryHintFor('off').text).toBe('도형 안을 눌러 보세요')
@@ -365,26 +365,21 @@ describe('the four rows on the home screen', () => {
     expect(pointFactsSuccessFor('equal').text).toContain('거리는 같아요')
   })
 
-  it('turns the figure one revolution about the middle, rather than swapping two spans', () => {
+  it('turns one span onto its partner, like the line unit', () => {
     /*
-     * The second fact used to be shown by the two spans changing places, each
-     * swinging through a wide arc of its own: two big motions crossing in the
-     * middle, which is hard to follow and proves the same thing twice over. The
-     * figure now turns one whole revolution about the middle — a single motion
-     * about the one point the fact is about, on the way round which every
-     * corner passes exactly over its partner.
+     * The second fact is proved the way the line unit proves it: the figure
+     * never moves, and one span lifts off, turns halfway round the middle and
+     * lands exactly on the other. Turning the whole picture to prove one span
+     * made the proof about everything on screen instead of the two spans.
      */
     const scene = source('src/components/PointFactsScene.tsx')
-    expect(scene.includes('sym-revolve')).toBeTruthy()
-    expect(scene.includes('<CorrFly')).toBeFalsy()
+    expect(scene.includes('<CorrFly')).toBeTruthy()
+    expect(scene.includes('sym-revolve')).toBeFalsy()
+    expect(scene.includes('turnTransform(center, 180)')).toBeTruthy()
     const hook = source('src/modes/usePointSymmetryFacts.ts')
-    expect(hook.includes('ROTATE_MS')).toBeTruthy()
-    expect(hook.includes('turning')).toBeTruthy()
-    // the revolution is about the middle itself, not about the corner of the canvas
-    expect(scene.includes('transformOrigin')).toBeTruthy()
-    const css = source('src/styles/symmetry.css')
-    expect(/@keyframes sym-revolve/.test(css)).toBeTruthy()
-    expect(/\.sym-revolve\s*\{[^}]*transform-box:\s*view-box/.test(css)).toBeTruthy()
+    expect(hook.includes('turning')).toBeFalsy()
+    expect(hook.includes('ROTATE_MS')).toBeFalsy()
+    expect(hook.includes('HOLD_MS')).toBeTruthy()
   })
 
   it('walks the first point before asking for any', () => {

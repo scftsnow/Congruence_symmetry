@@ -64,7 +64,7 @@ export function pointPartsMessageFor(input: {
     return {
       tone: 'success',
       icon: '🎉',
-      text: '점대칭도형의 마주 보는 점과 변과 각은 똑같아요',
+      text: '점대칭도형의 대응변의 길이와 대응각의 크기는 똑같아요', ms: 4500, // ending waits the same
     }
   }
   if (input.landed) {
@@ -145,7 +145,7 @@ const DRAW_MISSED = '조금만 아쉬워요. 중심에서 같은 거리, 반대�
 const DRAW_DONE: Record<number, string> = {
   2: '맞아요! 대응점은 중심에서 같은 거리에 있어요',
   1: '잘했어요! 다음 대응점도 찾아보세요',
-  0: '마지막 대응점도 마주 보는 자리에 왔어요',
+  0: '마지막 대응점도 찾았어요',
 }
 
 export function pointDrawInstructionFor(waiting: number): string {
@@ -161,7 +161,7 @@ export function pointDrawSuccessFor(waiting: number): Message {
 }
 
 export function pointDrawDoneAll(): Message {
-  return { tone: 'success', icon: '⭐', text: '점대칭도형을 완성했어요!' }
+  return { tone: 'success', icon: '⭐', text: '점대칭도형을 완성했어요!', ms: 9000 } // stand + ending wait: no gap
 }
 
 /* The joins. The remaining half is drawn by joining the found points in

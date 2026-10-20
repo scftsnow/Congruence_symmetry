@@ -43,7 +43,7 @@ export function congruenceDonePanelFor(): {
 } {
   return {
     title: [{ text: '합동인 도형을 ' }, { text: '모두 찾았어!', strong: true }],
-    note: '방향이 달라도, 겹쳐서 완전히 포개지면 모양과 크기가 같은 도형이야',
+    note: '방향이 달라도, 두 도형을 겹쳐서 완전히 포개지면 모양과 크기가 같은 합동이야',
     homeLabel: '첫 화면으로',
     againLabel: '↺ 처음부터',
   }

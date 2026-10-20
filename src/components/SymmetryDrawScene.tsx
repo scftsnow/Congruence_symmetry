@@ -9,6 +9,7 @@
 
 import { useRef } from 'react'
 import { pointsToPath } from './svgPath'
+import { clientToCanvas } from './canvasPoint'
 import { Grid } from './BoardGrid'
 import { Celebration } from './Celebration'
 import { rightAnglePath } from '../geometry/symmetryParts'
@@ -69,12 +70,7 @@ export function SymmetryDrawScene({
   const toCanvas = (clientX: number, clientY: number): Point => {
     const svg = svgRef.current
     if (!svg) return { x: 0, y: 0 }
-    const rect = svg.getBoundingClientRect()
-    const vb = svg.viewBox.baseVal
-    return {
-      x: ((clientX - rect.left) / rect.width) * vb.width,
-      y: ((clientY - rect.top) / rect.height) * vb.height,
-    }
+    return clientToCanvas(svg, clientX, clientY)
   }
 
   const walking = walk < 3

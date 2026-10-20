@@ -27,6 +27,7 @@ import { SYMM_CENTER } from '../geometry/symmetryShapes'
 import { applyTransform, identity } from '../geometry/transforms'
 import type { Point, Shape } from '../geometry/types'
 import { pointsToPath } from './svgPath'
+import { clientToCanvas } from './canvasPoint'
 import { Celebration } from './Celebration'
 import { Grid } from './BoardGrid'
 
@@ -78,12 +79,7 @@ export function SymmetryScene({
   const toCanvas = (clientX: number, clientY: number): Point => {
     const svg = svgRef.current
     if (!svg) return { x: 0, y: 0 }
-    const rect = svg.getBoundingClientRect()
-    const vb = svg.viewBox.baseVal
-    return {
-      x: ((clientX - rect.left) / rect.width) * vb.width,
-      y: ((clientY - rect.top) / rect.height) * vb.height,
-    }
+    return clientToCanvas(svg, clientX, clientY)
   }
 
   return (

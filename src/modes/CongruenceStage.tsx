@@ -23,6 +23,7 @@ import { PairMark } from '../components/PairMark'
 import { StackedOverlay } from '../components/StackedOverlay'
 import { Grid } from '../components/BoardGrid'
 import { BoardShapeView } from '../components/BoardShapeView'
+import { clientToCanvas } from '../components/canvasPoint'
 import { congruenceDonePanelFor, congruenceMessageFor } from '../components/verdictText'
 import type { Message } from '../components/tone'
 import { useStageMessage } from './useStageMessage'
@@ -73,12 +74,7 @@ export function CongruenceStage({ onBack, onComplete }: CongruenceStageProps) {
   const toCanvas = useCallback((clientX: number, clientY: number) => {
     const svg = svgRef.current
     if (!svg) return { x: 0, y: 0 }
-    const rect = svg.getBoundingClientRect()
-    const vb = svg.viewBox.baseVal
-    return {
-      x: ((clientX - rect.left) / rect.width) * vb.width,
-      y: ((clientY - rect.top) / rect.height) * vb.height,
-    }
+    return clientToCanvas(svg, clientX, clientY)
   }, [])
 
   const onPointerDown = (item: BoardShape, e: React.PointerEvent) => {

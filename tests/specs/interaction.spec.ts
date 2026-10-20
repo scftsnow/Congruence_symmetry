@@ -197,5 +197,46 @@ describe('the shuffle did not break any pair', () => {
   })
 })
 
+// ── a finger is read through the drawing, not the element ─
+describe('the board is read where it is drawn', () => {
+  function source(path: string): string {
+    return readFileSync(join(process.cwd(), path), 'utf8')
+  }
+
+  it('a finger is read through the screen matrix, not the element box', () => {
+    /*
+     * The board is an SVG with a viewBox, and the browser draws that viewBox
+     * inside the element's own box. When the two shapes differ — and they do
+     * whenever the board is capped to the height of a short screen, as it is on
+     * a tablet held sideways — the drawing is letterboxed and the empty margin
+     * beside it is not part of the board.
+     *
+     * Reading the element's rectangle and scaling it reads that margin as
+     * board, so a shape dropped onto its partner lands somewhere else entirely
+     * and the child is told the two do not match.
+     */
+    const helper = source('src/components/canvasPoint.ts')
+    expect(helper.includes('getScreenCTM')).toBeTruthy()
+    expect(helper.includes('ctm.inverse()')).toBeTruthy()
+  })
+
+  it('no board scales the element box to find the finger', () => {
+    const boards = [
+      'src/modes/CongruenceStage.tsx',
+      'src/components/CenterScene.tsx',
+      'src/components/PointDrawScene.tsx',
+      'src/components/PointFactsScene.tsx',
+      'src/components/SymmetryDrawScene.tsx',
+      'src/components/SymmetryFactsScene.tsx',
+      'src/components/SymmetryScene.tsx',
+    ]
+    for (const file of boards) {
+      const body = source(file)
+      expect(body.includes('viewBox.baseVal') ? 'still reading the element box' : 'ok').toBe('ok')
+      expect(body.includes('clientToCanvas(') ? 'ok' : 'no shared pointer mapping').toBe('ok')
+    }
+  })
+})
+
 const { report } = await import('../harness/spec.mjs')
 report()

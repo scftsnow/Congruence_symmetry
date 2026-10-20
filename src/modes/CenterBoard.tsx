@@ -36,7 +36,6 @@ export function CenterBoard({
           tapped={s.tapped}
           rotation={s.rotation}
           dragging={s.draft !== null}
-          draft={s.draft}
           justFound={s.justFound}
           onDrawStart={s.beginDraw}
           onDrawMove={s.moveDraw}

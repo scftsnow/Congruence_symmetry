@@ -364,6 +364,25 @@ describe('the four rows on the home screen', () => {
     expect(POINT_PARTS_HOW_CARRY).toContain('대응점이에요')
   })
 
+  it('shows no line while the child is turning', () => {
+    /*
+     * The boards where the child draws a line preview it as a dashed line, and
+     * that preview says "you are drawing a line". On this board the hand is not
+     * drawing anything — it is turning the copy about the middle — so the
+     * dashed line was a language from the wrong board, and the child was seeing
+     * a line appear where their finger was only turning a shape.
+     *
+     * The copy is the preview here: it moves under the finger, and wherever it
+     * is when the finger lifts is where the child left it.
+     */
+    const scene = source('src/components/CenterScene.tsx')
+    expect(scene.includes('sym-draft')).toBeFalsy()
+    expect(scene.includes('sym-turn')).toBeTruthy()
+    // the boards that really do draw a line keep their preview
+    expect(source('src/components/SymmetryScene.tsx').includes('sym-draft')).toBeTruthy()
+    expect(source('src/components/PointFactsScene.tsx').includes('sym-draft')).toBeTruthy()
+  })
+
   it('joins neighbours before calling the figure whole', () => {
     // Same shared board, so the point unit joins before finishing too: the
     // whole outline appears only once every neighbour pair is joined, and

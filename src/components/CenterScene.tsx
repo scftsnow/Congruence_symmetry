@@ -4,11 +4,19 @@
  * Pure presentation. It is handed the tapped middle, where the copy stands
  * about it, and whether the finger is still down, and it decides nothing — the
  * verdict already happened in the hook, so there is no judgement here to get
- * wrong. While the finger is down its gesture previews as a dashed line, the
- * same language as the axis board's preview, and the copy tracks the finger
- * with no transition: an animated position under a moving finger lags behind
- * it, which would leave the child turning something that was not under their
- * thumb.
+ * wrong.
+ *
+ * While the finger is down the copy tracks it with no transition: an animated
+ * position under a moving finger lags behind it, which would leave the child
+ * turning something that was not under their thumb.
+ *
+ * NO LINE WHILE TURNING
+ * ---------------------
+ * There is no dashed preview here, though the boards where the child draws a
+ * line have one. A preview line says "you are drawing a line", and on this
+ * board the hand is not drawing anything — it is turning the copy about the
+ * middle. The copy itself is the preview: it moves under the finger, and
+ * wherever it is when the finger lifts is where the child left it.
  *
  * ONE PAPER TURNING, NEVER TWO
  * -----------------------------
@@ -36,7 +44,6 @@ export function CenterScene({
   tapped,
   rotation,
   dragging,
-  draft,
   justFound,
   onDrawStart,
   onDrawMove,
@@ -49,8 +56,6 @@ export function CenterScene({
   rotation: number
   /** the finger is down: the copy tracks it exactly, with no transition */
   dragging: boolean
-  /** the finger's gesture before it steers, while it is being drawn */
-  draft: { p: Point; q: Point } | null
   /** true just after something worth celebrating */
   justFound: boolean
   onDrawStart: (p: Point) => void
@@ -105,9 +110,6 @@ export function CenterScene({
       )}
       {tapped && <circle className="sym-hub" cx={tapped.x} cy={tapped.y} r={10} />}
 
-      {draft && (
-        <line className="sym-draft" x1={draft.p.x} y1={draft.p.y} x2={draft.q.x} y2={draft.q.y} />
-      )}
       {justFound && <Celebration x={550} y={300} />}
     </svg>
   )

@@ -349,7 +349,7 @@ describe('the fold moves one half onto the other', () => {
 
 describe('the child draws, the system folds', () => {
   it('says which line was found, in the unit\'s own words', () => {
-    expect(symmetryFoundFor().text).toBe('선대칭도형이에요! 이 선이 대칭축이에요')
+    expect(symmetryFoundFor().text).toBe('대칭축을 따라 접었을 때 완전히 겹치니 선대칭도형이에요! 이 선이 대칭축이에요')
     expect(symmetryFoundFor().tone).toBe('success')
   })
 

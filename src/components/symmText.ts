@@ -31,7 +31,11 @@ export function symmetryInstructionFor(): string {
 
 /** Said the moment a drawn axis proves itself in the fold. */
 export function symmetryFoundFor(): Message {
-  return { tone: 'success', icon: '⭐', text: '선대칭도형이에요! 이 선이 대칭축이에요' }
+  return {
+    tone: 'success',
+    icon: '⭐',
+    text: '대칭축을 따라 접었을 때 완전히 겹치니 선대칭도형이에요! 이 선이 대칭축이에요',
+  }
 }
 
 /**

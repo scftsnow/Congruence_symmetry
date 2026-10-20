@@ -42,7 +42,7 @@ export function useStageMessage(message: Message, attempts: number, ms: number =
   const [live, setLive] = useState<Popup>(null)
   const words = said(message)
   const popup = isPopup(message)
-  const guide = popup && message.tone === 'success' && message.icon === '👉'
+  const guide = popup && message.tone === 'success' && (message.icon === '👉' || message.icon === '⭐')
   const duration = guide ? GUIDE_MS : ms
   /*
    * What re-arms the popup, as a string: every screen builds a fresh message

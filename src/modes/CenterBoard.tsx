@@ -34,9 +34,9 @@ export function CenterBoard({
         <CenterScene
           shape={s.shape}
           tapped={s.tapped}
-          direction={s.direction}
+          rotation={s.rotation}
+          dragging={s.draft !== null}
           draft={s.draft}
-          turned={s.turned}
           justFound={s.justFound}
           onDrawStart={s.beginDraw}
           onDrawMove={s.moveDraw}

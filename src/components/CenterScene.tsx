@@ -1,18 +1,21 @@
 /**
- * The center board drawn — one shape, and the copy turning about the drag.
+ * The center board drawn — one shape, and the copy steered by the hand.
  *
- * Pure presentation. It is handed the snapped middle, which way the drag
- * steered it, and whether the turn has landed, and it decides nothing — the
+ * Pure presentation. It is handed the tapped middle, where the copy stands
+ * about it, and whether the finger is still down, and it decides nothing — the
  * verdict already happened in the hook, so there is no judgement here to get
  * wrong. While the finger is down its gesture previews as a dashed line, the
- * same language as the axis board's preview.
+ * same language as the axis board's preview, and the copy tracks the finger
+ * with no transition: an animated position under a moving finger lags behind
+ * it, which would leave the child turning something that was not under their
+ * thumb.
  *
  * ONE PAPER TURNING, NEVER TWO
  * -----------------------------
  * The copy is drawn only while a middle is under discussion. The moment the
- * finger lifts with no drag, there is nothing turning and the shape stands
- * alone — drawing a copy beside it unasked would show two papers where there is
- * one.
+ * finger lifts with no drag, the middle is placed and the copy stands exactly
+ * where the shape stands — drawing it elsewhere unasked would show two papers
+ * where there is one.
  */
 
 import { useMemo, useRef } from 'react'
@@ -31,28 +34,28 @@ const H = 600
 export function CenterScene({
   shape,
   tapped,
-  direction,
+  rotation,
+  dragging,
   draft,
-  turned,
   justFound,
   onDrawStart,
   onDrawMove,
   onDrawEnd,
 }: {
   shape: PointSymmetryItem
-  /** the snapped middle under discussion, if one has been drawn */
+  /** the middle under discussion, if one has been tapped */
   tapped: Point | null
-  /** clockwise or back: the drag's direction, and nothing else about it */
-  direction: 1 | -1
-  /** the finger's gesture before it snaps, while it is being drawn */
+  /** where the copy stands about the middle, in degrees */
+  rotation: number
+  /** the finger is down: the copy tracks it exactly, with no transition */
+  dragging: boolean
+  /** the finger's gesture before it steers, while it is being drawn */
   draft: { p: Point; q: Point } | null
-  /** the turn has landed */
-  turned: boolean
   /** true just after something worth celebrating */
   justFound: boolean
   onDrawStart: (p: Point) => void
   onDrawMove: (p: Point) => void
-  onDrawEnd: () => void
+  onDrawEnd: (up: Point | null) => void
 }) {
   const svgRef = useRef<SVGSVGElement | null>(null)
   const placed = useMemo(
@@ -84,18 +87,18 @@ export function CenterScene({
         ;(e.target as Element).setPointerCapture?.(e.pointerId)
       }}
       onPointerMove={(e) => onDrawMove(toCanvas(e.clientX, e.clientY))}
-      onPointerUp={onDrawEnd}
-      onPointerCancel={onDrawEnd}
+      onPointerUp={(e) => onDrawEnd(toCanvas(e.clientX, e.clientY))}
+      onPointerCancel={() => onDrawEnd(null)}
     >
       <Grid width={W} height={H} />
 
       <path className="sym-shape" d={pointsToPath(placed)} fill={shape.shape.color} />
 
-      {/* the copy turning about whatever was drawn, steered by the drag */}
+      {/* the copy steered about the tapped middle, following the hand */}
       {tapped && (
         <g
-          className="sym-turn"
-          style={{ transform: turnTransform(tapped, turned ? 180 * direction : 0) }}
+          className={dragging ? 'sym-turn sym-turn--live' : 'sym-turn'}
+          style={{ transform: turnTransform(tapped, rotation) }}
         >
           <path className="sym-shape sym-shape--fold" d={pointsToPath(placed)} fill={shape.shape.color} />
         </g>

@@ -11,13 +11,15 @@
 
 import { describe, it, expect } from '../harness/api'
 import {
+  insideFigure,
   judgeCenter,
   pointCenterOf,
   symmetryCenterOf,
   isPointSymmetric,
   isDrag,
+  snapHalfTurn,
   snapPointToGrid,
-  turnDirection,
+  steeredRotation,
   turnIndex,
   turnOf,
   turnTransform,
@@ -110,21 +112,55 @@ describe('every figure has its middle where fingers can point', () => {
     expect(CENTER_TOLERANCE > 0 ? 'ok' : 'no tolerance').toBe('ok')
   })
 
-  it('snaps the press and reads only the drag direction', () => {
+  it('snaps the press and steers the turn by the hand', () => {
     // The press lands on the nearest lattice crossing before anything is
     // judged, on the same grid the axis board snaps to.
     expect(snapPointToGrid({ x: 567, y: 312 })).toEqual({ x: 550, y: 300 })
-    // Only the direction steers the turn, never the distance: every drag turns
-    // the same fixed half turn, so how far the finger went cannot leak anything.
-    expect(turnDirection({ x: 550, y: 300 }, { x: 700, y: 300 })).toBe(1)
-    expect(turnDirection({ x: 550, y: 300 }, { x: 400, y: 300 })).toBe(-1)
-    expect(turnDirection({ x: 550, y: 300 }, { x: 550, y: 100 })).toBe(1)
-    // and a press without a real drag is not a turn at all.
+    // The copy stands where the hand has swept it, grab-relative: the same
+    // sweep turns the same way from any starting side, so starting east and
+    // going north turns the same -90 as starting west and going south.
+    const pivot = { x: 550, y: 300 }
+    expect(steeredRotation(pivot, { x: 700, y: 300 }, { x: 550, y: 150 }, 0)).toBe(-90)
+    expect(steeredRotation(pivot, { x: 550, y: 150 }, { x: 700, y: 300 }, 0)).toBe(90)
+    expect(steeredRotation(pivot, { x: 400, y: 300 }, { x: 550, y: 450 }, 0)).toBe(-90)
+    // and it adds onto wherever the copy already stood, rather than restarting it.
+    expect(steeredRotation(pivot, { x: 700, y: 300 }, { x: 550, y: 150 }, 45)).toBe(-45)
+    // A press landing on the middle itself has no meaningful angle, so the
+    // copy holds still until the finger leaves it.
+    expect(steeredRotation(pivot, { x: 552, y: 301 }, { x: 700, y: 300 }, 30)).toBe(30)
+    // and a press without a real drag places the middle but turns nothing.
     expect(isDrag({ x: 550, y: 300 }, { x: 560, y: 305 })).toBe(false)
     expect(isDrag({ x: 550, y: 300 }, { x: 650, y: 320 })).toBe(true)
     const hook = source('src/modes/usePointSymmetry.ts')
     expect(hook.includes('beginDraw')).toBeTruthy()
     expect(hook.includes('snapPointToGrid')).toBeTruthy()
+    expect(hook.includes('turnDirection')).toBeFalsy()
+  })
+
+  it('counts a release only near the half turn, and settles it there', () => {
+    // A finger steers approximately, so a release near the half turn snaps to
+    // it rather than failing on the last degrees — past which the copy visibly
+    // would not coincide and the release is left where it is.
+    expect(snapHalfTurn(174)).toBe(180)
+    expect(snapHalfTurn(186)).toBe(180)
+    expect(snapHalfTurn(150)).toBe(null)
+    expect(snapHalfTurn(30)).toBe(null)
+    // and the snap keeps the winding, because unwinding across the circle
+    // would swing the copy backwards through everything it just turned past.
+    expect(snapHalfTurn(534)).toBe(540)
+    expect(snapHalfTurn(-174)).toBe(-180)
+  })
+
+  it('judges the tapped middle, never the drag that steered it', () => {
+    // The middle IS the answer, so the verdict reads the tapped point — the
+    // drag only carried the copy there. A tap off the figure is its own miss
+    // before any turn is ever judged.
+    const para = POINT_SYMMETRY_ITEMS[0].shape.vertices
+    expect(insideFigure(para, { x: 550, y: 300 })).toBe(true)
+    expect(insideFigure(para, { x: 1000, y: 1000 })).toBe(false)
+    const hook = source('src/modes/usePointSymmetry.ts')
+    expect(hook.includes('snapHalfTurn')).toBeTruthy()
+    expect(hook.includes('judgeCenter')).toBeTruthy()
   })
 
   it('turns the copy exactly onto the shape, and only there', () => {
@@ -151,11 +187,23 @@ describe('every figure has its middle where fingers can point', () => {
   })
 })
 
-describe('the child taps, the system turns', () => {
+describe('the child taps the middle and steers the turn', () => {
   it('holds the state in a hook and the drawing in a component', () => {
     expect(source('src/modes/usePointSymmetry.ts')).toBeTruthy()
     expect(source('src/components/CenterScene.tsx').includes('useState')).toBeFalsy()
     expect(source('src/components/CenterScene.tsx').includes('useEffect')).toBeFalsy()
+  })
+
+  it('tracks the finger with no transition, and animates everything else', () => {
+    // An animated position under a moving finger lags behind it, which would
+    // leave the child turning something that was not under their thumb. The
+    // snap on release and the turn back after a miss keep the turning time —
+    // both happen with the finger up, when there is nothing to track.
+    const css = source('src/styles/symmetry.css')
+    expect(/\.sym-turn--live\s*\{[^}]*transition:\s*none/.test(css)).toBeTruthy()
+    const scene = source('src/components/CenterScene.tsx')
+    expect(scene.includes('sym-turn--live')).toBeTruthy()
+    expect(scene.includes('180 * direction')).toBeFalsy()
   })
 
   it('says the middle in the unit\'s own words', () => {
@@ -166,7 +214,7 @@ describe('the child taps, the system turns', () => {
     expect(pointSymmetryHintFor('miss').text).toContain('돌렸을 때 완전히 겹치는 중심')
     expect(pointSymmetryHintFor('deny').text).toContain('돌리면 겹치는 점')
     expect(POINT_DENY_LABEL).toBe('대칭의 중심이 없어요')
-    expect(pointSymmetryInstructionFor()).toContain('대칭의 중심')
+    expect(pointSymmetryInstructionFor()).toBe('대칭의 중심을 찍고 손가락으로 돌려 보세요')
   })
 
   it('"there is none" is an answer, judged like any other', () => {

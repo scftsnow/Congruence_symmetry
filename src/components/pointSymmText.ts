@@ -13,12 +13,12 @@ import type { Message } from './tone'
 /**
  * The one standing instruction, shown at the bottom of the screen.
  *
- * It names the gesture, not the answer: turn from where the middle is thought
- * to be, never which point. A bare press with no drag is not a turn, so the
- * sentence asks for the drag.
+ * It names the two gestures in order: tap the middle first, then turn about
+ * it. A bare press with no drag places the middle but judges nothing, so the
+ * sentence asks for the tap before the turn.
  */
 export function pointSymmetryInstructionFor(): string {
-  return '대칭의 중심을 손가락으로 돌려 보세요'
+  return '대칭의 중심을 찍고 손가락으로 돌려 보세요'
 }
 
 /** Said the moment a tapped center proves itself in the turn. */

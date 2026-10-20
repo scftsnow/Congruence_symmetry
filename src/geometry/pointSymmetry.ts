@@ -46,15 +46,39 @@ export function snapPointToGrid(p: Point): Point {
 }
 
 /**
- * Which way a drag turns: clockwise or counterclockwise.
+ * Where the copy stands while the finger steers it.
  *
- * Only the direction is read, never the distance — every drag turns the same
- * fixed half turn, so how far the finger went cannot leak anything. Rightward
- * drags turn clockwise, leftward ones the other way; straight up counts as
- * rightward, because a rule with no answer for some gesture is a trap.
+ * The turn follows the hand around the middle the child tapped: the angle the
+ * finger has swept since the press, added to wherever the copy stood when the
+ * press landed. Grab-relative, so starting the drag from any side turns the
+ * same way the hand goes — a clockwise sweep turns the copy clockwise, and the
+ * distance never matters. A press landing within a finger's width of the middle
+ * has no meaningful angle, so the copy holds still until the finger leaves it.
  */
-export function turnDirection(p: Point, q: Point): 1 | -1 {
-  return q.x - p.x >= 0 ? 1 : -1
+const STEER_DEAD_PX = 12
+export function steeredRotation(pivot: Point, grab: Point, at: Point, base: number): number {
+  const grabR = Math.hypot(grab.x - pivot.x, grab.y - pivot.y)
+  const atR = Math.hypot(at.x - pivot.x, at.y - pivot.y)
+  if (grabR < STEER_DEAD_PX || atR < STEER_DEAD_PX) return base
+  const g0 = (Math.atan2(grab.y - pivot.y, grab.x - pivot.x) * 180) / Math.PI
+  const g1 = (Math.atan2(at.y - pivot.y, at.x - pivot.x) * 180) / Math.PI
+  return base + ((g1 - g0 + 540) % 360) - 180
+}
+
+/**
+ * Whether a released turn counts as halfway round, and where it settles.
+ *
+ * A finger steers approximately, so a release near the half turn snaps to it
+ * rather than failing on the last degrees — twelve either way, past which the
+ * copy visibly would not coincide and the release is left where it is. The
+ * snap keeps the winding, because unwinding across the circle would swing the
+ * copy backwards through everything it just turned past.
+ */
+const SNAP_TOLERANCE_DEG = 12
+export function snapHalfTurn(rotation: number): number | null {
+  const r = ((rotation % 360) + 360) % 360
+  if (Math.abs(r - 180) > SNAP_TOLERANCE_DEG) return null
+  return rotation - r + 180
 }
 
 /** A press without a real drag is not a turn. */
@@ -105,21 +129,30 @@ export function symmetryCenterOf(vertices: Point[]): Point | null {
 }
 
 /**
- * Which true center a tapped point counts as, judged in the shape's own frame.
+ * Whether a press means a middle inside the figure at all.
  *
  * The tap arrives in screen coordinates while the outline lives in its own, so
  * both are shifted once — and only once — into the same frame before anything
- * is measured. Shifting either twice moved the shape a whole screen away, which
- * is how the axis unit once answered every right line with "draw it on the
- * shape".
+ * is measured.
+ */
+export function insideFigure(vertices: Point[], p: Point): boolean {
+  const t = { x: p.x - POINT_SYMM_CENTER.x, y: p.y - POINT_SYMM_CENTER.y }
+  const box = paddedBox(vertices, 10)
+  return t.x >= box.minX && t.x <= box.maxX && t.y >= box.minY && t.y <= box.maxY
+}
+
+/**
+ * Which true center a tapped point counts as, judged in the shape's own frame.
+ *
+ * Shifting either frame twice moved the shape a whole screen away, which is
+ * how the axis unit once answered every right line with "draw it on the
+ * shape" — so the shift lives in insideFigure, once, and this only judges.
  */
 export function judgeCenter(vertices: Point[], tap: Point): 'off' | 'miss' | 'hit' {
-  const sub = (p: Point): Point => ({ x: p.x - POINT_SYMM_CENTER.x, y: p.y - POINT_SYMM_CENTER.y })
-  const t = sub(tap)
-  const box = paddedBox(vertices, 10)
-  if (t.x < box.minX || t.x > box.maxX || t.y < box.minY || t.y > box.maxY) return 'off'
+  if (!insideFigure(vertices, tap)) return 'off'
   const center = symmetryCenterOf(vertices)
   if (!center) return 'hit'
+  const t = { x: tap.x - POINT_SYMM_CENTER.x, y: tap.y - POINT_SYMM_CENTER.y }
   return distance(t, center) <= CENTER_TOLERANCE ? 'hit' : 'miss'
 }
 

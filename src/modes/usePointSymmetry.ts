@@ -1,14 +1,18 @@
 /**
- * One center board — where the child is on this shape, and whether the turn proved
- * anything.
+ * One center board — the child taps the middle, then steers the turn by hand.
  *
- * Kept out of the screen so the sequence can be exercised without React: that a
- * press without a drag never judges, that a redraw replaces the old middle, and
- * that a wrong middle turns back while a right one stays turned. The middle IS
- * the answer here, so the system must not choose it — it turns halfway round
- * whatever was drawn, and the child watches the claim land or miss. How far the
- * finger went is never read: every drag turns the same fixed half turn, and only
- * its direction steers the copy clockwise or back.
+ * Kept out of the screen so the sequence can be exercised without React: a tap
+ * places the middle but judges nothing, a redraw replaces the old middle, and
+ * a wrong middle turns back while a right one stays turned. The middle IS the
+ * answer, so the system never chooses it — the copy follows the finger round
+ * whatever was tapped.
+ *
+ * TAP FIRST, THEN DRAG
+ * --------------------
+ * The press chooses the middle and nothing else; the drag turns about it,
+ * grab-relative, so the same sweep turns the same way from any side. A release
+ * counts only near the half turn, where it snaps and is judged; anywhere else
+ * the copy stays where the hand left it, silently, for the next drag.
  *
  * The board is passed in rather than counted here, because the unit is a run of
  * boards of different kinds and the run is what knows which one is up. The hook
@@ -17,7 +21,14 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { PointSymmetryItem } from '../geometry/pointSymmetryShapes'
-import { isDrag, judgeCenter, snapPointToGrid, turnDirection } from '../geometry/pointSymmetry'
+import {
+  insideFigure,
+  isDrag,
+  judgeCenter,
+  snapHalfTurn,
+  snapPointToGrid,
+  steeredRotation,
+} from '../geometry/pointSymmetry'
 import type { Point } from '../geometry/types'
 import {
   pointSymmetryFoundFor,
@@ -27,8 +38,6 @@ import {
 } from '../components/pointSymmText'
 import type { Message } from '../components/tone'
 
-/** how long the half turn takes to travel and settle */
-const TURN_MS = 700
 /** how long a miss is explained before the ask comes back */
 const HINT_MS = 1800
 /** how long the stars stay up after a correct find, as in the other units */
@@ -36,19 +45,15 @@ const STAR_MS = 1500
 
 export interface PointSymmetryState {
   shape: PointSymmetryItem
-  /** the snapped middle under discussion, if one has been drawn */
+  /** the snapped middle under discussion, if one has been tapped */
   tapped: Point | null
-  /** clockwise or back: the drag's direction, and nothing else about it */
-  direction: 1 | -1
+  /** where the copy stands, in degrees about the middle */
+  rotation: number
   /** the finger's press before it drags, while it is being drawn */
   draft: { p: Point; q: Point } | null
-  /** the turn is travelling */
-  turning: boolean
-  /** the turn has landed */
-  turned: boolean
   /** true just after something worth celebrating */
   justFound: boolean
-  /** how many drags have been drawn: the nonce that re-arms the popup for repeats */
+  /** how many taps and turns have been drawn: the nonce that re-arms the popup for repeats */
   attempts: number
   /** this shape is settled, right or proven otherwise */
   resolved: boolean
@@ -56,22 +61,23 @@ export interface PointSymmetryState {
   message: Message
   beginDraw: (p: Point) => void
   moveDraw: (p: Point) => void
-  endDraw: () => void
+  endDraw: (up: Point | null) => void
   /** claim "there is none": right once, wrong everywhere else, so it leaks nothing */
   denyClaim: () => void
 }
 
 export function usePointSymmetry(item: PointSymmetryItem, onSettled: () => void): PointSymmetryState {
   const [tapped, setTapped] = useState<Point | null>(null)
-  const [direction, setDirection] = useState<1 | -1>(1)
+  const [rotation, setRotation] = useState(0)
   const [draft, setDraft] = useState<{ p: Point; q: Point } | null>(null)
-  const [turning, setTurning] = useState(false)
-  const [turned, setTurned] = useState(false)
   const [wrongKind, setWrongKind] = useState<'off' | 'miss' | 'deny' | null>(null)
   const [justFound, setJustFound] = useState(false)
   const [attempts, setAttempts] = useState(0)
   const [resolved, setResolved] = useState(false)
   const timer = useRef<number | null>(null)
+  /** the press this gesture steers from, and where the copy stood then */
+  const pressRef = useRef<Point | null>(null)
+  const baseRef = useRef(0)
 
   useEffect(() => () => {
     if (timer.current) window.clearTimeout(timer.current)
@@ -82,44 +88,77 @@ export function usePointSymmetry(item: PointSymmetryItem, onSettled: () => void)
     onSettled()
   }, [onSettled])
 
-  const beginDraw = useCallback((p: Point) => {
-    if (turning || resolved) return
-    setWrongKind(null)
-    setDraft({ p, q: p })
-  }, [turning, resolved])
+  const beginDraw = useCallback(
+    (p: Point) => {
+      if (wrongKind || resolved) return
+      setWrongKind(null)
+      setDraft({ p, q: p })
+      pressRef.current = p
+      baseRef.current = rotation
+    },
+    [wrongKind, resolved, rotation],
+  )
 
-  const moveDraw = useCallback((p: Point) => {
-    setDraft((d) => (d ? { p: d.p, q: p } : d))
-  }, [])
+  const moveDraw = useCallback(
+    (p: Point) => {
+      setDraft((d) => (d ? { p: d.p, q: p } : d))
+      if (wrongKind || resolved) return
+      const press = pressRef.current
+      if (!press) return
+      // A drag without a middle yet takes its press for one: the first thing a
+      // child who never read the sentence does is drag, and a dead gesture
+      // would answer that with nothing.
+      const pivot = tapped ?? snapPointToGrid(press)
+      if (!tapped) setTapped(pivot)
+      setRotation(steeredRotation(pivot, press, p, baseRef.current))
+    },
+    [tapped, wrongKind, resolved],
+  )
 
   /** everything that ends an attempt comes back here, so another drag can turn */
   const reopen = useCallback((after: number) => {
     timer.current = window.setTimeout(() => {
       setWrongKind(null)
-      setTurning(false)
-      setTurned(false)
       setTapped(null)
+      /*
+       * The rotation is left where the unwind put it on purpose: clearing it
+       * to zero here would swing the copy a full circle backwards through the
+       * transition. With no middle the copy is unmounted anyway, and the next
+       * tap plants zero explicitly while a remount shows no transition at all.
+       */
     }, after)
   }, [])
 
-  const endDraw = useCallback(() => {
-    // A press without a drag is not an attempt: judging it would answer a
-    // question the child never asked — the same reason a bare tap on the axis
-    // board counts for nothing.
-    const stroke = draft
-    setDraft(null)
-    if (!stroke || !isDrag(stroke.p, stroke.q) || turning || resolved) return
+  const endDraw = useCallback(
+    (up: Point | null) => {
+      const stroke = draft
+      setDraft(null)
+      pressRef.current = null
+      if (!stroke || !up || wrongKind || resolved) return
 
-    const middle = snapPointToGrid(stroke.p)
-    setTapped(middle)
-    setDirection(turnDirection(stroke.p, stroke.q))
-    setAttempts((n) => n + 1)
-    setTurning(true)
-    const shape = item
+      // A press without a drag places the middle and judges nothing: the
+      // choice, not the claim.
+      setAttempts((n) => n + 1)
+      if (!isDrag(stroke.p, up)) {
+        const middle = snapPointToGrid(up)
+        if (!insideFigure(item.shape.vertices, middle)) {
+          setWrongKind('off')
+          reopen(HINT_MS)
+          return
+        }
+        setTapped(middle)
+        setRotation(0)
+        return
+      }
 
-    timer.current = window.setTimeout(() => {
-      setTurned(true)
-      const outcome = judgeCenter(shape.shape.vertices, middle)
+      // A release counts only near the half turn, where it snaps and is
+      // judged. Anywhere else the copy stays where the hand left it, silently,
+      // for the next drag to carry on.
+      const pivot = tapped ?? snapPointToGrid(stroke.p)
+      const snapped = snapHalfTurn(rotation)
+      if (snapped === null) return
+      setRotation(snapped)
+      const outcome = judgeCenter(item.shape.vertices, pivot)
       if (outcome === 'hit') {
         // The turn is the proof either way: a middle lands exactly, and on the
         // last shape the mismatch IS the answer rather than a failure.
@@ -129,12 +168,16 @@ export function usePointSymmetry(item: PointSymmetryItem, onSettled: () => void)
         return
       }
       setWrongKind(outcome)
+      // Back to where it started, animated: a wrong middle turns back while a
+      // right one stays turned.
+      setRotation(Math.round(snapped / 360) * 360)
       reopen(HINT_MS)
-    }, TURN_MS)
-  }, [draft, turning, resolved, item, reopen, settle])
+    },
+    [draft, tapped, rotation, wrongKind, resolved, item, reopen, settle],
+  )
 
   const denyClaim = useCallback(() => {
-    if (turning || resolved) return
+    if (wrongKind || resolved) return
     setAttempts((n) => n + 1)
     if (item.centers === 0) {
       setJustFound(true)
@@ -144,7 +187,7 @@ export function usePointSymmetry(item: PointSymmetryItem, onSettled: () => void)
     }
     setWrongKind('deny')
     reopen(HINT_MS)
-  }, [turning, resolved, item.centers, reopen, settle])
+  }, [wrongKind, resolved, item.centers, reopen, settle])
 
   const symmetric = item.centers > 0
   const message: Message = justFound
@@ -160,10 +203,8 @@ export function usePointSymmetry(item: PointSymmetryItem, onSettled: () => void)
   return {
     shape: item,
     tapped,
-    direction,
+    rotation,
     draft,
-    turning,
-    turned,
     justFound,
     attempts,
     resolved,

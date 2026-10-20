@@ -19,6 +19,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 const KEY = 'congruence-symmetry:done'
+/** the master has been celebrated: the tenth star arrives exactly once */
+const MASTER_KEY = 'congruence-symmetry:master'
 
 function readDone(): string[] {
   try {
@@ -32,6 +34,14 @@ function readDone(): string[] {
   }
 }
 
+function readMaster(): boolean {
+  try {
+    return window.localStorage.getItem(MASTER_KEY) === 'yes'
+  } catch {
+    return false
+  }
+}
+
 export interface UnitProgress {
   /** every unit id finished so far, in the order they were finished */
   done: string[]
@@ -42,11 +52,18 @@ export interface UnitProgress {
   fresh: string | null
   /** the doors have shown it: the next arrival is a remembered one */
   settleFresh: () => void
+  /** the tenth star arrived this visit and the master is still uncelebrated */
+  masterFresh: boolean
+  /** every door stands open, whether celebrated or remembered */
+  isMaster: boolean
+  /** the doors have shown the master: it never celebrates twice */
+  settleMaster: () => void
 }
 
-export function useUnitProgress(): UnitProgress {
+export function useUnitProgress(total: number): UnitProgress {
   const [done, setDone] = useState<string[]>(readDone)
   const [fresh, setFresh] = useState<string | null>(null)
+  const [masterFresh, setMasterFresh] = useState(false)
   const doneRef = useRef<string[]>(done)
 
   /*
@@ -62,14 +79,31 @@ export function useUnitProgress(): UnitProgress {
     }
   }, [done])
 
-  const markDone = useCallback((unit: string) => {
-    // Only a first finish is an arrival: doing a unit again adds no star, so
-    // there is nothing for the doors to celebrate.
-    if (!doneRef.current.includes(unit)) setFresh(unit)
-    setDone((prev) => (prev.includes(unit) ? prev : [...prev, unit]))
-  }, [])
+  const markDone = useCallback(
+    (unit: string) => {
+      // Only a first finish is an arrival: doing a unit again adds no star, so
+      // there is nothing for the doors to celebrate.
+      if (doneRef.current.includes(unit)) return
+      setFresh(unit)
+      setDone((prev) => (prev.includes(unit) ? prev : [...prev, unit]))
+      // The tenth star completes the set, and that arrival belongs to the
+      // master rather than the row: the doors celebrate it once, and the
+      // record keeps it to once.
+      if (doneRef.current.length + 1 >= total && !readMaster()) setMasterFresh(true)
+    },
+    [total],
+  )
 
   const settleFresh = useCallback(() => setFresh(null), [])
+
+  const settleMaster = useCallback(() => {
+    setMasterFresh(false)
+    try {
+      window.localStorage.setItem(MASTER_KEY, 'yes')
+    } catch {
+      /* without a store the master still settles for this visit */
+    }
+  }, [])
 
   return {
     done,
@@ -78,6 +112,9 @@ export function useUnitProgress(): UnitProgress {
     markDone,
     fresh,
     settleFresh,
+    masterFresh,
+    isMaster: done.length >= total,
+    settleMaster,
   }
 }
 

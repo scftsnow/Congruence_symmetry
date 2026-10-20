@@ -42,6 +42,7 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { Constellation } from './components/Constellation'
 import { EarnedBurst } from './components/EarnedBurst'
+import { MasterCelebration } from './components/MasterCelebration'
 import { SkyParticles } from './components/SkyParticles'
 import { CongruenceStage } from './modes/CongruenceStage'
 import { CorrespondenceStage } from './modes/CorrespondenceStage'
@@ -185,7 +186,7 @@ export function EarnedStars({ progress }: { progress: UnitProgress }) {
 
 export default function App() {
   const [screen, setScreen] = useState<Screen>('cover')
-  const progress = useUnitProgress()
+  const progress = useUnitProgress(UNITS.length)
   const goHome = () => setScreen('home')
   const finish = (unit: UnitId) => () => progress.markDone(unit)
 
@@ -247,8 +248,9 @@ export default function App() {
     <>
       <SkyParticles />
       {stage ?? (
-        <div className="home">
+        <div className={'home' + (progress.isMaster ? ' home--master' : '')}>
           {progress.fresh !== null && <EarnedBurst />}
+          {progress.masterFresh && <MasterCelebration onClose={progress.settleMaster} />}
           <header className="home__header home__header--doors">
             <h1 className="home__title">합동과 대칭</h1>
             <EarnedStars progress={progress} />

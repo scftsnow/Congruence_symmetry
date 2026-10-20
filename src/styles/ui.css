@@ -84,6 +84,12 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
+  /*
+   * The board fills what the screen has left: the column stands a full screen
+   * tall and the wrap below takes the remainder, so on a short landscape
+   * screen the paper grows instead of shrinking into the sky.
+   */
+  min-height: 100svh;
 }
 
 .mode__header {
@@ -162,6 +168,8 @@
  */
 .canvas-wrap {
   position: relative;
+  flex: 1;
+  min-height: 0;
   background: var(--paper);
   border-radius: var(--radius);
   padding: 12px;
@@ -171,14 +179,13 @@
 .canvas {
   display: block;
   width: 100%;
-  height: auto;
+  height: 100%;
   /*
-   * Never taller than the screen minus its chrome: on a tablet held sideways
-   * the widest board (1100 by 760) would otherwise run past the fold and the
-   * child would have to scroll mid-activity to see every shape. The cap binds
-   * only there — upright the board is far shorter — and the viewBox ratio
-   * survives it, so a capped board is narrower, never stretched. 215px is the
-   * header, the gaps, the wrap's own padding and a foot of dots, with room.
+   * Never taller than the screen minus its chrome, and never shorter than
+   * what is left: the wrap takes the column's remainder, and the drawing
+   * letterboxes inside it — wider on an upright screen, taller on a sideways
+   * one, stretched never. 215px is the header, the gaps, the wrap's own
+   * padding and a foot of dots, with room.
    */
   max-height: calc(100vh - 215px);
   max-height: calc(100svh - 215px);

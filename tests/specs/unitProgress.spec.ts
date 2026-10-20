@@ -156,5 +156,46 @@ describe('the home screen says one thing', () => {
   })
 })
 
+describe('the tenth star names a master', () => {
+  it('is celebrated once, the first time the doors open on ten stars', () => {
+    /*
+     * Ten stars is a different arrival from one: a row's star climbs behind
+     * the doors and leaves, but the tenth closes the whole list, so it gets a
+     * card of its own over a doubled sky. The card stays until it is closed,
+     * and the record keeps the celebration to the first time.
+     */
+    const hook = source('src/modes/useUnitProgress.ts')
+    expect(hook.includes('masterFresh')).toBeTruthy()
+    expect(hook.includes('settleMaster')).toBeTruthy()
+    expect(hook.includes('congruence-symmetry:master')).toBeTruthy()
+    const app = source('src/App.tsx')
+    expect(app.includes('<MasterCelebration')).toBeTruthy()
+    expect(app.includes('masterFresh')).toBeTruthy()
+    expect(app.includes('settleMaster')).toBeTruthy()
+    const card = source('src/components/MasterCelebration.tsx')
+    expect(card.includes('합동과 대칭 마스터!')).toBeTruthy()
+    expect(card.includes('role="dialog"')).toBeTruthy()
+    expect(card.includes('복습하기')).toBeTruthy()
+    expect(card.includes('<EarnedBurst grand')).toBeTruthy()
+    const burst = source('src/components/EarnedBurst.tsx')
+    expect(burst.includes('earned-burst--grand')).toBeTruthy()
+  })
+
+  it('keeps the golden doors after the celebration is over', () => {
+    /*
+     * The card shows once, but the closed list stays visible: every later
+     * arrival at ten remembered stars still finds starlight gathered round
+     * the doors, without a word saying so.
+     */
+    const app = source('src/App.tsx')
+    expect(app.includes('home--master')).toBeTruthy()
+    expect(app.includes('isMaster')).toBeTruthy()
+    const css = source('src/styles/home.css')
+    expect(/\.home--master\s*\{/.test(css)).toBeTruthy()
+    expect(/@keyframes master-card-in/.test(css)).toBeTruthy()
+    expect(/\.master\s*\{[^}]*position:\s*fixed/.test(css)).toBeTruthy()
+  })
+})
+
 const { report } = await import('../harness/spec.mjs')
 report()

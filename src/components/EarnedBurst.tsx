@@ -29,10 +29,28 @@ const BURST: BurstStar[] = [
   { left: '93%', size: 44, delay: '0.4s', duration: '2.2s' },
 ]
 
-export function EarnedBurst() {
+/*
+ * The tenth star brings twice the sky: bigger stars, end to end across the
+ * screen, so the master's arrival reads as an arrival even beside the card
+ * that names it.
+ */
+const GRAND_BURST: BurstStar[] = [
+  ...BURST,
+  { left: '2%', size: 72, delay: '0.2s', duration: '2.4s' },
+  { left: '12%', size: 66, delay: '0.45s', duration: '2.3s' },
+  { left: '24%', size: 76, delay: '0.05s', duration: '2.5s' },
+  { left: '37%', size: 68, delay: '0.4s', duration: '2.4s' },
+  { left: '50%', size: 80, delay: '0.15s', duration: '2.6s' },
+  { left: '63%', size: 66, delay: '0.5s', duration: '2.3s' },
+  { left: '76%', size: 74, delay: '0.1s', duration: '2.5s' },
+  { left: '88%', size: 70, delay: '0.35s', duration: '2.4s' },
+]
+
+export function EarnedBurst({ grand = false }: { grand?: boolean }) {
+  const stars = grand ? GRAND_BURST : BURST
   return (
-    <div className="earned-burst" aria-hidden="true">
-      {BURST.map((s, i) => (
+    <div className={'earned-burst' + (grand ? ' earned-burst--grand' : '')} aria-hidden="true">
+      {stars.map((s, i) => (
         <span
           key={i}
           className="earned-burst__star"

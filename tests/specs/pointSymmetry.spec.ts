@@ -214,7 +214,7 @@ describe('the child taps the middle and steers the turn', () => {
     expect(pointSymmetryHintFor('miss').text).toContain('돌렸을 때 완전히 겹치는 중심')
     expect(pointSymmetryHintFor('deny').text).toContain('돌리면 겹치는 점')
     expect(POINT_DENY_LABEL).toBe('대칭의 중심이 없어요')
-    expect(pointSymmetryInstructionFor()).toBe('대칭의 중심을 찍고 손가락으로 돌려 보세요')
+    expect(pointSymmetryInstructionFor()).toBe('대칭의 중심을 누른 후 손가락으로 돌려 보세요')
   })
 
   it('"there is none" is an answer, judged like any other', () => {

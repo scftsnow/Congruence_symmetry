@@ -471,7 +471,7 @@ describe('the four rows on the home screen', () => {
   })
 
   it('ends every row with the sentence the row was for', () => {
-    expect(pointPartsDonePanelFor().note).toContain('마주 보는 점과 변과 각')
+    expect(pointPartsDonePanelFor().note).toContain('대응변의 길이와 대응각의 크기는 똑같아요')
     expect(pointFactsDonePanelFor().title.map((p) => p.text).join('')).toBe('두 가지 성질을 찾았어!')
     expect(pointFactsDonePanelFor().note).toContain('대칭의 중심을 지나고')
     expect(pointDrawDonePanelFor().title.map((p) => p.text).join('')).toBe('점대칭도형을 완성했어!')

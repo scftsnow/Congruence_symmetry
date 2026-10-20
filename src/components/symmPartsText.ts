@@ -187,8 +187,8 @@ const AGAIN_LABEL = '↺ 처음부터'
 
 export function symmetryPartsDonePanelFor(): DonePanel {
   return {
-    title: [{ text: '대응을 ' }, { text: '모두 찾았어!', strong: true }],
-    note: '선대칭도형의 마주 보는 점과 변과 각은 똑같아요',
+    title: [{ text: '대응점, 대응변, 대응각을 ' }, { text: '모두 찾았어!', strong: true }],
+    note: '선대칭도형의 대응변의 길이와 대응각의 크기는 똑같아요',
     homeLabel: HOME_LABEL,
     againLabel: AGAIN_LABEL,
   }

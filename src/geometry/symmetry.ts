@@ -220,7 +220,10 @@ export function judgeAxis(vertices: Point[], axis: Axis): 'off' | 'miss' | 'hit'
   const sub = (p: Point): Point => ({ x: p.x - SYMM_CENTER.x, y: p.y - SYMM_CENTER.y })
   const line: Axis = { a: sub(axis.a), b: sub(axis.b) }
   if (!lineHitsRect(line, paddedBox(vertices, 10))) return 'off'
-  if (!isLineSymmetric(vertices) || axisMatches(line, vertices)) return 'hit'
+  // A shape with no axis has nothing to match: any line drawn on it is a miss,
+  // never a find. Letting it through would settle the board — any scribble
+  // would pass, and the "there is none" answer would stand for nothing.
+  if (axisMatches(line, vertices)) return 'hit'
   return 'miss'
 }
 

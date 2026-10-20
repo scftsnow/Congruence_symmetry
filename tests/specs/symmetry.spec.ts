@@ -227,6 +227,16 @@ describe('an axis counts only when the fold would land', () => {
     expect(judgeAxis(tri, farAway)).toBe('off')
   })
 
+  it('calls any line on the asymmetric shape a miss, never a find', () => {
+    // The one shape with no axis: any scribble passing would settle the board,
+    // and the "there is none" answer would stand for nothing.
+    const scalene = SYMMETRY_ITEMS[4].shape.vertices
+    const cx = scalene.reduce((s, p) => s + p.x, 0) / scalene.length
+    const cy = scalene.reduce((s, p) => s + p.y, 0) / scalene.length
+    const across: Axis = { a: { x: 550 + cx - 100, y: 300 + cy }, b: { x: 550 + cx + 100, y: 300 + cy } }
+    expect(judgeAxis(scalene, across)).toBe('miss')
+  })
+
   it('names which true axis a line counts as', () => {
     // "Right" is not enough once a shape has several axes: the hook has to know
     // whether the arrival is new. Each true axis answers with its own index,

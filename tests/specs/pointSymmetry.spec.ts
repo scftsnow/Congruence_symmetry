@@ -112,6 +112,13 @@ describe('every figure has its middle where fingers can point', () => {
     expect(CENTER_TOLERANCE > 0 ? 'ok' : 'no tolerance').toBe('ok')
   })
 
+  it('calls any press on the center-less figure a miss, never a find', () => {
+    // The one figure with no center: any touch passing would settle the board,
+    // and the "there is none" answer would stand for nothing.
+    const trap = POINT_SYMMETRY_ITEMS[4].shape.vertices
+    expect(judgeCenter(trap, { x: 550, y: 300 })).toBe('miss')
+  })
+
   it('snaps the press and steers the turn by the hand', () => {
     // The press lands on the nearest lattice crossing before anything is
     // judged, on the same grid the axis board snaps to.

@@ -151,7 +151,10 @@ export function insideFigure(vertices: Point[], p: Point): boolean {
 export function judgeCenter(vertices: Point[], tap: Point): 'off' | 'miss' | 'hit' {
   if (!insideFigure(vertices, tap)) return 'off'
   const center = symmetryCenterOf(vertices)
-  if (!center) return 'hit'
+  // A figure with no center has nothing to tap: any press inside it is a miss,
+  // never a find. Letting it through would settle the board — any touch would
+  // pass, and the "there is none" answer would stand for nothing.
+  if (!center) return 'miss'
   const t = { x: tap.x - POINT_SYMM_CENTER.x, y: tap.y - POINT_SYMM_CENTER.y }
   return distance(t, center) <= CENTER_TOLERANCE ? 'hit' : 'miss'
 }

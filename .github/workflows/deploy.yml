@@ -1,0 +1,58 @@
+name: Verify and Deploy
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+
+      # Gate 1: static analysis
+      - name: lint
+        run: npm run lint
+
+      # Gate 2: convention + geometry + render specs.
+      # Each spec runs in an isolated process with a 128MB heap cap, so an
+      # unbounded loop fails in ~1s instead of hanging the job.
+      # `flower()` shipped to production once because no gate executed code.
+      - name: test
+        run: npm test
+
+      # Gate 3: production build + artifact inspection
+      - name: verify build output
+        run: npm run verify
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: verify
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

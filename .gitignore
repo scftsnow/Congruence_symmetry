@@ -1,0 +1,50 @@
+# ---- Node / npm ----
+node_modules/
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ---- 빌드 산출물 ----
+dist/
+build/
+.vite/
+.dbg/
+# 디버그용 임시 스크립트
+p*.ts
+!src/**/*.ts
+probe-*.ts
+out.txt
+tests/.build/
+tests/.dbg/
+# 디버그용 임시 스크립트
+p*.ts
+!src/**/*.ts
+probe-*.ts
+out.txt
+*.tsbuildinfo
+
+# ---- 환경변수 / 시크릿 (절대 커밋 금지) ----
+.env
+.env.local
+.env.*.local
+
+# ---- IDE ----
+.idea/
+.vscode/
+*.iml
+*.swp
+
+# ---- OS ----
+.DS_Store
+Thumbs.db
+
+# ---- 로그 ----
+*.log
+*.err
+.preview.*
+
+# ---- 옆에 있는 다른 프로젝트 ----
+ganseong-ai-training/
+
+# ---- 폰트 원본 (KERIS에서 받아 subsetting하는 재료, 재생성 가능) ----
+fonts-src/

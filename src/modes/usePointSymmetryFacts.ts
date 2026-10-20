@@ -2,13 +2,17 @@
  * The facts board — a segment joining corresponding points runs through the
  * middle, and a point and its image stand the same distance from it.
  *
- * The mirror image of the line unit's facts board, in the textbook's order:
- * the child joins one pair, watches the middle land on the segment, then
- * watches each end's span travel onto the other — all three pairs in turn, each
- * drawn with its sentence.
+ * The mirror image of the line unit's facts board: the child joins one pair,
+ * watches the middle land on the segment, then watches the figure turn one
+ * revolution about that middle — all three pairs in turn, each with its
+ * sentence.
  *
- * WHY THE CHILD ONLY JOINS
- * ------------------------
+ * The second fact used to be shown by the two spans changing places, each
+ * swinging through a wide arc of its own: two big motions crossing in the
+ * middle, which is hard to follow. The figure now turns one whole revolution
+ * about the middle instead, and on the way round every corner passes exactly
+ * over its partner.
+ *
  * Joining is the one decision here: which two corners face each other. The rest
  * is showing, and showing is the system's half of the bargain.
  */
@@ -18,11 +22,7 @@ import { POINT_SYMM_CENTER, type PointSymmetryBoard } from '../geometry/pointSym
 import { turnIndex } from '../geometry/pointSymmetry'
 import { nearestVertexIndex, pairsFromPartners, type MirrorPairs } from '../geometry/symmetryParts'
 import type { Point } from '../geometry/types'
-import {
-  pointFactsHintFor,
-  pointFactsInstructionFor,
-  pointFactsSuccessFor,
-} from '../components/pointSymmPartsText'
+import { pointFactsHintFor, pointFactsInstructionFor, pointFactsSuccessFor } from '../components/pointSymmPartsText'
 import type { Message } from '../components/tone'
 
 type FactsBoard = Extract<PointSymmetryBoard, { kind: 'facts' }>
@@ -30,18 +30,20 @@ type FactsBoard = Extract<PointSymmetryBoard, { kind: 'facts' }>
 /** the two things a join on this board can fail to be */
 export type PointFactsMiss = 'pair' | 'dup'
 
-/** join the pair, watch the middle land on it, then watch its span travel */
+/** join the pair, watch the middle land on it, then watch the figure turn */
 export type PointFactsStage = 'join' | 'hub' | 'equal'
 
 /** how long a miss is explained before the ask comes back */
 const HINT_MS = 1800
 /** how long the joined pair is looked at before the first fact arrives */
 const JOIN_MS = 1200
-/** how long the middle on the segment is looked at before the span travels */
+/** how long the middle on the segment is looked at before the figure turns */
 const HUB_MS = 2600
-/** how long a span is looked at before it lifts off */
+/** how long the figure is looked at before it starts to turn */
 const SHOW_MS = 700
-/** how long the travelled span rests on its partner before the next round */
+/** how long one revolution about the middle takes */
+const ROTATE_MS = 1800
+/** how long the turned figure is looked at before the next round */
 const HOLD_MS = 1600
 /** a press without a real drag is not an answer */
 const MIN_DRAG = 30
@@ -54,8 +56,10 @@ export interface PointSymmetryFactsState {
   pairs: MirrorPairs
   /** which pair's round is running, as an index into the pairs */
   current: number
-  /** the span has landed on its partner */
+  /** the figure has come back round and the marks are shown */
   landed: boolean
+  /** the figure is turning about the middle right now */
+  turning: boolean
   /** the finger's line, while it is being drawn */
   draft: { p: Point; q: Point } | null
   /** every pair joined so far, staying on screen as the rounds add up */
@@ -83,6 +87,8 @@ export function usePointSymmetryFacts(board: FactsBoard, onSettled: () => void):
   const [stage, setStage] = useState<PointFactsStage>('join')
   const [current, setCurrent] = useState(0)
   const [landed, setLanded] = useState(false)
+  /** the figure is turning about the middle right now */
+  const [turning, setTurning] = useState(false)
   const [draft, setDraft] = useState<{ p: Point; q: Point } | null>(null)
   const [joinedList, setJoinedList] = useState<Array<[number, number]>>([])
   const [miss, setMiss] = useState<PointFactsMiss | null>(null)
@@ -104,12 +110,9 @@ export function usePointSymmetryFacts(board: FactsBoard, onSettled: () => void):
     timer.current = window.setTimeout(what, after)
   }, [])
 
-  useEffect(
-    () => () => {
-      if (timer.current) window.clearTimeout(timer.current)
-    },
-    [],
-  )
+  useEffect(() => () => {
+    if (timer.current) window.clearTimeout(timer.current)
+  }, [])
 
   /** explain the miss, then put the ask back — which is what re-arms the popup */
   const explain = useCallback(
@@ -162,22 +165,25 @@ export function usePointSymmetryFacts(board: FactsBoard, onSettled: () => void):
     if (stage === 'hub') later(() => setStage('equal'), HUB_MS)
   }, [stage, later])
 
-  /* Each round's trip: look, travel, rest — then the next pair's round. */
+  /* Each round's turn: look, turn about the middle, rest — then the next pair. */
   useEffect(() => {
     if (stage !== 'equal') return
-    if (!landed) {
-      later(() => setLanded(true), SHOW_MS)
+    if (!turning) {
+      later(() => setTurning(true), SHOW_MS)
+    } else if (!landed) {
+      later(() => setLanded(true), ROTATE_MS)
     } else {
       later(() => {
         if (joinedList.length < rounds) {
           setLanded(false)
+          setTurning(false)
           setStage('join')
         } else {
           setResolved(true)
         }
       }, HOLD_MS)
     }
-  }, [stage, joinedList, landed, rounds, later])
+  }, [stage, turning, landed, joinedList.length, rounds, later])
 
   const ask = pointFactsInstructionFor('join')
   const message: Message = miss
@@ -197,6 +203,7 @@ export function usePointSymmetryFacts(board: FactsBoard, onSettled: () => void):
     pairs,
     current,
     landed,
+    turning,
     draft,
     joinedList,
     resolved,

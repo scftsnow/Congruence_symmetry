@@ -328,6 +328,31 @@
 }
 
 /*
+ * The revolution.
+ *
+ * One whole turn about the middle, which is the only motion the second fact
+ * needs: the figure comes back exactly onto itself, and on the way round every
+ * corner passes exactly over its partner.
+ *
+ * The pivot is the middle itself, given to the element rather than left to the
+ * default origin at the top-left corner of the canvas — a turn about the corner
+ * would throw the figure off the board.
+ */
+@keyframes sym-revolve {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.sym-revolve {
+  transform-box: view-box;
+  animation: sym-revolve 1800ms cubic-bezier(0.4, 0, 0.25, 1) forwards;
+}
+
+/*
  * The run of boards across the unit.
  *
  * One dot per board rather than one per step, because the steps inside a board

@@ -338,12 +338,33 @@ describe('the four rows on the home screen', () => {
     expect(hook.includes('waitingOn') ? 'the child spans again' : 'ok').toBe('ok')
     const scene = source('src/components/PointFactsScene.tsx')
     expect(scene.includes('sym-hub')).toBeTruthy()
-    expect(scene.includes('<CorrFly')).toBeTruthy()
     expect(scene.includes('sym-tick')).toBeTruthy()
     expect(pointFactsInstructionFor('join')).toContain('대응점을 손가락으로')
     expect(pointFactsHintFor('pair').text).toContain('마주 보는 점')
     expect(pointFactsSuccessFor('hub').text).toContain('중심을 지나요')
     expect(pointFactsSuccessFor('equal').text).toContain('거리는 같아요')
+  })
+
+  it('turns the figure one revolution about the middle, rather than swapping two spans', () => {
+    /*
+     * The second fact used to be shown by the two spans changing places, each
+     * swinging through a wide arc of its own: two big motions crossing in the
+     * middle, which is hard to follow and proves the same thing twice over. The
+     * figure now turns one whole revolution about the middle — a single motion
+     * about the one point the fact is about, on the way round which every
+     * corner passes exactly over its partner.
+     */
+    const scene = source('src/components/PointFactsScene.tsx')
+    expect(scene.includes('sym-revolve')).toBeTruthy()
+    expect(scene.includes('<CorrFly')).toBeFalsy()
+    const hook = source('src/modes/usePointSymmetryFacts.ts')
+    expect(hook.includes('ROTATE_MS')).toBeTruthy()
+    expect(hook.includes('turning')).toBeTruthy()
+    // the revolution is about the middle itself, not about the corner of the canvas
+    expect(scene.includes('transformOrigin')).toBeTruthy()
+    const css = source('src/styles/symmetry.css')
+    expect(/@keyframes sym-revolve/.test(css)).toBeTruthy()
+    expect(/\.sym-revolve\s*\{[^}]*transform-box:\s*view-box/.test(css)).toBeTruthy()
   })
 
   it('walks the first point before asking for any', () => {

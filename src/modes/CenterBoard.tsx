@@ -54,7 +54,16 @@ export function CenterBoard({
             {POINT_DENY_LABEL}
           </button>
         )}
-        {s.resolved && <NextButton label={nextLabel} onClick={onNext} />}
+        {s.resolved && (
+          /*
+           * The finding rows wait less: the find is one gesture and one
+           * sentence, read in about three seconds, and five leaves the child
+           * staring at a finished board. The sentence keeps to the top edge
+           * while the button stands in the middle, so the two never cover
+           * one another.
+           */
+          <NextButton label={nextLabel} onClick={onNext} delay={3000} />
+        )}
       </div>
     </>
   )

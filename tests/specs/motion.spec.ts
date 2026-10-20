@@ -341,6 +341,18 @@ describe('the way on is in the middle of the board', () => {
     expect(button.includes('setTimeout')).toBeTruthy()
     expect(button.includes('if (!shown) return null')).toBeTruthy()
   })
+
+  it('the finding rows wait less than the five seconds', () => {
+    /*
+     * A find is one gesture and one sentence, read in about three seconds, and
+     * five leaves the child staring at a finished board. The sentence keeps to
+     * the top edge while the button stands in the middle, so the two never
+     * cover one another.
+     */
+    for (const board of ['src/modes/AxisBoard.tsx', 'src/modes/CenterBoard.tsx']) {
+      expect(source(board).includes('delay={3000}') ? 'ok' : 'still five seconds').toBe('ok')
+    }
+  })
 })
 
 const { report } = await import('../harness/spec.mjs')

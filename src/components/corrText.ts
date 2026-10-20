@@ -93,7 +93,7 @@ export function correspondenceDonePanelFor(): {
   againLabel: string
 } {
   return {
-    title: [{ text: '대응점을 ' }, { text: '모두 찾았어!', strong: true }],
+    title: [{ text: '대응점, 대응변, 대응각을 ' }, { text: '모두 찾았어!', strong: true }],
     note: '합동인 두 도형은 마주 보는 점과 변과 각이 같아져',
     homeLabel: '첫 화면으로',
     againLabel: '↺ 처음부터',

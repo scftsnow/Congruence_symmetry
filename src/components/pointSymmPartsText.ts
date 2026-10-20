@@ -170,7 +170,7 @@ export function pointDrawDoneAll(): Message {
  * finding is over once they are placed. */
 export const POINT_DRAW_LINK_ASK = '남은 절반을 점끼리 이어서 그려 보세요'
 export const POINT_DRAW_LINK_MISS = '옆에 있는 두 점을 이어 보세요'
-export const POINT_DRAW_LINKED = '잘 연결했어요'
+export const POINT_DRAW_LINKED = '잘 연결했어요!'
 
 /* How to find a corresponding point, spoken while the first point walks it. */
 export const POINT_PARTS_HOW_LEG = '한 점에서 대칭의 중심을 향해 곧게 가요'

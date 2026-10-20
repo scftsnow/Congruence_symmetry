@@ -120,7 +120,7 @@
                      "drawMissed":  "조금만 아쉬워요. 축에서 같은 거리, 반대쪽 대응점을 찾아 눌러보세요",
                      "drawLinkAsk":  "남은 절반을 점끼리 이어서 그려 보세요",
                      "drawLinkMiss":  "옆에 있는 두 점을 이어 보세요",
-                     "drawLinked":  "잘 연결했어요",
+                     "drawLinked":  "잘 연결했어요!",
                      "drawDone":  {
                                     "found":  "맞아요! 대응점은 축에서 같은 거리에 있어요",
                                     "next":  "잘했어요! 다음 대응점도 찾아보세요",
@@ -196,7 +196,7 @@
                      "drawMissed":  "중심에서 같은 거리",
                      "drawLinkAsk":  "남은 절반을 점끼리 이어서 그려 보세요",
                      "drawLinkMiss":  "옆에 있는 두 점을 이어 보세요",
-                     "drawLinked":  "잘 연결했어요",
+                     "drawLinked":  "잘 연결했어요!",
                      "drawDone":  {
                                     "found":  "중심에서 같은 거리에 있어요",
                                     "next":  "잘했어요! 다음 대응점도 찾아보세요",

@@ -38,6 +38,9 @@ export function pointSymmetryNoCenterFor(): Message {
     tone: 'success',
     icon: '🎉',
     text: '이 도형은 어떻게 돌려도 겹치지 않아요. 점대칭도형이 아니에요',
+    // As long as any found sentence — three times the star burst — so the
+    // ending, which waits the same, never cuts these words short.
+    ms: 4500,
   }
 }
 

@@ -453,6 +453,19 @@ describe('the child draws, the system folds', () => {
     expect(words.includes('대칭축이 없어요')).toBeTruthy()
   })
 
+  it('lets the ending sentence stay three times the short popup', () => {
+    // The last thing on the board is the thing the row was for, and a second
+    // and a half is not long enough to read it. Hints keep the short time.
+    expect(symmetryNoAxisFor().ms).toBe(4500)
+    expect(symmetryHintFor('miss').ms ?? null).toBe(null)
+    // The state behind the popup lives the same lifetime, and the row waits
+    // the same before swapping the board for the ending.
+    const hook = source('src/modes/useSymmetry.ts')
+    expect(hook.includes('setFound(false), FOUND_MS')).toBeTruthy()
+    const stage = source('src/modes/SymmetryAxisStage.tsx')
+    expect(stage.includes('DONE_AFTER_MS * 3')).toBeTruthy()
+  })
+
   it('"there is none" rides the foot of the grid, not a strip below it', () => {
     // An answer about the board sits on the board. Both finding boards say so
     // the same way: the button lives inside the board's own wrap, pinned to
@@ -482,7 +495,9 @@ describe('the child draws, the system folds', () => {
     )
     const words = source('src/components/symmText.ts')
     expect(words.includes('다른 대칭축도 있는지 찾아보세요')).toBeTruthy()
-    expect(/찾아보세요[^]*[0-9]/.test(words) ? 'counts axes aloud' : 'ok').toBe('ok')
+    // ms: lines are machine timing, not spoken words — strip them before
+    // checking that no figure is ever said aloud.
+    expect(/찾아보세요[^]*[0-9]/.test(words.replace(/ms:.*/g, '')) ? 'counts axes aloud' : 'ok').toBe('ok')
   })
 
   it('reaches each row from the home list', () => {

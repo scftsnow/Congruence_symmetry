@@ -43,7 +43,9 @@ export function useStageMessage(message: Message, attempts: number, ms: number =
   const words = said(message)
   const popup = isPopup(message)
   const guide = popup && message.tone === 'success' && (message.icon === '👉' || message.icon === '⭐')
-  const duration = guide ? GUIDE_MS : ms
+  // A message that names its own time keeps it: the ending sentences stay up
+  // three times the short popup, while hints and everything else keep it.
+  const duration = message.ms ?? (guide ? GUIDE_MS : ms)
   /*
    * What re-arms the popup, as a string: every screen builds a fresh message
    * object on every render, so depending on the object itself would reset the

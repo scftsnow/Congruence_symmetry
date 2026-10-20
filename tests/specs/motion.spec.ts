@@ -267,7 +267,7 @@ describe('the ending waits its turn', () => {
       'src/modes/SymmetryPointDrawStage.tsx',
     ]) {
       const body = source(stage)
-      expect(body.includes('useDoneAfter(run.finished)') ? 'ok' : 'no wait on this row').toBe('ok')
+      expect(body.includes('useDoneAfter(run.finished, DONE_AFTER_MS * 3)') ? 'ok' : 'no wait on this row').toBe('ok')
       expect(/showDone\s*\?/.test(body) ? 'ok' : 'the ending still cuts in').toBe('ok')
     }
   })

@@ -29,6 +29,15 @@ export interface Message {
   text?: string
   /** the sentence split, when part of it is worth bolding */
   parts?: Array<{ text: string; strong?: boolean }>
+  /**
+   * how long this one popup stays up, when the usual time will not do.
+   *
+   * Absent almost everywhere: guides get the long time and everything else the
+   * short one, and that is the whole rule. The ending sentences are the
+   * exception — a child who just proved there is nothing to find needs longer
+   * with the words than a child who was told to try again.
+   */
+  ms?: number
 }
 
 /** The two tones that are worth interrupting the board for. */

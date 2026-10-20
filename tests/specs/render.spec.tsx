@@ -782,8 +782,9 @@ describe('a success is in the middle, not at the top', () => {
     const hook = source('src/modes/useStageMessage.ts')
     expect(/\[\s*key\s*,\s*duration\s*\]/.test(hook)).toBeTruthy()
     expect(/GUIDE_MS/.test(hook)).toBeTruthy()
-    // the success popup stays up for the guide's own life so it can be read
-    expect(/guide \? GUIDE_MS : ms/.test(hook)).toBeTruthy()
+    // the success popup stays up for the guide's own life so it can be read,
+    // unless the message names its own time — the ending sentences do
+    expect(/message\.ms \?\? \(guide \? GUIDE_MS : ms\)/.test(hook)).toBeTruthy()
   })
 })
 

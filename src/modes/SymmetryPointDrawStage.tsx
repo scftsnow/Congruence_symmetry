@@ -13,7 +13,7 @@ import { pointSymmetryNextLabelFor } from '../components/pointSymmText'
 import { POINT_DRAW_BOARDS } from '../geometry/pointSymmetryShapes'
 import { useSymmetryRun } from './useSymmetryRun'
 import { useMarkComplete } from './useUnitProgress'
-import { useDoneAfter } from './useDoneAfter'
+import { useDoneAfter, DONE_AFTER_MS } from './useDoneAfter'
 import { PointDrawBoard } from './PointDrawBoard'
 
 export function SymmetryPointDrawStage({
@@ -26,8 +26,10 @@ export function SymmetryPointDrawStage({
   const run = useSymmetryRun(POINT_DRAW_BOARDS)
   const settledCount = run.settled.filter(Boolean).length
   useMarkComplete(run.finished, onComplete)
-  // the ending waits, so the last board's explanation is read before it arrives
-  const showDone = useDoneAfter(run.finished)
+  // The ending waits three times as long as anywhere else, because the board
+  // it replaces is gone with it: the last explanation gets the same lifetime
+  // as any found sentence before the ending arrives.
+  const showDone = useDoneAfter(run.finished, DONE_AFTER_MS * 3)
   const done = pointDrawDonePanelFor()
   const board = run.board
 

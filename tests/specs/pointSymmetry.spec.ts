@@ -234,6 +234,19 @@ describe('the child taps the middle and steers the turn', () => {
     expect(hook.includes("'deny'")).toBeTruthy()
   })
 
+  it('lets the ending sentence stay three times the short popup', () => {
+    // The last thing on the board is the thing the row was for, and a second
+    // and a half is not long enough to read it. Hints keep the short time.
+    expect(pointSymmetryNoCenterFor().ms).toBe(4500)
+    expect(pointSymmetryHintFor('miss').ms ?? null).toBe(null)
+    // The state behind the popup lives the same lifetime, and the row waits
+    // the same before swapping the board for the ending.
+    const hook = source('src/modes/usePointSymmetry.ts')
+    expect(hook.includes('setFound(false), FOUND_MS')).toBeTruthy()
+    const stage = source('src/modes/SymmetryPointAxisStage.tsx')
+    expect(stage.includes('DONE_AFTER_MS * 3')).toBeTruthy()
+  })
+
   it('ends the center row on the figures, not the points', () => {
     const done = pointSymmetryDonePanelFor()
     expect(done.title.map((p) => p.text).join('')).toBe('점대칭도형을 모두 찾았어!')

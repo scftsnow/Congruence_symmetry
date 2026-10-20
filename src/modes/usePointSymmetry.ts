@@ -181,6 +181,7 @@ export function usePointSymmetry(item: PointSymmetryItem, onSettled: () => void)
       setFound(true)
       settle()
       timer.current = window.setTimeout(() => setJustFound(false), STAR_MS)
+      // As long as the popup itself: the ending waits the same.
       saidTimer.current = window.setTimeout(() => setFound(false), FOUND_MS)
       return
     }

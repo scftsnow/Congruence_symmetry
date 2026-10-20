@@ -54,6 +54,7 @@ export function congruenceMessageFor(
   turned: boolean,
   count: number,
   target: number,
+  flipped = false,
 ): Message {
   if (count >= target) {
     return {
@@ -72,11 +73,19 @@ export function congruenceMessageFor(
     // changes the verdict to match-direct, and the child should still be told
     // that it had to be turned to get there.
     const didTurn = turned || verdict.verdict !== 'match-direct'
+    /*
+     * Turned or turned over, in the child's own words: a shape the system spun
+     * round "돌려서", one it had to mirror "뒤집어서". The verdict alone cannot
+     * say which past the landing, because a landed match reads match-direct
+     * with no solution left — so the screen remembers whether the turn it
+     * watched included a flip and hands it in here.
+     */
+    const didFlip = flipped || (verdict.solution?.flipped ?? false)
     return {
       tone: 'success',
       icon: '⭐',
       parts: [
-        { text: didTurn ? '돌려서 겹쳤어! ' : '겹쳤어! ' },
+        { text: didTurn ? (didFlip ? '뒤집어서 겹쳤어! ' : '돌려서 겹쳤어! ') : '겹쳤어! ' },
         { text: '합동이야', strong: true },
       ],
     }

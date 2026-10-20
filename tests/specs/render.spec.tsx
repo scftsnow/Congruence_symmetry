@@ -409,6 +409,32 @@ describe('the wording matches the teaching', () => {
     expect(/[0-9]+\s*도/.test(words)).toBeFalsy()
   })
 
+  it('says a flip happened when the turn included one', () => {
+    // A mirror pair lands by turning over, not by spinning round, and "돌려서"
+    // would say what is false. The verdict carries the flip only until the
+    // landing — past it the match reads match-direct with no solution left —
+    // so the screen remembers the flip the same way it remembers the turn.
+    const said = (v: { verdict: 'match-direct' | 'match-by-turn' | 'match-by-turn-and-flip'; solution: { degrees: number; flipped: boolean; center: { x: number; y: number } } | null }, turned: boolean, flipped: boolean) =>
+      congruenceMessageFor({ coverage: 1, coincident: true, ...v }, turned, 0, 5, flipped)
+        .parts?.map((p) => p.text)
+        .join('')
+    // before the landing the solution itself says it
+    expect(
+      said({ verdict: 'match-by-turn-and-flip', solution: { degrees: 90, flipped: true, center: { x: 0, y: 0 } } }, false, false),
+    ).toBe('뒤집어서 겹쳤어! 합동이야')
+    // past the landing only the remembered flip says it
+    expect(
+      said({ verdict: 'match-direct', solution: null }, true, true),
+    ).toBe('뒤집어서 겹쳤어! 합동이야')
+    // and a plain spin, or no turn at all, keeps the old words
+    expect(
+      said({ verdict: 'match-by-turn', solution: { degrees: 90, flipped: false, center: { x: 0, y: 0 } } }, false, false),
+    ).toBe('돌려서 겹쳤어! 합동이야')
+    expect(said({ verdict: 'match-direct', solution: null }, false, false)).toBe('겹쳤어! 합동이야')
+    const stage = source('src/modes/CongruenceStage.tsx')
+    expect(stage.includes('setFlipped(verdict.solution.flipped)')).toBeTruthy()
+  })
+
   it('the wording lives in one place, not in the screen markup', () => {
     expect(source('src/modes/CongruenceStage.tsx').includes(expected.board.congruentMsg)).toBeFalsy()
   })

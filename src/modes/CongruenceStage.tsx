@@ -58,14 +58,12 @@ export function CongruenceStage({ onBack, onComplete }: CongruenceStageProps) {
    */
   const [dragging, setDragging] = useState(false)
   /**
-   * Whether the shape was turned rather than simply dropped in place.
-   *
-   * The turn lands the shape exactly on its partner, so the verdict a moment
-   * later reads match-direct and the "돌려서 겹쳤어" message would vanish at
-   * the same instant the star appears. Held until the child picks up the next
-   * shape, so the fact that it had to be turned is actually reported.
+   * Whether the shape was turned, and whether that turn included a flip — both
+   * outlive the landing, past which the verdict reads match-direct with nothing
+   * left in it. Held until the next pickup.
    */
   const [turned, setTurned] = useState(false)
+  const [flipped, setFlipped] = useState(false)
   const foundTimer = useRef<number | null>(null)
   const drag = useRef<{ id: string; startX: number; startY: number; ox: number; oy: number } | null>(
     null,
@@ -90,6 +88,7 @@ export function CongruenceStage({ onBack, onComplete }: CongruenceStageProps) {
     // the opposite of what was asked for. The verdict waits for release.
     setReleased(false)
     setTurned(false)
+    setFlipped(false)
     // Each pickup is a fresh judgement, so a shape moved away and brought back
     // is checked again rather than dismissed by a stale key.
     appliedRef.current = ''
@@ -137,7 +136,7 @@ export function CongruenceStage({ onBack, onComplete }: CongruenceStageProps) {
   const cleared = count >= board.target
   // the unit is done the moment every pair is found, which is when its ending goes up
   useMarkComplete(cleared, onComplete)
-  const message = congruenceMessageFor(verdict, turned, count, board.target)
+  const message = congruenceMessageFor(verdict, turned, count, board.target, flipped)
   /*
    * Before the first release, the standing instruction crosses the top of the
    * panel as a popup, because the bottom line is gone everywhere. congruenceMessageFor
@@ -161,6 +160,7 @@ export function CongruenceStage({ onBack, onComplete }: CongruenceStageProps) {
     if (appliedRef.current === key) return
     appliedRef.current = key
     setTurned(true)
+    setFlipped(verdict.solution.flipped)
     board.applyTurn(board.held, verdict.solution)
   }, [released, verdict, board])
   useEffect(() => {

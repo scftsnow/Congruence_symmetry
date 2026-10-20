@@ -607,6 +607,15 @@ describe('a cleared unit ends properly', () => {
     expect(html.includes('처음부터')).toBeTruthy()
   })
 
+  it('spins the ending star, after it pops in', () => {
+    // The star turns once it has arrived: the spin waits out the pop, and with
+    // no backwards fill it touches nothing until its delay has run — while
+    // both run the later one would win and the pop would never show.
+    const ui = source('src/styles/ui.css')
+    expect(/\.done__mark\s*\{[^}]*done-spin/.test(ui)).toBeTruthy()
+    expect(/@keyframes done-spin[^]*to\s*\{\s*transform:\s*rotate\(360deg\)/.test(ui)).toBeTruthy()
+  })
+
   it('both units name their own lesson', () => {
     expect(congruenceDonePanelFor().note).toBe(expected.home.congruenceNote)
     expect(corrDonePanelFor().note).toBe(expected.home.corrNote)

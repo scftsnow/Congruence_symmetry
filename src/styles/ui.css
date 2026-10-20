@@ -313,7 +313,25 @@
   margin: 0;
   font-size: 3rem;
   line-height: 1;
-  animation: pop 1.4s ease-out;
+  /*
+   * The ending star turns, once it has popped in.
+   *
+   * Two animations so the entrance survives: the spin waits out the pop, and
+   * with no backwards fill it touches nothing until its delay has run — while
+   * both run the later one would win and the pop would never show.
+   */
+  animation:
+    pop 1.4s ease-out,
+    done-spin 3s linear 1.4s infinite;
+}
+
+@keyframes done-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .done__title {

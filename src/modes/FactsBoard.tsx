@@ -15,11 +15,13 @@ import { useStageMessage } from './useStageMessage'
 
 type FactsBoard = Extract<SymmetryBoard, { kind: 'facts' }>
 
-export function FactsBoard({ board, onSettled, onNext, nextLabel }: {
+export function FactsBoard({ board, onSettled, onNext, nextLabel, last }: {
   board: FactsBoard
   onSettled: () => void
   onNext: () => void
   nextLabel: string
+  /** the last board of the row: no way on, the ending comes by itself */
+  last: boolean
 }) {
   const f = useSymmetryFacts(board, onSettled)
   /*
@@ -47,7 +49,7 @@ export function FactsBoard({ board, onSettled, onNext, nextLabel }: {
           onDrawMove={f.moveDraw}
           onDrawEnd={f.endDraw}
         />
-        {f.resolved && <NextButton label={nextLabel} onClick={onNext} />}
+        {f.resolved && !last && <NextButton label={nextLabel} onClick={onNext} />}
       </div>
       <div className="sym-foot">
         {!f.resolved && (

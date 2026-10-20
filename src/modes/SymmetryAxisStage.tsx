@@ -69,6 +69,7 @@ export function SymmetryAxisStage({
               onSettled={run.markSettled}
               onNext={run.next}
               nextLabel={symmetryNextLabelFor(run.last)}
+              last={run.last}
             />
           )}
 

@@ -353,6 +353,43 @@ describe('the way on is in the middle of the board', () => {
       expect(source(board).includes('delay={3000}') ? 'ok' : 'still five seconds').toBe('ok')
     }
   })
+
+  it('the last board has no way on: the ending comes by itself', () => {
+    /*
+     * On the last board the way on flashed and was gone: the ending rose right
+     * behind it, so a button going nowhere blinked on the screen for no reason.
+     * The boards know when they are last, and then the button is simply not
+     * there — the ending arrives on its own.
+     */
+    const boards = [
+      'src/modes/AxisBoard.tsx',
+      'src/modes/CenterBoard.tsx',
+      'src/modes/DrawBoard.tsx',
+      'src/modes/FactsBoard.tsx',
+      'src/modes/PartsBoard.tsx',
+      'src/modes/PointDrawBoard.tsx',
+      'src/modes/PointFactsBoard.tsx',
+      'src/modes/PointPartsBoard.tsx',
+    ]
+    const stages = [
+      'src/modes/SymmetryAxisStage.tsx',
+      'src/modes/SymmetryPointAxisStage.tsx',
+      'src/modes/SymmetryDrawStage.tsx',
+      'src/modes/SymmetryFactsStage.tsx',
+      'src/modes/SymmetryPartsStage.tsx',
+      'src/modes/SymmetryPointDrawStage.tsx',
+      'src/modes/SymmetryPointFactsStage.tsx',
+      'src/modes/SymmetryPointPartsStage.tsx',
+    ]
+    for (const board of boards) {
+      const body = source(board)
+      expect(body.includes('last: boolean') ? 'ok' : 'no last prop').toBe('ok')
+      expect(body.includes('!last &&') ? 'ok' : 'the button still flashes').toBe('ok')
+    }
+    for (const stage of stages) {
+      expect(source(stage).includes('last={run.last}') ? 'ok' : 'last never arrives').toBe('ok')
+    }
+  })
 })
 
 const { report } = await import('../harness/spec.mjs')

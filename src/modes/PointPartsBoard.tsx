@@ -15,11 +15,13 @@ import { useStageMessage } from './useStageMessage'
 
 type PartsBoard = Extract<PointSymmetryBoard, { kind: 'parts' }>
 
-export function PointPartsBoard({ board, onSettled, onNext, nextLabel }: {
+export function PointPartsBoard({ board, onSettled, onNext, nextLabel, last }: {
   board: PartsBoard
   onSettled: () => void
   onNext: () => void
   nextLabel: string
+  /** the last board of the row: no way on, the ending comes by itself */
+  last: boolean
 }) {
   const p = usePointSymmetryParts(board, onSettled)
   const toast = useStageMessage(p.message, p.attempts)
@@ -42,7 +44,7 @@ export function PointPartsBoard({ board, onSettled, onNext, nextLabel }: {
           justFound={p.justFound}
           onAnswer={p.answer}
         />
-        {p.done && <NextButton label={nextLabel} onClick={onNext} />}
+        {p.done && !last && <NextButton label={nextLabel} onClick={onNext} />}
       </div>
       <div className="sym-foot">
         {!p.done && (

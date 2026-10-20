@@ -19,11 +19,14 @@ export function AxisBoard({
   onSettled,
   onNext,
   nextLabel,
+  /** the last board of the row: no way on, the ending comes by itself */
+  last,
 }: {
   item: SymmetryItem
   onSettled: () => void
   onNext: () => void
   nextLabel: string
+  last: boolean
 }) {
   const s = useSymmetry(item, onSettled)
   const toast = useStageMessage(s.message, s.attempts)
@@ -55,7 +58,7 @@ export function AxisBoard({
             {SYMM_DENY_LABEL}
           </button>
         )}
-        {s.resolved && (
+        {s.resolved && !last && (
           /*
            * The finding rows wait less: the find is one gesture and one
            * sentence, read in about three seconds, and five leaves the child

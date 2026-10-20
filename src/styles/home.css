@@ -46,6 +46,43 @@
 }
 
 /*
+ * The title in the middle of the sky.
+ *
+ * The cover title is not a line above the picture: it stands in the middle of
+ * it, with the constellations around. The great ring is drawn about the middle
+ * of its canvas, so the title sits inside the ring. Big enough to be the thing
+ * the screen is about, with a harder shine so it reads over the stars behind
+ * it.
+ */
+.hero__sky {
+  position: relative;
+  width: min(900px, 96vw);
+  display: grid;
+  place-items: center;
+}
+
+.hero__sky .constellation {
+  width: 100%;
+}
+
+.hero__header {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 0;
+}
+
+.hero__header .home__title {
+  font-size: clamp(3.4rem, 10vw, 6rem);
+  text-align: center;
+  text-shadow:
+    0 0 18px rgba(186, 214, 255, 0.55),
+    0 0 60px rgba(186, 214, 255, 0.3),
+    0 2px 12px rgba(0, 0, 0, 0.6);
+}
+
+/*
  * The stars a child has earned, told as one count in the top-right corner.
  *
  * The number counts units, not boards: a unit is the door the child actually

@@ -197,12 +197,18 @@ export default function App() {
       <div className="home">
         <SkyParticles />
         <section className="hero" aria-label="합동과 대칭 시작">
-          <header className="home__header">
-            <h1 className="home__title">합동과 대칭</h1>
-            <EarnedStars progress={progress} />
-          </header>
-
-          <Constellation />
+          {/*
+           * The title stands in the middle of the sky, with the constellations
+           * around it: the great ring is drawn about the middle of its canvas,
+           * so the title sits inside the ring rather than above the picture.
+           */}
+          <div className="hero__sky">
+            <Constellation />
+            <header className="home__header hero__header">
+              <h1 className="home__title">합동과 대칭</h1>
+              <EarnedStars progress={progress} />
+            </header>
+          </div>
 
           <button type="button" className="start-btn hero__start" onClick={goHome}>
             시작하기

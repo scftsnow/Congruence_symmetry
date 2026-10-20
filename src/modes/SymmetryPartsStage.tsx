@@ -12,6 +12,7 @@ import { symmetryNextLabelFor } from '../components/symmText'
 import { SYMM_PARTS_BOARDS } from '../geometry/symmetryShapes'
 import { useSymmetryRun } from './useSymmetryRun'
 import { useMarkComplete } from './useUnitProgress'
+import { useDoneAfter } from './useDoneAfter'
 import { PartsBoard } from './PartsBoard'
 
 export function SymmetryPartsStage({
@@ -24,6 +25,8 @@ export function SymmetryPartsStage({
   const run = useSymmetryRun(SYMM_PARTS_BOARDS)
   const settledCount = run.settled.filter(Boolean).length
   useMarkComplete(run.finished, onComplete)
+  // the ending waits, so the last board's explanation is read before it arrives
+  const showDone = useDoneAfter(run.finished)
   const done = symmetryPartsDonePanelFor()
   const board = run.board
 
@@ -44,7 +47,7 @@ export function SymmetryPartsStage({
         </div>
       </header>
 
-      {run.finished ? (
+      {showDone ? (
         <DonePanel
           title={done.title}
           note={done.note}

@@ -12,6 +12,7 @@ import { pointSymmetryDonePanelFor, pointSymmetryNextLabelFor } from '../compone
 import { POINT_CENTER_BOARDS } from '../geometry/pointSymmetryShapes'
 import { useSymmetryRun } from './useSymmetryRun'
 import { useMarkComplete } from './useUnitProgress'
+import { useDoneAfter } from './useDoneAfter'
 import { CenterBoard } from './CenterBoard'
 
 export function SymmetryPointAxisStage({
@@ -24,6 +25,8 @@ export function SymmetryPointAxisStage({
   const run = useSymmetryRun(POINT_CENTER_BOARDS)
   const settledCount = run.settled.filter(Boolean).length
   useMarkComplete(run.finished, onComplete)
+  // the ending waits, so the last board's explanation is read before it arrives
+  const showDone = useDoneAfter(run.finished)
   const done = pointSymmetryDonePanelFor()
   const board = run.board
   const key = board.kind === 'center' ? board.item.id : board.id
@@ -45,7 +48,7 @@ export function SymmetryPointAxisStage({
         </div>
       </header>
 
-      {run.finished ? (
+      {showDone ? (
         <DonePanel
           title={done.title}
           note={done.note}

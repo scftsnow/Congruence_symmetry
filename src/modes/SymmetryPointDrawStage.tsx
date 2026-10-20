@@ -13,6 +13,7 @@ import { pointSymmetryNextLabelFor } from '../components/pointSymmText'
 import { POINT_DRAW_BOARDS } from '../geometry/pointSymmetryShapes'
 import { useSymmetryRun } from './useSymmetryRun'
 import { useMarkComplete } from './useUnitProgress'
+import { useDoneAfter } from './useDoneAfter'
 import { PointDrawBoard } from './PointDrawBoard'
 
 export function SymmetryPointDrawStage({
@@ -25,6 +26,8 @@ export function SymmetryPointDrawStage({
   const run = useSymmetryRun(POINT_DRAW_BOARDS)
   const settledCount = run.settled.filter(Boolean).length
   useMarkComplete(run.finished, onComplete)
+  // the ending waits, so the last board's explanation is read before it arrives
+  const showDone = useDoneAfter(run.finished)
   const done = pointDrawDonePanelFor()
   const board = run.board
 
@@ -45,7 +48,7 @@ export function SymmetryPointDrawStage({
         </div>
       </header>
 
-      {run.finished ? (
+      {showDone ? (
         <DonePanel
           title={done.title}
           note={done.note}

@@ -12,6 +12,7 @@ import { symmetryAxisDonePanelFor, symmetryNextLabelFor } from '../components/sy
 import { SYMM_AXIS_BOARDS } from '../geometry/symmetryShapes'
 import { useSymmetryRun } from './useSymmetryRun'
 import { useMarkComplete } from './useUnitProgress'
+import { useDoneAfter } from './useDoneAfter'
 import { AxisBoard } from './AxisBoard'
 
 export function SymmetryAxisStage({
@@ -24,6 +25,8 @@ export function SymmetryAxisStage({
   const run = useSymmetryRun(SYMM_AXIS_BOARDS)
   const settledCount = run.settled.filter(Boolean).length
   useMarkComplete(run.finished, onComplete)
+  // the ending waits, so the last board's explanation is read before it arrives
+  const showDone = useDoneAfter(run.finished)
   const done = symmetryAxisDonePanelFor()
   const board = run.board
   const key = board.kind === 'axis' ? board.item.id : board.id
@@ -45,7 +48,7 @@ export function SymmetryAxisStage({
         </div>
       </header>
 
-      {run.finished ? (
+      {showDone ? (
         <DonePanel
           title={done.title}
           note={done.note}

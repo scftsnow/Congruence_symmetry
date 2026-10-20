@@ -249,6 +249,29 @@ describe('the ending waits its turn', () => {
     expect(/showDone\s*\?/.test(correspondence)).toBeTruthy()
   })
 
+  it('the last board of a row keeps its explanation, too', () => {
+    /*
+     * The rows swapped the whole board for the ending the instant the last
+     * board settled, so its sentence never reached the screen: one frame the
+     * fold landed, the next the board was gone. The ending waits here as well,
+     * and the last board's explanation is read before it arrives.
+     */
+    for (const stage of [
+      'src/modes/SymmetryAxisStage.tsx',
+      'src/modes/SymmetryPartsStage.tsx',
+      'src/modes/SymmetryFactsStage.tsx',
+      'src/modes/SymmetryDrawStage.tsx',
+      'src/modes/SymmetryPointAxisStage.tsx',
+      'src/modes/SymmetryPointPartsStage.tsx',
+      'src/modes/SymmetryPointFactsStage.tsx',
+      'src/modes/SymmetryPointDrawStage.tsx',
+    ]) {
+      const body = source(stage)
+      expect(body.includes('useDoneAfter(run.finished)') ? 'ok' : 'no wait on this row').toBe('ok')
+      expect(/showDone\s*\?/.test(body) ? 'ok' : 'the ending still cuts in').toBe('ok')
+    }
+  })
+
   it('the wait is long enough for the landing and the stars', () => {
     // The turn takes 600ms and the star burst lasts 1500ms, so the ending has
     // to wait at least that long or it rises over the burst it is celebrating.

@@ -15,8 +15,18 @@
  * The first version sent one part travelling onto the other, which reads as the
  * traveller doing something to the one that stays: a rotation one way. But a
  * correspondence runs both ways — each is the other's partner — so the two
- * exchange places at once, each landing where the other stood. Neither is the
- * original and neither is the copy, which is exactly what 대응 means.
+ * exchange places, each landing where the other stood. Neither is the original
+ * and neither is the copy, which is exactly what 대응 means.
+ *
+ * ONE AT A TIME WHERE THE CLAIM IS SAMENESS
+ * -----------------------------------------
+ * On the boards where the claim is that two parts are the same, both moving at
+ * once is unreadable: the two cross in the middle, and because the parts are
+ * mirror images of each other the picture at the end is the picture at the
+ * start, so nothing was shown. There the exchange is taken in turns — the first
+ * part travels and comes to rest exactly on its partner, which is the claim
+ * itself, and only then does the second set off. The eye follows one part, and
+ * sees the two fit one another.
  *
  * The span on the line facts board is the exception, and it stays one-way:
  * there the claim is that one length lands exactly on the other, and two parts
@@ -34,12 +44,20 @@ export type Flyable =
 export function CorrFly({
   part,
   landed,
+  landedSecond,
   move,
   wedge = 45,
   swap = false,
 }: {
   part: Flyable | null
   landed: boolean
+  /**
+   * the second part of the pair has set off
+   *
+   * The same as `landed` unless the exchange is taken in turns, in which case
+   * the second waits for the first to come to rest on its partner.
+   */
+  landedSecond?: boolean
   /** the transform to travel by; the turn is worked out from the part if absent */
   move?: string
   wedge?: number
@@ -76,7 +94,12 @@ export function CorrFly({
             <path className="corr-wedge corr-wedge--fly" d={angleWedge(part.a, wedge)} />
           )}
         </g>
-        <g className="corr-fly" style={{ transform: landed ? back : undefined }}>
+        <g
+          className="corr-fly"
+          style={{
+            transform: (landedSecond ?? landed) ? back : undefined,
+          }}
+        >
           {part.kind === 'side' ? (
             <line
               className="corr-flyline"

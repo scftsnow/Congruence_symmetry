@@ -51,6 +51,8 @@ export interface PointSymmetryPartsState {
   /** which turn of the demonstration is on its way */
   flyStep: number
   landed: boolean
+  /** the second part of the pair, which sets off after the first has come to rest */
+  landedSecond: boolean
   justFound: boolean
   attempts: number
   flying: boolean
@@ -76,10 +78,17 @@ export function usePointSymmetryParts(board: PartsBoard, onSettled: () => void):
     }),
     [pairs],
   )
-  const pass = useCorrPass(corners, {
-    instruction: pointPartsInstructionFor,
-    found: pointPartsFoundFor,
-  }, ask)
+  const pass = useCorrPass(
+    corners,
+    {
+      instruction: pointPartsInstructionFor,
+      found: pointPartsFoundFor,
+    },
+    ask,
+    // the two parts are half-turns of each other, so exchanging them at once ends
+    // where it started: the exchange is taken in turns instead
+    { sequential: true },
+  )
 
   /* Settling is reported, not derived — see useSymmetryParts for why. */
   useEffect(() => {
@@ -98,6 +107,7 @@ export function usePointSymmetryParts(board: PartsBoard, onSettled: () => void):
     flyAngles: pass.flyAngles,
     flyStep: pass.flyStep,
     landed: pass.landed,
+    landedSecond: pass.landedSecond,
     justFound: pass.justFound,
     attempts: pass.attempts,
     flying: pass.flying,

@@ -15,19 +15,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { PASSES, type Pass, type Phase } from '../components/corrText'
 import type { Message } from '../components/tone'
+import { useCorrDemo, type CorrDemoTiming } from './useCorrDemo'
 
-/** how long a side or angle takes to travel and settle */
-const FLY_MS = 900
-/** the beat before it sets off, so the child sees what is about to move */
-const PAUSE_MS = 340
-/**
- * how long the conclusion stays up once the part has landed
- *
- * Without this the claim flashed past in the same instant the fit became visible,
- * which is the one moment the child is definitely looking — so the sentence was
- * on screen for no time at all and had to be guessed at.
- */
-const HOLD_MS = 1400
 /** how long a miss is explained before the ask comes back */
 const HINT_MS = 1800
 /** how long the stars stay up after a correct find */
@@ -49,6 +38,20 @@ export interface PassTexts {
  */
 export type PassAsk = Partial<Record<Pass, number[]>>
 
+/**
+ * How the demonstration is timed, per board.
+ *
+ * Where two shapes stand side by side, the two parts change places at once and
+ * it reads at a glance. Where one shape is folded over its own axis, both at
+ * once is unreadable: the parts cross in the middle, and being mirror images
+ * of each other the picture at the end is the picture at the start, so nothing
+ * was shown. There the exchange is taken in turns — the first part travels and
+ * rests exactly on its partner, which is the claim itself, and only then does
+ * the second set off.
+ */
+export type { CorrDemoTiming as PassTiming }
+export type { CorrDemoTiming }
+
 export interface CorrPass {
   phase: Phase
   /** which entry of the ask list is being asked about */
@@ -66,6 +69,13 @@ export interface CorrPass {
   /** which fold of the demonstration is on its way */
   flyStep: number
   landed: boolean
+  /**
+   * the second part of the pair has set off
+   *
+   * The same as `landed` unless the exchange is taken in turns, in which case
+   * this waits for the first part to come to rest on its partner.
+   */
+  landedSecond: boolean
   justFound: boolean
   /** how many answers have been given, right or wrong: re-arms the popup */
   attempts: number
@@ -84,12 +94,15 @@ function allCorners(corners: number): number[] {
   return Array.from({ length: corners }, (_, i) => i)
 }
 
-export function useCorrPass(corners: number, texts: PassTexts, ask?: PassAsk): CorrPass {
+export function useCorrPass(
+  corners: number,
+  texts: PassTexts,
+  ask?: PassAsk,
+  timing: CorrDemoTiming = {},
+): CorrPass {
   const [phase, setPhase] = useState<Phase>('points')
   const [step, setStep] = useState(0)
   const [wrong, setWrong] = useState(false)
-  const [flyStep, setFlyStep] = useState(0)
-  const [landed, setLanded] = useState(false)
   const [justFound, setJustFound] = useState(false)
   /**
    * which pass the celebrated tap belonged to
@@ -109,20 +122,22 @@ export function useCorrPass(corners: number, texts: PassTexts, ask?: PassAsk): C
   /** the demonstration folds exactly what was asked: no more, no fewer */
   const flySides = ask?.sides ?? allCorners(corners)
   const flyAngles = ask?.angles ?? allCorners(corners)
-  /** one side per asked side, then one angle per asked angle */
-  const flyTotal = flySides.length + flyAngles.length
-  const flying = phase === 'compare' && flyStep < flyTotal
-  const done = phase === 'compare' && flyStep >= flyTotal
+  const demo = useCorrDemo({
+    sides: flySides,
+    angles: flyAngles,
+    sequential: timing.sequential === true,
+  })
+  const flying = phase === 'compare' && demo.flying
+  const done = phase === 'compare' && demo.done
 
   const restart = useCallback(() => {
     setPhase('points')
     setStep(0)
     setWrong(false)
-    setFlyStep(0)
-    setLanded(false)
+    demo.reset()
     setJustFound(false)
     if (starTimer.current) window.clearTimeout(starTimer.current)
-  }, [])
+  }, [demo])
 
   /**
    * Explain the miss, then put the ask back. The timer is dropped on unmount, so
@@ -170,32 +185,15 @@ export function useCorrPass(corners: number, texts: PassTexts, ask?: PassAsk): C
         setPhase(next)
       } else {
         setPhase('compare')
-        setFlyStep(0)
+        demo.reset()
       }
     },
-    [asked, explain, phase, step, wrong],
+    [asked, demo, explain, phase, step, wrong],
   )
 
   useEffect(() => () => {
     if (starTimer.current) window.clearTimeout(starTimer.current)
   }, [])
-
-  /*
-   * The demonstration runs itself: it is an explanation rather than a question,
-   * and the only thing the child could get wrong is the order it happens in.
-   */
-  useEffect(() => {
-    if (!flying) return
-    const lift = window.setTimeout(() => setLanded(true), PAUSE_MS)
-    const advance = window.setTimeout(() => {
-      setLanded(false)
-      setFlyStep((s) => s + 1)
-    }, PAUSE_MS + FLY_MS + HOLD_MS)
-    return () => {
-      window.clearTimeout(lift)
-      window.clearTimeout(advance)
-    }
-  }, [flying, flyStep])
 
   return {
     phase,
@@ -205,8 +203,9 @@ export function useCorrPass(corners: number, texts: PassTexts, ask?: PassAsk): C
     flySides,
     flyAngles,
     wrong,
-    flyStep,
-    landed,
+    flyStep: demo.flyStep,
+    landed: demo.landed,
+    landedSecond: demo.landedSecond,
     justFound,
     attempts,
     flying,

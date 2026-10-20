@@ -240,7 +240,8 @@ describe('the four rows on the home screen', () => {
     // The DRY claim, checked rather than asserted: both hooks call the same one.
     expect(source('src/modes/useCorrespondence.ts').includes('useCorrPass(')).toBeTruthy()
     expect(source('src/modes/useSymmetryParts.ts').includes('useCorrPass(')).toBeTruthy()
-    expect(source('src/modes/useCorrPass.ts').includes('HOLD_MS')).toBeTruthy()
+    expect(source('src/modes/useCorrPass.ts').includes('useCorrDemo(')).toBeTruthy()
+    expect(source('src/modes/useCorrDemo.ts').includes('HOLD_MS')).toBeTruthy()
     // and the marks and the travelling part are drawn once between them
     expect(source('src/components/CorrespondenceScene.tsx').includes('<CorrMarks')).toBeTruthy()
     expect(source('src/components/SymmetryPartsScene.tsx').includes('<CorrMarks')).toBeTruthy()

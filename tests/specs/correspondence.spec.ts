@@ -203,11 +203,11 @@ describe('every shape has parts the child can tell apart', () => {
 
     it('keeps the claim up long enough to read', () => {
       // It arrived and left in the same instant the fit became visible, which is
-      // the one moment the child is definitely looking. The timing now lives in the
-      // shared pass, because the symmetry unit runs the same demonstration.
-      const pass = source('src/modes/useCorrPass.ts')
-      expect(/HOLD_MS/.test(pass)).toBeTruthy()
-      expect(/PAUSE_MS \+ FLY_MS \+ HOLD_MS/.test(pass)).toBeTruthy()
+      // the one moment the child is definitely looking. The timing now lives in
+      // the shared demonstration, because the symmetry unit runs the same one.
+      const demo = source('src/modes/useCorrDemo.ts')
+      expect(/HOLD_MS/.test(demo)).toBeTruthy()
+      expect(/PAUSE_MS \+ FLY_MS/.test(demo)).toBeTruthy()
     })
   })
 
@@ -472,6 +472,30 @@ describe('a part travels onto its partner exactly', () => {
     expect(source('src/components/PointPartsScene.tsx').includes('swap')).toBeTruthy()
     expect(source('src/components/PointFactsScene.tsx').includes('swap')).toBeTruthy()
     expect(source('src/components/SymmetryFactsScene.tsx').includes('swap') ? 'the span stops landing' : 'ok').toBe('ok')
+  })
+
+  it('takes the exchange in turns where the claim is that the two are the same', () => {
+    /*
+     * Both parts moving at once is unreadable where the claim is sameness: the
+     * two cross in the middle, and because the parts are mirror images of each
+     * other the picture at the end is the picture at the start — so nothing was
+     * shown. There the first part travels and comes to rest exactly on its
+     * partner, which is the claim itself, and only then does the second set off.
+     *
+     * The timing lives in the hook, not in a CSS delay: the second part needs
+     * to start when the first has come to rest, and a transition delay would
+     * have to know the travel time twice over.
+     */
+    const demo = source('src/modes/useCorrDemo.ts')
+    expect(demo.includes('landedSecond')).toBeTruthy()
+    expect(demo.includes('REST_MS')).toBeTruthy()
+    const fly = source('src/components/CorrFly.tsx')
+    expect(fly.includes('landedSecond')).toBeTruthy()
+    // the boards whose claim is sameness take their turns
+    expect(source('src/modes/useSymmetryParts.ts').includes('sequential: true')).toBeTruthy()
+    expect(source('src/modes/usePointSymmetryParts.ts').includes('sequential: true')).toBeTruthy()
+    // and the one whose claim is that each is the other's partner still does both
+    expect(source('src/modes/useCorrespondence.ts').includes('sequential')).toBeFalsy()
   })
 
   it('stands the flying pair down while it travels', () => {

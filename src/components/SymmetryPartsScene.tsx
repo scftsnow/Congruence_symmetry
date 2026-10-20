@@ -28,7 +28,7 @@ const WEDGE = 45
 
 export function SymmetryPartsScene({
   vertices, axis, pairs, phase, step, asked, flySides, flyAngles, flyStep,
-  landed, justFound, onAnswer,
+  landed, landedSecond, justFound, onAnswer,
 }: {
   vertices: Point[]
   axis: Line
@@ -40,6 +40,8 @@ export function SymmetryPartsScene({
   flyAngles: number[]
   flyStep: number
   landed: boolean
+  /** the second part of the pair, which sets off after the first has come to rest */
+  landedSecond: boolean
   justFound: boolean
   onAnswer: (index: number) => void
 }) {
@@ -104,7 +106,15 @@ export function SymmetryPartsScene({
       )}
 
       {/* keyed by flyStep so a finished part never travels back to where it left */}
-      <CorrFly key={flyStep} part={fly} landed={landed} move={foldTransform({ a: axis.a, b: axis.b }, -1)} wedge={WEDGE} swap />
+      <CorrFly
+        key={flyStep}
+        part={fly}
+        landed={landed}
+        landedSecond={landedSecond}
+        move={foldTransform({ a: axis.a, b: axis.b }, -1)}
+        wedge={WEDGE}
+        swap
+      />
 
       {/* the taps, and only the ones belonging to the pass in progress */}
       {phase === 'points' &&

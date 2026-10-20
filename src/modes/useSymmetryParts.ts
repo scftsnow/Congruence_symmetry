@@ -50,6 +50,8 @@ export interface SymmetryPartsState {
   /** which fold of the demonstration is on its way */
   flyStep: number
   landed: boolean
+  /** the second part of the pair, which sets off after the first has come to rest */
+  landedSecond: boolean
   justFound: boolean
   attempts: number
   flying: boolean
@@ -80,10 +82,17 @@ export function useSymmetryParts(board: PartsBoard, onSettled: () => void): Symm
     }),
     [pairs, pointAsk],
   )
-  const pass = useCorrPass(corners, {
-    instruction: symmetryPartsInstructionFor,
-    found: symmetryPartsFoundFor,
-  }, ask)
+  const pass = useCorrPass(
+    corners,
+    {
+      instruction: symmetryPartsInstructionFor,
+      found: symmetryPartsFoundFor,
+    },
+    ask,
+    // the two parts are mirror images of each other, so exchanging them at once
+    // ends where it started: the exchange is taken in turns instead
+    { sequential: true },
+  )
 
   /* Settling is reported, not derived: the run owns which boards are done, and
    * this hook owns when this board is. */
@@ -102,6 +111,7 @@ export function useSymmetryParts(board: PartsBoard, onSettled: () => void): Symm
     flyAngles: pass.flyAngles,
     flyStep: pass.flyStep,
     landed: pass.landed,
+    landedSecond: pass.landedSecond,
     justFound: pass.justFound,
     attempts: pass.attempts,
     flying: pass.flying,

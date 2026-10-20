@@ -38,6 +38,7 @@ export function PartsBoard({ board, onSettled, onNext, nextLabel }: {
           flyAngles={p.flyAngles}
           flyStep={p.flyStep}
           landed={p.landed}
+          landedSecond={p.landedSecond}
           justFound={p.justFound}
           onAnswer={p.answer}
         />

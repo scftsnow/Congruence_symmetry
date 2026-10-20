@@ -38,7 +38,7 @@ const WEDGE = 45
 
 export function PointPartsScene({
   vertices, center, pairs, phase, step, asked, flySides, flyAngles, flyStep,
-  landed, justFound, onAnswer,
+  landed, landedSecond, justFound, onAnswer,
 }: {
   vertices: Point[]
   center: Point
@@ -56,6 +56,8 @@ export function PointPartsScene({
   /** which turn of the demonstration is on its way */
   flyStep: number
   landed: boolean
+  /** the second part of the pair, which sets off after the first has come to rest */
+  landedSecond: boolean
   /** true just after a correct find */
   justFound: boolean
   onAnswer: (index: number) => void
@@ -129,6 +131,7 @@ export function PointPartsScene({
         key={flyStep}
         part={fly}
         landed={landed}
+        landedSecond={landedSecond}
         move={turnTransform(center, 180)}
         wedge={WEDGE}
         swap

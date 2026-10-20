@@ -131,7 +131,10 @@ export function CongruenceStage({ onBack, onComplete }: CongruenceStageProps) {
   useMarkComplete(cleared, onComplete)
   // the ending waits, so the last landing is looked at before the words arrive
   const showDone = useDoneAfter(cleared)
-  const message = congruenceMessageFor(verdict, turned, count, board.target, flipped)
+  /* The last landing still names how it landed: the message is worked out as if
+   * one pair were still missing, so the verdict on this release — the match —
+   * is what the popup says until the ending rises. */
+  const message = congruenceMessageFor(verdict, turned, Math.min(count, board.target - 1), board.target, flipped)
   /*
    * Before the first release, the standing instruction crosses the top of the
    * panel as a popup, because the bottom line is gone everywhere. congruenceMessageFor
@@ -145,7 +148,7 @@ export function CongruenceStage({ onBack, onComplete }: CongruenceStageProps) {
       { text: '끌어다 겹쳐 보세요', strong: true },
     ],
   }
-  const toast = useStageMessage(cleared ? NEUTRAL : attempts === 0 ? opening : message, attempts)
+  const toast = useStageMessage(showDone ? NEUTRAL : attempts === 0 ? opening : message, attempts)
 
   useEffect(() => {
     if (!released) return

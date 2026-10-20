@@ -129,7 +129,7 @@ export function PointPartsScene({
         key={flyStep}
         part={fly}
         landed={landed}
-        move={turnTransform(center, 180)}
+        move={{ from: turnTransform(center, 0), to: turnTransform(center, 180) }}
         wedge={WEDGE}
         swap
       />

@@ -32,6 +32,8 @@ const FOLD_MS = 700
 const HINT_MS = 1800
 /** how long the stars stay up after a correct find, as in the other units */
 const STAR_MS = 1500
+/** how long the sentence about the fold stays up: three times the stars */
+const FOUND_MS = STAR_MS * 3
 /** how long a non-final find stays folded: without reopening, no second line could ever be drawn */
 const UNFOLD_MS = 1500
 
@@ -74,8 +76,7 @@ export function useSymmetry(item: SymmetryItem, onSettled: () => void): Symmetry
    *
    * Its sentence is the one thing on the board that says what just happened, and
    * it used to leave with the stars — a second and a half, which is not long
-   * enough to read it. It stays until the child tries again, and the popup it
-   * opens is read for as long as a success is read anywhere else in the app.
+   * enough to read it. It stays three times as long as the burst it came with.
    */
   const [found, setFound] = useState(false)
   const [attempts, setAttempts] = useState(0)
@@ -84,9 +85,11 @@ export function useSymmetry(item: SymmetryItem, onSettled: () => void): Symmetry
   const [foundIdx, setFoundIdx] = useState<number[]>([])
   const [foundLines, setFoundLines] = useState<Axis[]>([])
   const timer = useRef<number | null>(null)
+  const saidTimer = useRef<number | null>(null)
 
   useEffect(() => () => {
     if (timer.current) window.clearTimeout(timer.current)
+    if (saidTimer.current) window.clearTimeout(saidTimer.current)
   }, [])
 
   const settle = useCallback(() => {
@@ -140,6 +143,7 @@ export function useSymmetry(item: SymmetryItem, onSettled: () => void): Symmetry
         setJustFound(true)
         setFound(true)
         timer.current = window.setTimeout(() => setJustFound(false), STAR_MS)
+        saidTimer.current = window.setTimeout(() => setFound(false), FOUND_MS)
         if (shape.axes === 0 || foundIdx.length + 1 >= shape.axes) {
           settle()
         } else reopen(UNFOLD_MS)
@@ -159,6 +163,7 @@ export function useSymmetry(item: SymmetryItem, onSettled: () => void): Symmetry
       setFound(true)
       settle()
       timer.current = window.setTimeout(() => setJustFound(false), STAR_MS)
+      saidTimer.current = window.setTimeout(() => setFound(false), FOUND_MS)
       return
     }
     setWrongKind('deny')

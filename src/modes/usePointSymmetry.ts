@@ -30,6 +30,8 @@ import type { Message } from '../components/tone'
 const HINT_MS = 1800
 /** how long the stars stay up after a correct find, as in the other units */
 const STAR_MS = 1500
+/** how long the sentence about the turn stays up: three times the stars */
+const FOUND_MS = STAR_MS * 3
 
 export interface PointSymmetryState {
   shape: PointSymmetryItem
@@ -60,23 +62,20 @@ export function usePointSymmetry(item: PointSymmetryItem, onSettled: () => void)
   const [draft, setDraft] = useState<{ p: Point; q: Point } | null>(null)
   const [wrongKind, setWrongKind] = useState<'off' | 'miss' | 'deny' | null>(null)
   const [justFound, setJustFound] = useState(false)
-  /**
-   * The last attempt found the middle.
-   *
-   * Its sentence used to leave with the stars — a second and a half, which is
-   * not long enough to read it. It stays until the child tries again, and the
-   * popup it opens is read for as long as a success is read anywhere else.
-   */
+  /** The last attempt found the middle: its sentence stays three times as long
+   * as the stars it came with, so it can be read. */
   const [found, setFound] = useState(false)
   const [attempts, setAttempts] = useState(0)
   const [resolved, setResolved] = useState(false)
   const timer = useRef<number | null>(null)
+  const saidTimer = useRef<number | null>(null)
   /** the press this gesture steers from, and where the copy stood then */
   const pressRef = useRef<Point | null>(null)
   const baseRef = useRef(0)
 
   useEffect(() => () => {
     if (timer.current) window.clearTimeout(timer.current)
+    if (saidTimer.current) window.clearTimeout(saidTimer.current)
   }, [])
 
   const settle = useCallback(() => {
@@ -160,6 +159,7 @@ export function usePointSymmetry(item: PointSymmetryItem, onSettled: () => void)
         setJustFound(true)
         setFound(true)
         timer.current = window.setTimeout(() => setJustFound(false), STAR_MS)
+        saidTimer.current = window.setTimeout(() => setFound(false), FOUND_MS)
         settle()
         return
       }
@@ -181,6 +181,7 @@ export function usePointSymmetry(item: PointSymmetryItem, onSettled: () => void)
       setFound(true)
       settle()
       timer.current = window.setTimeout(() => setJustFound(false), STAR_MS)
+      saidTimer.current = window.setTimeout(() => setFound(false), FOUND_MS)
       return
     }
     setWrongKind('deny')

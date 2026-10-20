@@ -510,6 +510,27 @@ describe('a part travels onto its partner exactly', () => {
     expect(over.length === 0 ? 'ok' : 'still overshoots: ' + over.join(',')).toBe('ok')
   })
 
+  it('writes both ends of a travel the same way, so the browser can follow it', () => {
+    /*
+     * A part that starts with no transform at all and ends with one is a change
+     * from nothing to something, and the browser has to break the ending into a
+     * turn, a slide and a stretch of its own choosing. What it chose was a
+     * rotation about the corner of the canvas: the part swung a long way round
+     * the top-left corner on its way to a place a few hundred pixels away.
+     *
+     * Written the same way at both ends, the browser interpolates the two lists
+     * themselves — a part slides straight across and turns as it goes.
+     */
+    const fly = source('src/components/CorrFly.tsx')
+    // the starting end is written out, not left as nothing
+    expect(/transform: landed \? travel\.to : travel\.from/.test(fly)).toBeTruthy()
+    expect(fly.includes('landed ? travel : undefined') ? 'the start is still nothing' : 'ok').toBe('ok')
+    for (const scene of ['src/components/SymmetryPartsScene.tsx', 'src/components/PointPartsScene.tsx', 'src/components/SymmetryFactsScene.tsx']) {
+      const body = source(scene)
+      expect(/move=\{\{ from:/.test(body) ? 'ok' : 'no pair of ends given').toBe('ok')
+    }
+  })
+
   it('stands the flying pair down while it travels', () => {
     // The traveller is drawn carrying its own line, so leaving its static
     // marks up would draw it twice — a new set appearing beside the original.

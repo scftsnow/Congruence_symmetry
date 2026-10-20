@@ -138,7 +138,7 @@ export function SymmetryFactsScene({
               b: [vertices[pb], fb],
             }}
             landed={landed}
-            move={foldTransform({ a: axis.a, b: axis.b }, -1)}
+            move={{ from: foldTransform({ a: axis.a, b: axis.b }, 1), to: foldTransform({ a: axis.a, b: axis.b }, -1) }}
           />
           {landed && (
             <g className="sym-proved sym-in">

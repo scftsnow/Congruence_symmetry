@@ -50,9 +50,10 @@
  * the fold altogether — the way on was somewhere they had to scroll to find.
  *
  * So it stands in the middle of the board itself: the white panel the child has
- * been working on, over a dimming of that same panel. The board stays behind
- * it, and the board underneath keeps its own pointer events: nothing about the
- * screen is locked, and only the button takes the touch.
+ * been working on. The board is left alone — no dimming, no covering — so the
+ * shape that was just finished is still there to be seen, and the board
+ * underneath keeps its own pointer events: nothing about the screen is locked,
+ * and only the button takes the touch.
  */
 .next-overlay {
   position: absolute;
@@ -60,12 +61,12 @@
   z-index: 5;
   display: grid;
   place-items: center;
-  background: rgba(3, 8, 16, 0.55);
   pointer-events: none;
 }
 
 .next-overlay .start-btn {
   pointer-events: auto;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
 }
 
 /* the shell every unit screen shares

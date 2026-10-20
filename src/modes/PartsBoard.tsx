@@ -46,20 +46,6 @@ export function PartsBoard({ board, onSettled, onNext, nextLabel, last }: {
         />
         {p.done && !last && <NextButton label={nextLabel} onClick={onNext} />}
       </div>
-      <div className="sym-foot">
-        {!p.done && (
-          <ol className="sym-dots" aria-label="진행">
-            {Array.from({ length: p.total }).map((_, i) => (
-              <li
-                key={i}
-                className={
-                  i === p.step ? 'sym-dot sym-dot--now' : i < p.step ? 'sym-dot sym-dot--done' : 'sym-dot'
-                }
-              />
-            ))}
-          </ol>
-        )}
-      </div>
     </>
   )
 }

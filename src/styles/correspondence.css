@@ -203,38 +203,3 @@
   font-weight: 700;
 }
 
-.corr-foot {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-}
-
-.corr-dots {
-  display: flex;
-  gap: 12px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.corr-dot {
-  width: 18px;
-  height: 18px;
-  border: 3px solid var(--color-line);
-  border-radius: 50%;
-  background: var(--color-surface);
-}
-
-.corr-dot--done {
-  border-color: var(--color-success);
-  background: var(--color-success);
-  box-shadow: var(--glow-shadow);
-}
-
-.corr-dot--now {
-  border-color: #e76f51;
-  background: #e76f51;
-  transform: scale(1.25);
-}
-

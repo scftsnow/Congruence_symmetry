@@ -78,7 +78,6 @@
 /* ── 모드 화면 ───────────────────────────────────────── */
 
 .mode {
-  max-width: 1100px;
   margin: 0 auto;
   padding: 20px;
   display: flex;
@@ -175,7 +174,7 @@
    * than its drawing, so no bare paper is left below it. Uncapped the wrap
    * would outgrow a capped drawing on a short screen.
    */
-  max-height: calc(100svh - 191px);
+  max-height: calc(100svh - 151px);
   display: flex;
   flex-direction: column;
   background: var(--paper);
@@ -194,14 +193,49 @@
    * Never taller than the screen minus its chrome, and never shorter than
    * what is left: the wrap takes the column's remainder, and the drawing
    * letterboxes inside it — wider on an upright screen, taller on a sideways
-   * one, stretched never. 215px is the header, the gaps, the wrap's own
-   * padding and a foot of dots, with room.
+   * one, stretched never. 175px is the header, the gaps and the wrap's own
+   * padding, with room. There is no foot of dots any more: the count lives
+   * in the header, so the paper keeps those pixels.
    */
-  max-height: calc(100vh - 215px);
-  max-height: calc(100svh - 215px);
+  max-height: calc(100vh - 175px);
+  max-height: calc(100svh - 175px);
   margin: 0 auto;
   touch-action: none;
   user-select: none;
+}
+
+/* tablet in landscape: short screens
+ *
+ * A sideways tablet is short rather than narrow, so the chrome above the
+ * board is what steals its height. Below 850px the header compacts — smaller
+ * buttons and title, tighter padding and gaps — and both caps come down with
+ * it, or the board would keep the old ceiling and nothing would grow.
+ */
+@media (max-height: 850px) {
+  .mode {
+    padding: 12px;
+    gap: 10px;
+  }
+  .mode__title {
+    font-size: 1.2rem;
+  }
+  .back-btn {
+    min-height: 40px;
+    padding: 0 14px;
+  }
+  .mini-btn {
+    min-height: 40px;
+  }
+  .corr-pair {
+    min-height: 40px;
+  }
+  .canvas-wrap {
+    padding: 8px;
+    max-height: calc(100svh - 126px);
+  }
+  .canvas {
+    max-height: calc(100svh - 150px);
+  }
 }
 
 /* tablet in landscape

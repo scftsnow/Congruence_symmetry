@@ -58,25 +58,6 @@ export function PointDrawBoard({ board, onSettled, onNext, nextLabel, last }: {
           <NextButton label={nextLabel} onClick={onNext} delay={400} />
         )}
       </div>
-      <div className="sym-foot">
-        {!d.resolved && (
-          /*
-           * Dots only, no standing line: what to do arrives as a popup for every
-           * point awaited, and a second telling of it underneath would compete.
-           */
-          <ol className="sym-dots" aria-label="진행">
-            {d.placed.map((_, i) => (
-              <li key={i} className="sym-dot sym-dot--done" />
-            ))}
-            {Array.from({ length: d.waiting }).map((_, i) => (
-              <li
-                key={`w${i}`}
-                className={i === 0 ? 'sym-dot sym-dot--now' : 'sym-dot'}
-              />
-            ))}
-          </ol>
-        )}
-      </div>
     </>
   )
 }

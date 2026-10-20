@@ -46,24 +46,6 @@ export function PointFactsBoard({ board, onSettled, onNext, nextLabel, last }: {
         />
         {f.resolved && !last && <NextButton label={nextLabel} onClick={onNext} />}
       </div>
-      <div className="sym-foot">
-        {!f.resolved && (
-          <ol className="sym-dots" aria-label="진행">
-            {f.pairs.points.map((_, i) => (
-              <li
-                key={i}
-                className={
-                  i < f.joinedList.length
-                    ? 'sym-dot sym-dot--done'
-                    : i === f.joinedList.length
-                      ? 'sym-dot sym-dot--now'
-                      : 'sym-dot'
-                }
-              />
-            ))}
-          </ol>
-        )}
-      </div>
     </>
   )
 }

@@ -105,45 +105,21 @@ export function CorrespondenceStage({
         )}
       </div>
 
-      <div className="corr-foot">
-        {c.done && last && showDone ? (
-          /*
-           * Two different endings, and the difference matters.
-           *
-           * After a pair that is not the last one there is more to do, so the
-           * offer is the next shape — and that offer now stands in the middle of
-           * the board, over the shape the child has just finished with. After the
-           * last one the unit is finished, and looping back to the first pair —
-           * which is what this used to do — left the unit with no ending at all.
-           * That now says so and goes home.
-           */
-          <DonePanel
-            title={done.title}
-            note={done.note}
-            homeLabel={done.homeLabel}
-            againLabel={done.againLabel}
-            onHome={onBack}
-            onAgain={() => c.startPair(0)}
-          />
-        ) : (
-          !c.done && (
-            <ol className="corr-dots" aria-label="진행">
-              {Array.from({ length: c.corners }).map((_, i) => (
-                <li
-                  key={i}
-                  className={
-                    i === c.step
-                      ? 'corr-dot corr-dot--now'
-                      : i < c.step
-                        ? 'corr-dot corr-dot--done'
-                        : 'corr-dot'
-                  }
-                />
-              ))}
-            </ol>
-          )
-        )}
-      </div>
+      {c.done && last && showDone ? (
+        /*
+         * After the last pair the unit is finished, and looping back to the
+         * first pair — which is what this used to do — left the unit with no
+         * ending at all. That now says so and goes home.
+         */
+        <DonePanel
+          title={done.title}
+          note={done.note}
+          homeLabel={done.homeLabel}
+          againLabel={done.againLabel}
+          onHome={onBack}
+          onAgain={() => c.startPair(0)}
+        />
+      ) : null}
     </div>
   )
 }

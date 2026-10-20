@@ -531,6 +531,21 @@ describe('a part travels onto its partner exactly', () => {
     }
   })
 
+  it('reads the conclusion slowly: twice the popup, twice the wait', () => {
+    /*
+     * The sentence that closes the unit flashed past in the same short time as
+     * every other popup, and the ending rose right behind it — so the claim the
+     * whole unit was for had to be guessed at. Its popup stays twice as long,
+     * and the way on waits twice as long to follow it.
+     */
+    const stage = source('src/modes/CorrespondenceStage.tsx')
+    expect(/useStageMessage\(c\.message, c\.attempts, c\.done \? POPUP_MS \* 2 : POPUP_MS\)/.test(stage)).toBeTruthy()
+    expect(/useDoneAfter\(c\.done && last, DONE_AFTER_MS \* 2\)/.test(stage)).toBeTruthy()
+    expect(/delay=\{NEXT_AFTER_MS \* 2\}/.test(stage)).toBeTruthy()
+    const button = source('src/components/NextButton.tsx')
+    expect(/delay = NEXT_AFTER_MS/.test(button)).toBeTruthy()
+  })
+
   it('stands the flying pair down while it travels', () => {
     // The traveller is drawn carrying its own line, so leaving its static
     // marks up would draw it twice — a new set appearing beside the original.

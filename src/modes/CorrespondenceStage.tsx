@@ -9,14 +9,14 @@
 
 import { CorrespondenceScene } from '../components/CorrespondenceScene'
 import { Toast } from '../components/Toast'
-import { NextButton } from '../components/NextButton'
+import { NextButton, NEXT_AFTER_MS } from '../components/NextButton'
 import { DonePanel } from '../components/DonePanel'
 import { correspondenceDonePanelFor, NEXT_SHAPE } from '../components/corrText'
 import { CORRESPONDENCE_PAIRS } from '../geometry/correspondenceShapes'
 import { useCorrespondence } from './useCorrespondence'
-import { useStageMessage } from './useStageMessage'
+import { useStageMessage, POPUP_MS } from './useStageMessage'
 import { useMarkComplete } from './useUnitProgress'
-import { useDoneAfter } from './useDoneAfter'
+import { useDoneAfter, DONE_AFTER_MS } from './useDoneAfter'
 
 export function CorrespondenceStage({
   onBack,
@@ -36,8 +36,11 @@ export function CorrespondenceStage({
    * The part flying onto its partner is the last thing the board does, and the
    * popup covers the board while it is up — so a popup that rises the instant
    * the last answer is given hides the very thing it is congratulating.
+   *
+   * The conclusion itself is read slowly here: its popup stays twice as long,
+   * and the ending waits twice as long to follow it.
    */
-  const showDone = useDoneAfter(c.done && last)
+  const showDone = useDoneAfter(c.done && last, DONE_AFTER_MS * 2)
 
   /*
    * The same rule as the congruence board, in the same place: every answer is
@@ -49,7 +52,7 @@ export function CorrespondenceStage({
    * produce the same words, so keying on the words alone would leave the child
    * still stuck and told nothing.
    */
-  const toast = useStageMessage(c.message, c.attempts)
+  const toast = useStageMessage(c.message, c.attempts, c.done ? POPUP_MS * 2 : POPUP_MS)
 
   return (
     <div className="mode">
@@ -92,7 +95,9 @@ export function CorrespondenceStage({
           justFound={c.justFound}
           onAnswer={c.answer}
         />
-        {c.done && !last && <NextButton label={NEXT_SHAPE} onClick={c.nextPair} />}
+        {c.done && !last && (
+          <NextButton label={NEXT_SHAPE} onClick={c.nextPair} delay={NEXT_AFTER_MS * 2} />
+        )}
       </div>
 
       <div className="corr-foot">

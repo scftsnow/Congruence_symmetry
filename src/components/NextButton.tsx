@@ -25,13 +25,22 @@ import { useEffect, useState } from 'react'
 /** how long the explanation is read before the way on comes up */
 export const NEXT_AFTER_MS = 5000
 
-export function NextButton({ label, onClick }: { label: string; onClick: () => void }) {
+export function NextButton({
+  label,
+  onClick,
+  delay = NEXT_AFTER_MS,
+}: {
+  label: string
+  onClick: () => void
+  /** how long to wait before coming up; a board with more to read waits longer */
+  delay?: number
+}) {
   const [shown, setShown] = useState(false)
 
   useEffect(() => {
-    const timer = window.setTimeout(() => setShown(true), NEXT_AFTER_MS)
+    const timer = window.setTimeout(() => setShown(true), delay)
     return () => window.clearTimeout(timer)
-  }, [])
+  }, [delay])
 
   if (!shown) return null
   return (

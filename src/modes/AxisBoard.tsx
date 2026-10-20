@@ -8,6 +8,7 @@
 
 import { SymmetryScene } from '../components/SymmetryScene'
 import { Toast } from '../components/Toast'
+import { NextButton } from '../components/NextButton'
 import { SYMM_DENY_LABEL } from '../components/symmText'
 import type { SymmetryItem } from '../geometry/symmetryShapes'
 import { useSymmetry } from './useSymmetry'
@@ -54,14 +55,8 @@ export function AxisBoard({
             {SYMM_DENY_LABEL}
           </button>
         )}
+        {s.resolved && <NextButton label={nextLabel} onClick={onNext} />}
       </div>
-      {s.resolved && (
-        <div className="sym-foot">
-          <button type="button" className="start-btn" onClick={onNext}>
-            {nextLabel}
-          </button>
-        </div>
-      )}
     </>
   )
 }

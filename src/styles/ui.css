@@ -43,30 +43,28 @@
 }
 
 /*
- * The way forward, in the middle of the screen.
+ * The way forward, in the middle of the board.
  *
  * The next button used to sit in the strip below the board, which is the one
  * place on a screen a child is not looking, and on a short screen it is below
  * the fold altogether — the way on was somewhere they had to scroll to find.
  *
- * So it stands in the middle now, where the child is already looking. The board
- * stays behind it, dimmed the same way the ending is, so the work that was just
- * finished is still there to be seen, and the board underneath keeps its own
- * pointer events: nothing about the screen is locked.
+ * So it stands in the middle of the board itself: the white panel the child has
+ * been working on, over a dimming of that same panel. The board stays behind
+ * it, and the board underneath keeps its own pointer events: nothing about the
+ * screen is locked, and only the button takes the touch.
  */
-.corr-foot:has(> .start-btn),
-.sym-foot:has(> .start-btn) {
-  position: fixed;
+.next-overlay {
+  position: absolute;
   inset: 0;
-  z-index: 25;
+  z-index: 5;
   display: grid;
   place-items: center;
   background: rgba(3, 8, 16, 0.55);
   pointer-events: none;
 }
 
-.corr-foot > .start-btn,
-.sym-foot > .start-btn {
+.next-overlay .start-btn {
   pointer-events: auto;
 }
 

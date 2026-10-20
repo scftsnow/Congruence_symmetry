@@ -268,5 +268,45 @@ describe('the ending waits its turn', () => {
   })
 })
 
+// ── the way on stands on the board ───────────────────────
+describe('the way on is in the middle of the board', () => {
+  it('the next button stands on the board, not below it', () => {
+    /*
+     * It used to sit in the strip below the board — the one place on a screen
+     * nobody is looking, and on a short screen below the fold altogether. It
+     * belongs in the middle of the board itself: the white panel the child has
+     * been working on.
+     */
+    const boards = [
+      'src/modes/AxisBoard.tsx',
+      'src/modes/CenterBoard.tsx',
+      'src/modes/CorrespondenceStage.tsx',
+      'src/modes/DrawBoard.tsx',
+      'src/modes/FactsBoard.tsx',
+      'src/modes/PartsBoard.tsx',
+      'src/modes/PointDrawBoard.tsx',
+      'src/modes/PointFactsBoard.tsx',
+      'src/modes/PointPartsBoard.tsx',
+    ]
+    for (const board of boards) {
+      const body = source(board)
+      expect(body.includes('<NextButton') ? 'ok' : 'no next button on this board').toBe('ok')
+      // inside the board's own wrap, and before the foot strip that follows it
+      expect(body.indexOf('<NextButton') > body.indexOf('canvas-wrap') ? 'ok' : 'below the board').toBe('ok')
+      const foot = body.indexOf('sym-foot')
+      expect(foot < 0 || body.indexOf('<NextButton') < foot ? 'ok' : 'still in the foot').toBe('ok')
+    }
+  })
+
+  it('the overlay is the board, centred, and lets the board stay live', () => {
+    const ui = source('src/styles/ui.css')
+    expect(/\.next-overlay\s*\{[^}]*position:\s*absolute/.test(ui)).toBeTruthy()
+    expect(/\.next-overlay\s*\{[^}]*place-items:\s*center/.test(ui)).toBeTruthy()
+    // the board underneath keeps its own pointer events; only the button is a target
+    expect(/\.next-overlay\s*\{[^}]*pointer-events:\s*none/.test(ui)).toBeTruthy()
+    expect(/\.next-overlay \.start-btn\s*\{[^}]*pointer-events:\s*auto/.test(ui)).toBeTruthy()
+  })
+})
+
 const { report } = await import('../harness/spec.mjs')
 report()

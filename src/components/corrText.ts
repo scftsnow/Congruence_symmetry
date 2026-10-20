@@ -76,6 +76,9 @@ const HINT: Record<Pass, string> = {
 export const FIRST_SHAPE = '첫 번째 도형'
 export const SECOND_SHAPE = '두 번째 도형'
 
+/** The way on to the next shape, once the one in hand has been finished with. */
+export const NEXT_SHAPE = '다음 도형 보기 →'
+
 /**
  * The words for the end of the unit.
  *

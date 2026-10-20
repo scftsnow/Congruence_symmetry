@@ -9,8 +9,9 @@
 
 import { CorrespondenceScene } from '../components/CorrespondenceScene'
 import { Toast } from '../components/Toast'
+import { NextButton } from '../components/NextButton'
 import { DonePanel } from '../components/DonePanel'
-import { correspondenceDonePanelFor } from '../components/corrText'
+import { correspondenceDonePanelFor, NEXT_SHAPE } from '../components/corrText'
 import { CORRESPONDENCE_PAIRS } from '../geometry/correspondenceShapes'
 import { useCorrespondence } from './useCorrespondence'
 import { useStageMessage } from './useStageMessage'
@@ -91,22 +92,21 @@ export function CorrespondenceStage({
           justFound={c.justFound}
           onAnswer={c.answer}
         />
+        {c.done && !last && <NextButton label={NEXT_SHAPE} onClick={c.nextPair} />}
       </div>
 
       <div className="corr-foot">
-        {c.done && !last ? (
+        {c.done && last && showDone ? (
           /*
            * Two different endings, and the difference matters.
            *
            * After a pair that is not the last one there is more to do, so the
-           * offer is the next shape. After the last one the unit is finished, and
-           * looping back to the first pair — which is what this used to do — left
-           * the unit with no ending at all. That now says so and goes home.
+           * offer is the next shape — and that offer now stands in the middle of
+           * the board, over the shape the child has just finished with. After the
+           * last one the unit is finished, and looping back to the first pair —
+           * which is what this used to do — left the unit with no ending at all.
+           * That now says so and goes home.
            */
-          <button type="button" className="start-btn" onClick={c.nextPair}>
-            다음 도형 보기 →
-          </button>
-        ) : showDone ? (
           <DonePanel
             title={done.title}
             note={done.note}
@@ -116,20 +116,22 @@ export function CorrespondenceStage({
             onAgain={() => c.startPair(0)}
           />
         ) : (
-          <ol className="corr-dots" aria-label="진행">
-            {Array.from({ length: c.corners }).map((_, i) => (
-              <li
-                key={i}
-                className={
-                  i === c.step
-                    ? 'corr-dot corr-dot--now'
-                    : i < c.step
-                      ? 'corr-dot corr-dot--done'
-                      : 'corr-dot'
-                }
-              />
-            ))}
-          </ol>
+          !c.done && (
+            <ol className="corr-dots" aria-label="진행">
+              {Array.from({ length: c.corners }).map((_, i) => (
+                <li
+                  key={i}
+                  className={
+                    i === c.step
+                      ? 'corr-dot corr-dot--now'
+                      : i < c.step
+                        ? 'corr-dot corr-dot--done'
+                        : 'corr-dot'
+                  }
+                />
+              ))}
+            </ol>
+          )
         )}
       </div>
     </div>

@@ -8,6 +8,7 @@
 
 import { CenterScene } from '../components/CenterScene'
 import { Toast } from '../components/Toast'
+import { NextButton } from '../components/NextButton'
 import { POINT_DENY_LABEL } from '../components/pointSymmText'
 import type { PointSymmetryItem } from '../geometry/pointSymmetryShapes'
 import { usePointSymmetry } from './usePointSymmetry'
@@ -53,14 +54,8 @@ export function CenterBoard({
             {POINT_DENY_LABEL}
           </button>
         )}
+        {s.resolved && <NextButton label={nextLabel} onClick={onNext} />}
       </div>
-      {s.resolved && (
-        <div className="sym-foot">
-          <button type="button" className="start-btn" onClick={onNext}>
-            {nextLabel}
-          </button>
-        </div>
-      )}
     </>
   )
 }

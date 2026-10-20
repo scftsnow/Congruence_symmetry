@@ -8,6 +8,7 @@
 
 import { PointFactsScene } from '../components/PointFactsScene'
 import { Toast } from '../components/Toast'
+import { NextButton } from '../components/NextButton'
 import type { PointSymmetryBoard } from '../geometry/pointSymmetryShapes'
 import { usePointSymmetryFacts } from './usePointSymmetryFacts'
 import { useStageMessage } from './useStageMessage'
@@ -42,13 +43,10 @@ export function PointFactsBoard({ board, onSettled, onNext, nextLabel }: {
           onDrawMove={f.moveDraw}
           onDrawEnd={f.endDraw}
         />
+        {f.resolved && <NextButton label={nextLabel} onClick={onNext} />}
       </div>
       <div className="sym-foot">
-        {f.resolved ? (
-          <button type="button" className="start-btn" onClick={onNext}>
-            {nextLabel}
-          </button>
-        ) : (
+        {!f.resolved && (
           <ol className="sym-dots" aria-label="진행">
             {f.pairs.points.map((_, i) => (
               <li

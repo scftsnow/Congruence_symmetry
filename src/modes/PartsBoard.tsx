@@ -8,6 +8,7 @@
 
 import { SymmetryPartsScene } from '../components/SymmetryPartsScene'
 import { Toast } from '../components/Toast'
+import { NextButton } from '../components/NextButton'
 import type { SymmetryBoard } from '../geometry/symmetryShapes'
 import { useSymmetryParts } from './useSymmetryParts'
 import { useStageMessage } from './useStageMessage'
@@ -41,13 +42,10 @@ export function PartsBoard({ board, onSettled, onNext, nextLabel }: {
           justFound={p.justFound}
           onAnswer={p.answer}
         />
+        {p.done && <NextButton label={nextLabel} onClick={onNext} />}
       </div>
       <div className="sym-foot">
-        {p.done ? (
-          <button type="button" className="start-btn" onClick={onNext}>
-            {nextLabel}
-          </button>
-        ) : (
+        {!p.done && (
           <ol className="sym-dots" aria-label="진행">
             {Array.from({ length: p.total }).map((_, i) => (
               <li

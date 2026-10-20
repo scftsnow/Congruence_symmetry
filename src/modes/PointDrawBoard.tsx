@@ -10,6 +10,7 @@
 
 import { PointDrawScene } from '../components/PointDrawScene'
 import { Toast } from '../components/Toast'
+import { NextButton } from '../components/NextButton'
 import type { PointSymmetryBoard } from '../geometry/pointSymmetryShapes'
 import { usePointSymmetryDraw } from './usePointSymmetryDraw'
 import { useStageMessage } from './useStageMessage'
@@ -47,13 +48,10 @@ export function PointDrawBoard({ board, onSettled, onNext, nextLabel }: {
           onDrawMove={d.moveDraw}
           onDrawEnd={d.endDraw}
         />
+        {d.resolved && <NextButton label={nextLabel} onClick={onNext} />}
       </div>
       <div className="sym-foot">
-        {d.resolved ? (
-          <button type="button" className="start-btn" onClick={onNext}>
-            {nextLabel}
-          </button>
-        ) : (
+        {!d.resolved && (
           /*
            * Dots only, no standing line: what to do arrives as a popup for every
            * point awaited, and a second telling of it underneath would compete.

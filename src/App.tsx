@@ -39,7 +39,7 @@
  * whether a unit was finished; that is the board's own business.
  */
 
-import { useState, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { Constellation } from './components/Constellation'
 import { SkyParticles } from './components/SkyParticles'
 import { CongruenceStage } from './modes/CongruenceStage'
@@ -128,7 +128,13 @@ export function HomeUnits({
               >
                 <button type="button" className="unit-open" onClick={() => onOpen(unit.id)}>
                   {done ? (
-                    <span className="unit-list__badge unit-list__badge--star" aria-label="해낸 단원">
+                    <span
+                      className={
+                        'unit-list__badge unit-list__badge--star' +
+                        (progress.fresh === unit.id ? ' unit-list__badge--fresh' : '')
+                      }
+                      aria-label="해낸 단원"
+                    >
                       ★
                     </span>
                   ) : (
@@ -147,12 +153,29 @@ export function HomeUnits({
 
 /** the count of finished units, worn in the top-right corner of every home screen */
 export function EarnedStars({ progress }: { progress: UnitProgress }) {
+  const fresh = progress.fresh !== null
+  /*
+   * The star and the number celebrate once, when the doors open on a unit just
+   * finished. The record was written while the board was still up, so by the
+   * time this mounts the count is already higher — without the flag there would
+   * be nothing to tell a fresh arrival from a remembered one.
+   */
+  useEffect(() => {
+    if (!fresh) return
+    const timer = window.setTimeout(() => progress.settleFresh(), 1200)
+    return () => window.clearTimeout(timer)
+  }, [fresh, progress])
   return (
-    <p className="home__stars" aria-label={`해낸 단원 ${progress.count} / ${UNITS.length}`}>
+    <p
+      className={'home__stars' + (fresh ? ' home__stars--fresh' : '')}
+      aria-label={`해낸 단원 ${progress.count} / ${UNITS.length}`}
+    >
       <span className="home__star" aria-hidden="true">
         ★
       </span>
-      {progress.count} / {UNITS.length}
+      <span className={'home__stars__count' + (fresh ? ' home__stars__count--fresh' : '')}>
+        {progress.count} / {UNITS.length}
+      </span>
     </p>
   )
 }

@@ -16,7 +16,7 @@
  * touched anything.
  */
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 const KEY = 'congruence-symmetry:done'
 
@@ -38,16 +38,23 @@ export interface UnitProgress {
   isDone: (unit: string) => boolean
   count: number
   markDone: (unit: string) => void
+  /** a unit finished this visit and not yet celebrated on the doors */
+  fresh: string | null
+  /** the doors have shown it: the next arrival is a remembered one */
+  settleFresh: () => void
 }
 
 export function useUnitProgress(): UnitProgress {
   const [done, setDone] = useState<string[]>(readDone)
+  const [fresh, setFresh] = useState<string | null>(null)
+  const doneRef = useRef<string[]>(done)
 
   /*
    * Written from the state rather than from the tap that changed it, so the
    * store and the count on screen can never disagree: one list, one write.
    */
   useEffect(() => {
+    doneRef.current = done
     try {
       window.localStorage.setItem(KEY, JSON.stringify(done))
     } catch {
@@ -56,10 +63,22 @@ export function useUnitProgress(): UnitProgress {
   }, [done])
 
   const markDone = useCallback((unit: string) => {
+    // Only a first finish is an arrival: doing a unit again adds no star, so
+    // there is nothing for the doors to celebrate.
+    if (!doneRef.current.includes(unit)) setFresh(unit)
     setDone((prev) => (prev.includes(unit) ? prev : [...prev, unit]))
   }, [])
 
-  return { done, isDone: (unit: string) => done.includes(unit), count: done.length, markDone }
+  const settleFresh = useCallback(() => setFresh(null), [])
+
+  return {
+    done,
+    isDone: (unit: string) => done.includes(unit),
+    count: done.length,
+    markDone,
+    fresh,
+    settleFresh,
+  }
 }
 
 /**

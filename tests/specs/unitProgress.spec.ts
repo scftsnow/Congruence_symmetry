@@ -66,6 +66,27 @@ describe('a finished unit leaves a star behind', () => {
     // and a finished row wears that star in place of its number
     expect(app.includes('unit-list__badge--star')).toBeTruthy()
   })
+
+  it('celebrates a new star once, when the doors open on it', () => {
+    /*
+     * The record is written while the board is still up, so the doors open on
+     * a count already higher. The star pops and the number turns over once, so
+     * the arrival reads as an arrival — and only the row just finished pops,
+     * never the remembered ones.
+     */
+    const hook = source('src/modes/useUnitProgress.ts')
+    expect(hook.includes('fresh')).toBeTruthy()
+    expect(hook.includes('settleFresh')).toBeTruthy()
+    const app = source('src/App.tsx')
+    expect(app.includes('home__stars--fresh')).toBeTruthy()
+    expect(app.includes('home__stars__count--fresh')).toBeTruthy()
+    expect(app.includes('unit-list__badge--fresh')).toBeTruthy()
+    expect(app.includes('settleFresh')).toBeTruthy()
+    const css = source('src/styles/home.css')
+    expect(/@keyframes star-earned/.test(css)).toBeTruthy()
+    expect(/@keyframes count-turn/.test(css)).toBeTruthy()
+    expect(/\.home__stars--fresh\s*\{[^}]*animation:\s*star-earned/.test(css)).toBeTruthy()
+  })
 })
 
 describe('the home screen says one thing', () => {

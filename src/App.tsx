@@ -206,13 +206,12 @@ export default function App() {
             <Constellation />
             <header className="home__header hero__header">
               <h1 className="home__title">합동과 대칭</h1>
+              <button type="button" className="start-btn hero__start" onClick={goHome}>
+                시작하기
+              </button>
               <EarnedStars progress={progress} />
             </header>
           </div>
-
-          <button type="button" className="start-btn hero__start" onClick={goHome}>
-            시작하기
-          </button>
         </section>
       </div>
     )

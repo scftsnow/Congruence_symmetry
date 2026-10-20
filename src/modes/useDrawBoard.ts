@@ -39,7 +39,8 @@ export interface DrawBoardInput {
 const HINT_MS = 1800
 const STAR_MS = 2000
 const FLY_MS = 1400
-const DONE_SHOW_MS = 3000 // how long the finished figure stands before the way out appears
+/** how long the finished figure stands before the way out appears */
+const DONE_SHOW_MS = 4500
 
 /** how near a pressed point may fall and still be it, in either unit */
 export const PLACE_TOLERANCE = 60
@@ -106,7 +107,18 @@ export function useDrawBoard(input: DrawBoardInput, onSettled: () => void): Draw
     timer.current = window.setTimeout(() => setMiss(null), HINT_MS)
   }, [])
 
-  const note = useCallback((text: string | null) => {
+  /*
+   * One timer for everything that is said, so a message can never be cut short
+   * by the one before it.
+   *
+   * The words that end a gesture — a join made, the figure finished — each
+   * left a timer behind to clear them. The last join of a figure was therefore
+   * wiped by the *previous* join's timer, a second and a half later, so the
+   * celebration of a finished figure flashed and went. Clearing the old timer
+   * before saying the new thing is the whole fix.
+   */
+  const say = useCallback((text: string | null) => {
+    if (timer.current) window.clearTimeout(timer.current)
     setJustFound(true)
     setFoundText(text)
     timer.current = window.setTimeout(() => {
@@ -152,7 +164,7 @@ export function useDrawBoard(input: DrawBoardInput, onSettled: () => void): Draw
         timer.current = window.setTimeout(() => {
           setFlying(null)
           setPlaced((prev) => [...prev, at])
-          note(texts.successFor(waiting - 1).text ?? null)
+          say(texts.successFor(waiting - 1).text ?? null)
         }, FLY_MS)
         return
       }
@@ -165,14 +177,18 @@ export function useDrawBoard(input: DrawBoardInput, onSettled: () => void): Draw
         const last = joined.length + 1 >= joinEdges.length
         if (last) {
           // the finish is watched, not left: the stars stay up until resolved
+          // and the words with them. The previous join's timer is dropped first,
+          // or it would clear this sentence a second later and the celebration
+          // of a finished figure would flash and go.
+          if (timer.current) window.clearTimeout(timer.current)
           setJustFound(true)
           setFoundText(texts.doneAll.text ?? null)
         } else {
-          note(texts.linkDone)
+          say(texts.linkDone)
         }
       }
     },
-    [draft, walking, flying, resolved, waiting, joining, answers, givens, placed, joined, joinEdges, placeTolerance, texts, fail, note],
+    [draft, walking, flying, resolved, waiting, joining, answers, givens, placed, joined, joinEdges, placeTolerance, texts, fail, say],
   )
 
   return {

@@ -31,6 +31,7 @@ import {
 } from '../../src/geometry/symmetryShapes'
 import { foldPoint, foldTransform, SNAP_PITCH } from '../../src/geometry/symmetry'
 import {
+  symmetryDrawDoneAll,
   symmetryDrawDonePanelFor,
   symmetryDrawInstructionFor,
   symmetryDrawMissedFor,
@@ -410,12 +411,39 @@ describe('the four rows on the home screen', () => {
     }
   })
 
-  it('lets the finished figure stand three seconds before the way out', () => {
+  it('lets the finished figure stand before the way out', () => {
     // Showing the way out in the same instant as the outline would trade
     // looking at it for leaving it.
     const hook = source('src/modes/useDrawBoard.ts')
-    expect(hook.includes('DONE_SHOW_MS = 3000')).toBeTruthy()
+    expect(/DONE_SHOW_MS = \d{4}/.test(hook)).toBeTruthy()
     expect(hook.includes('complete')).toBeTruthy()
+  })
+
+  it('keeps the finishing words up, and does not let the last join clear them', () => {
+    /*
+     * The figure being finished has to be announced: "선대칭도형을 완성했어요!"
+     * over the whole outline, with the stars, for as long as the figure stands.
+     *
+     * It used to be wiped a second and a half in. Each thing that was said left
+     * a timer behind to clear it, and the last join's own sentence was set
+     * while the *previous* join's timer was still pending — so that timer fired
+     * and cleared the celebration, and the finished figure flashed its
+     * congratulations and went. One timer for everything that is said, cleared
+     * before the next thing is said.
+     */
+    const hook = source('src/modes/useDrawBoard.ts')
+    expect(hook.includes('setFoundText(texts.doneAll.text ?? null)')).toBeTruthy()
+    // the old timer is dropped before the finishing words are set
+    const clear = hook.indexOf('window.clearTimeout(timer.current)')
+    const done = hook.indexOf('texts.doneAll.text')
+    expect(clear).toBeGreaterThan(-1)
+    expect(done).toBeGreaterThan(clear)
+    // and nothing else schedules a timer that would clear the words mid-way
+    const say = /const say = useCallback[\s\S]*?\}, \[\]\)/.exec(hook)?.[0] ?? ''
+    expect(say.includes('clearTimeout(timer.current)')).toBeTruthy()
+    expect(say.includes('setFoundText(text)')).toBeTruthy()
+    // the words themselves are the unit's own, not a bare "well done"
+    expect(symmetryDrawDoneAll().text).toBe('선대칭도형을 완성했어요!')
   })
 
   it('names the pass just answered, not the one just entered', () => {

@@ -26,7 +26,7 @@ import type { Message } from './tone'
  * for the square would be wrong four times over.
  */
 export function symmetryInstructionFor(): string {
-  return '도형 위에 접을 선을 손가락으로 그어 보세요'
+  return '접었을 때 완전히 겹쳐지게, 접을 선을 손가락으로 그어 보세요'
 }
 
 /** Said the moment a drawn axis proves itself in the fold. */

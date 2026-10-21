@@ -26,9 +26,11 @@ export function CorrespondenceStage({
   onComplete?: () => void
 }) {
   const c = useCorrespondence()
-  // the last pair's last part is answered, which is when the ending goes up
-  useMarkComplete(c.done, onComplete)
+  // the pairs run in order, first to last: finishing a pair moves on to the
+  // next shape, and only the last pair ends the unit.
   const last = c.pairIndex + 1 >= CORRESPONDENCE_PAIRS.length
+  // the star is recorded the moment the last pair is finished
+  useMarkComplete(c.done && last, onComplete)
   const done = correspondenceDonePanelFor()
   /*
    * The ending waits for the last part to be looked at landing.
@@ -71,19 +73,6 @@ export function CorrespondenceStage({
         </div>
       </header>
 
-      <nav className="corr-pairs" aria-label="도형 고르기">
-        {CORRESPONDENCE_PAIRS.map((p, i) => (
-          <button
-            key={p.id}
-            type="button"
-            className={i === c.pairIndex ? 'corr-pair corr-pair--now' : 'corr-pair'}
-            onClick={() => c.startPair(i)}
-          >
-            {p.transformNote}
-          </button>
-        ))}
-      </nav>
-
       <div className="canvas-wrap">
         {toast && <Toast {...toast} />}
         <CorrespondenceScene
@@ -108,9 +97,8 @@ export function CorrespondenceStage({
 
       {c.done && last && showDone ? (
         /*
-         * After the last pair the unit is finished, and looping back to the
-         * first pair — which is what this used to do — left the unit with no
-         * ending at all. That now says so and goes home.
+         * Only the last pair ends the unit: finishing one pair loops on to the
+         * next shape, and the last one says the unit is over and goes home.
          */
         <DonePanel
           title={done.title}

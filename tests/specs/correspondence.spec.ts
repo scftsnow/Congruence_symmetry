@@ -243,6 +243,21 @@ describe('every shape has parts the child can tell apart', () => {
     expect(hook.includes('asked: pass.asked')).toBeTruthy()
   })
 
+  it('runs its pairs first to last, with no picking', () => {
+    // Choosing its own order let a jump to the last pair end the unit with the
+    // others untouched. The pairs run in order now: no picker, one way on to
+    // the next shape, and the ending only on the last pair.
+    const stage = source('src/modes/CorrespondenceStage.tsx')
+    expect(stage.includes('corr-pairs') ? 'the picker is still there' : 'ok').toBe('ok')
+    expect(stage.includes('corr-pair') ? 'a pair button is still there' : 'ok').toBe('ok')
+    expect(stage.includes('startPair(i)') ? 'jumping is still there' : 'ok').toBe('ok')
+    expect(stage.includes('c.done && last')).toBeTruthy()
+    expect(stage.includes('c.done && !last')).toBeTruthy()
+    const css = source('src/styles/correspondence.css')
+    expect(/\.corr-pairs\s*\{/.test(css) ? 'dead picker styles remain' : 'ok').toBe('ok')
+    expect(/\.corr-pair--now/.test(css) ? 'dead pair styles remain' : 'ok').toBe('ok')
+  })
+
   it('says which of the three was found, in the unit\'s own words', () => {
     /*
      * Stars cannot say which of 대응점, 대응변 and 대응각 was just found, and those

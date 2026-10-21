@@ -460,7 +460,7 @@ describe('correspondence stage renders', () => {
   it('produces markup', () => {
     // Not a byte count for its own sake: below this the screen has lost its
     // chrome. The pieces are each checked on their own further down.
-    expect(html.length > 1200 ? 'ok' : html.length + ' bytes').toBe('ok')
+    expect(html.length > 900 ? 'ok' : html.length + ' bytes').toBe('ok')
   })
 
   it('shows its title', () => {
@@ -542,10 +542,13 @@ describe('correspondence stage renders', () => {
     }
   })
 
-  it('offers all three pairs', () => {
-    for (const note of expected.corr.pairNotes) {
-      expect(html.includes(note)).toBeTruthy()
-    }
+  it('offers its pairs in order, with no picking', () => {
+    // One pair on screen at a time, each finished pair leading to the next:
+    // choosing its own order let a jump to the last pair end the unit with the
+    // others untouched, so the picker is gone and the way on is the only door.
+    expect(html.includes('corr-pairs') ? 'the picker is still there' : 'ok').toBe('ok')
+    const stage = source('src/modes/CorrespondenceStage.tsx')
+    expect(stage.includes('onClick={c.nextPair}')).toBeTruthy()
   })
 
   it('quotes no length and no angle size', () => {

@@ -179,27 +179,3 @@
   pointer-events: none;
 }
 
-.corr-pairs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.corr-pair {
-  min-height: 52px;
-  padding: 0 16px;
-  border: 2px solid var(--color-line);
-  border-radius: var(--radius-sm);
-  background: var(--color-surface);
-  font-family: inherit;
-  font-size: 0.98rem;
-  color: var(--color-ink);
-  cursor: pointer;
-}
-
-.corr-pair--now {
-  border-color: var(--color-primary);
-  background: rgba(92, 200, 232, 0.12);
-  font-weight: 700;
-}
-

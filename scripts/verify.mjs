@@ -323,10 +323,11 @@ for (const [label, s] of [
   const parts = Array.isArray(s) ? s : [s]
   ok(label, parts.every((p) => symmPartsSrc.includes(p)), parts.join(''))
 }
-// the eight boards, and the two marks that carry the facts
+// the eight boards, and the marks that carry the facts
 ok('symmetry has eight boards', /SYMM_BOARDS: SymmetryBoard\[\] = \[[\s\S]*\]\n/.test(symmShapesSrc))
+// the answer riding the foot of the grid, still styled after the nav went away
 const symmCss = read('src/styles/symmetry.css')
-for (const c of ['.sym-right', '.sym-tick', '.sym-join', '.sym-board']) {
+for (const c of ['.sym-right', '.sym-tick', '.sym-join', '.sym-deny']) {
   ok(`symmetry style ${c}`, symmCss.includes(c), c)
 }
 // No figure is quoted anywhere in the unit, and no turn control reappears.

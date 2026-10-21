@@ -412,6 +412,17 @@ describe('the four rows on the home screen', () => {
     }
   })
 
+  it('takes a drag that lands on a spot, not only a tap', () => {
+    // Some children answer with a line drawn to the mirror spot rather than a
+    // tap on it: a drag released on a spot counts, while a drag released on
+    // nothing stays silent rather than scolding a gesture that never became
+    // one. Both drawing boards share the one hook, so the one gate covers them.
+    const hook = source('src/modes/useDrawBoard.ts')
+    expect(hook.includes('if (waiting > 0) {')).toBeTruthy()
+    expect(hook.includes('matchSpot(up, answers, placed')).toBeTruthy()
+    expect(hook.includes('return tap ? fail(\'spot\') : undefined')).toBeTruthy()
+  })
+
   it('lets the finished figure stand before the way out', () => {
     // Showing the way out in the same instant as the outline would trade
     // looking at it for leaving it.

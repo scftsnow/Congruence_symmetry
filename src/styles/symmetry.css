@@ -293,42 +293,6 @@
 }
 
 /*
- * The run of boards across the unit.
- *
- * One dot per board rather than one per step, because the steps inside a board
- * already have their own dots. A board can also be opened from here: the earlier
- * ones hold their marks, so a child who wants to look at a pair again can.
- */
-.sym-boards {
-  display: flex;
-  gap: 10px;
-  justify-content: center;
-  margin-top: 14px;
-}
-
-.sym-board {
-  width: 16px;
-  height: 16px;
-  padding: 0;
-  border: 3px solid var(--color-line);
-  border-radius: 50%;
-  background: var(--color-surface);
-  cursor: pointer;
-}
-
-.sym-board--done {
-  border-color: var(--color-success);
-  background: var(--color-success);
-  box-shadow: var(--glow-shadow);
-}
-
-.sym-board--now {
-  border-color: #e76f51;
-  background: #e76f51;
-  transform: scale(1.3);
-}
-
-/*
  * The "there is none" answer, riding the foot of the grid.
  *
  * It is an answer about the board, so it sits on the board — centred on its

@@ -73,22 +73,6 @@ export function SymmetryDrawStage({
             />
           )}
 
-          <nav className="sym-boards" aria-label="진행">
-            {SYMM_DRAW_BOARDS.map((b, i) => (
-              <button
-                key={b.kind === 'axis' ? b.item.id : b.id}
-                type="button"
-                className={
-                  i === run.boardIndex
-                    ? 'sym-board sym-board--now'
-                    : run.settled[i]
-                      ? 'sym-board sym-board--done'
-                      : 'sym-board'
-                }
-                onClick={() => run.startAt(i)}
-              />
-            ))}
-          </nav>
         </>
       )}
     </div>

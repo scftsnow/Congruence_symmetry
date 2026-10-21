@@ -859,15 +859,13 @@ describe('symmetry rows render', () => {
     expect(axis.includes('sym-fold')).toBeFalsy()
   })
 
-  it('shows progress through the row', () => {
-    /*
-     * One dot per BOARD of the row, not per shape: the steps inside a board
-     * keep their own dots. The list is class="sym-board", so the match requires
-     * the closing quote or a space — otherwise the container counts as one more.
-     */
-    expect((axis.match(/class="sym-board( |")/g) || []).length).toBe(5)
-    expect((facts.match(/class="sym-board( |")/g) || []).length).toBe(1)
-    expect((draw.match(/class="sym-board( |")/g) || []).length).toBe(3)
+  it('runs its boards in order, with no jumping', () => {
+    // One board on screen at a time, each finished board leading to the next:
+    // jumping ahead let the last board end the row with the rest untouched, so
+    // the board picker is gone and the header counter is the only progress.
+    expect(axis.includes('sym-boards') ? 'the picker is still there' : 'ok').toBe('ok')
+    expect(facts.includes('startAt(i)') ? 'jumping is still there' : 'ok').toBe('ok')
+    expect(draw.includes('startAt(i)') ? 'jumping is still there' : 'ok').toBe('ok')
     // and the run is the whole unit, in the textbook's order
     expect(source('src/geometry/symmetryShapes.ts').includes('SYMM_BOARDS: SymmetryBoard[]')).toBeTruthy()
   })
@@ -928,10 +926,10 @@ describe('point-symmetry rows render', () => {
     expect(axis.includes('sym-hub')).toBeFalsy()
   })
 
-  it('shows progress through the row', () => {
-    expect((axis.match(/class="sym-board( |")/g) || []).length).toBe(5)
-    expect((facts.match(/class="sym-board( |")/g) || []).length).toBe(1)
-    expect((draw.match(/class="sym-board( |")/g) || []).length).toBe(1)
+  it('runs its boards in order, with no jumping', () => {
+    expect(axis.includes('sym-boards') ? 'the picker is still there' : 'ok').toBe('ok')
+    expect(facts.includes('startAt(i)') ? 'jumping is still there' : 'ok').toBe('ok')
+    expect(draw.includes('startAt(i)') ? 'jumping is still there' : 'ok').toBe('ok')
   })
 
   it('quotes no length and no angle size', () => {

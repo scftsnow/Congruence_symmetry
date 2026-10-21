@@ -154,12 +154,12 @@ export function useDrawBoard(input: DrawBoardInput, onSettled: () => void): Draw
       const stroke = draft
       setDraft(null)
       if (!stroke || !up || walking || flying || resolved) return
-      // each gesture belongs to exactly one stage: taps place, drags join
+      // A drag released on a mirror spot counts like a tap; off the mark, only taps are told.
       const tap = distance(stroke.p, up) < MIN_DRAG
-      if (tap && waiting > 0) {
-        setAttempts((n) => n + 1)
+      if (waiting > 0) {
         const at = matchSpot(up, answers, placed, placeTolerance)
-        if (at === -1) return fail('spot')
+        if (tap) setAttempts((n) => n + 1)
+        if (at === -1) return tap ? fail('spot') : undefined
         setMiss(null)
         setFlying({ from: givens[at], to: answers[at] })
         timer.current = window.setTimeout(() => {

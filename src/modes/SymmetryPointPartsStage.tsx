@@ -71,22 +71,6 @@ export function SymmetryPointPartsStage({
             />
           )}
 
-          <nav className="sym-boards" aria-label="진행">
-            {POINT_PARTS_BOARDS.map((_, i) => (
-              <button
-                key={i}
-                type="button"
-                className={
-                  i === run.boardIndex
-                    ? 'sym-board sym-board--now'
-                    : run.settled[i]
-                      ? 'sym-board sym-board--done'
-                      : 'sym-board'
-                }
-                onClick={() => run.startAt(i)}
-              />
-            ))}
-          </nav>
         </>
       )}
     </div>

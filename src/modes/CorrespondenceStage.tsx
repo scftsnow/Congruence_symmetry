@@ -90,6 +90,7 @@ export function CorrespondenceStage({
           pair={c.pair}
           phase={c.phase}
           step={c.step}
+          asked={c.asked}
           flyStep={c.flyStep}
           landed={c.landed}
           justFound={c.justFound}

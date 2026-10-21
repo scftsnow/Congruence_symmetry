@@ -46,6 +46,7 @@ export function CorrespondenceScene({
   pair,
   phase,
   step,
+  asked,
   flyStep,
   landed,
   justFound,
@@ -55,6 +56,8 @@ export function CorrespondenceScene({
   phase: Phase
   /** which part of the pass is being asked about */
   step: number
+  /** the ask list for the pass in progress, in the order it is asked */
+  asked: number[]
   /** which part is on its way, during the demonstration */
   flyStep: number
   landed: boolean
@@ -67,7 +70,13 @@ export function CorrespondenceScene({
   const corr = useMemo(() => correspondence(a, b), [a, b])
   const n = a.length
   const flying = phase === 'compare' && flyStep < n * 2
-  const target = phase === 'points' || phase === 'sides' || phase === 'angles' ? step : -1
+  /*
+   * The lit part and the judged answer come from the same list. The pass deals
+   * its questions in a shuffled order, so lighting `step` itself while judging
+   * `asked[step]` would mark the right tap wrong — which is exactly what
+   * happened when the shuffle landed without this prop.
+   */
+  const target = phase === 'points' || phase === 'sides' || phase === 'angles' ? (asked[step] ?? -1) : -1
 
   const fly: Flyable | null = !flying
     ? null
@@ -76,13 +85,13 @@ export function CorrespondenceScene({
       : { kind: 'angle', a: corr.angles[flyStep - n].a, b: corr.angles[flyStep - n].b }
 
   /*
-   * Asked in order, so the found set is always a prefix and the fresh one is
-   * always its last entry. Kept in set form rather than sliced inside the marks
-   * because the other board hands in pairs instead.
+   * Found means found in the dealt order, not the outline order: the set on
+   * screen is the asked prefix, so the marks agree with the judging even when
+   * the questions came shuffled.
    */
-  const points = range(phase === 'points' ? step : n)
-  const sides = range(phase === 'sides' ? step : phase === 'points' ? 0 : n)
-  const angles = range(phase === 'angles' ? step : phase === 'compare' ? n : 0)
+  const points = phase === 'points' ? asked.slice(0, step) : range(n)
+  const sides = phase === 'sides' ? asked.slice(0, step) : phase === 'points' ? [] : range(n)
+  const angles = phase === 'angles' ? asked.slice(0, step) : phase === 'compare' ? range(n) : []
   const fresh = {
     points: points.length > 0 ? [points[points.length - 1]] : [],
     sides: sides.length > 0 ? [sides[sides.length - 1]] : [],

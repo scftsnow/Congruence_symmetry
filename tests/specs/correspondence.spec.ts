@@ -228,6 +228,21 @@ describe('every shape has parts the child can tell apart', () => {
     expect(source('src/modes/useSymmetryParts.ts').includes('useCorrPass')).toBeTruthy()
   })
 
+  it('lights what it judges, even when the questions come shuffled', () => {
+    // The pass deals its questions in a shuffled order, so the scene must light
+    // asked[step] — the same entry the hook judges — and mark the asked prefix
+    // as found. Lighting step itself while judging asked[step] marks the right
+    // tap wrong whenever the shuffle is not the identity.
+    const scene = source('src/components/CorrespondenceScene.tsx')
+    expect(scene.includes('asked[step]')).toBeTruthy()
+    expect(scene.includes('asked.slice(0, step)')).toBeTruthy()
+    expect(scene.includes('? step : -1') ? 'the lit part is still the raw step' : 'ok').toBe('ok')
+    const stage = source('src/modes/CorrespondenceStage.tsx')
+    expect(stage.includes('asked={c.asked}')).toBeTruthy()
+    const hook = source('src/modes/useCorrespondence.ts')
+    expect(hook.includes('asked: pass.asked')).toBeTruthy()
+  })
+
   it('says which of the three was found, in the unit\'s own words', () => {
     /*
      * Stars cannot say which of 대응점, 대응변 and 대응각 was just found, and those

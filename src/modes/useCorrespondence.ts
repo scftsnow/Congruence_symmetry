@@ -27,6 +27,8 @@ export interface CorrespondenceState {
   phase: ReturnType<typeof useCorrPass>['phase']
   /** which part of the pass is being asked about */
   step: number
+  /** the ask list for the pass in progress, in the order it is asked */
+  asked: number[]
   /** corners on this shape, so the dots and the sequence know when to stop */
   corners: number
   /** which part is on its way during the demonstration */
@@ -78,6 +80,7 @@ export function useCorrespondence(): CorrespondenceState {
     pair,
     phase: pass.phase,
     step: pass.step,
+    asked: pass.asked,
     corners,
     flyStep: pass.flyStep,
     landed: pass.landed,

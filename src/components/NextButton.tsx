@@ -20,7 +20,7 @@
  * the markup so it can be read as wording.
  */
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 /** how long the explanation is read before the way on comes up */
 export const NEXT_AFTER_MS = 5000
@@ -36,6 +36,8 @@ export function NextButton({
   delay?: number
 }) {
   const [shown, setShown] = useState(false)
+  /** the way on fires once: two taps before the rerender must not skip a board */
+  const fired = useRef(false)
 
   useEffect(() => {
     const timer = window.setTimeout(() => setShown(true), delay)
@@ -45,7 +47,15 @@ export function NextButton({
   if (!shown) return null
   return (
     <div className="next-overlay">
-      <button type="button" className="start-btn" onClick={onClick}>
+      <button
+        type="button"
+        className="start-btn"
+        onClick={() => {
+          if (fired.current) return
+          fired.current = true
+          onClick()
+        }}
+      >
         {label}
       </button>
     </div>

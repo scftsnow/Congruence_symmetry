@@ -342,6 +342,36 @@ describe('the way on is in the middle of the board', () => {
     expect(button.includes('if (!shown) return null')).toBeTruthy()
   })
 
+  it('the way on fires once, however often it is pressed', () => {
+    /*
+     * Two taps landing before the rerender would run the advance twice and skip
+     * a board outright — work the child never gets to do. The button swallows
+     * its own second press, so every board stays where it can be worked.
+     */
+    const button = source('src/components/NextButton.tsx')
+    expect(button.includes('fired')).toBeTruthy()
+    expect(/if \(fired\.current\) return/.test(button)).toBeTruthy()
+  })
+
+  it('doing it twice settles nothing twice', () => {
+    /*
+     * Repeating a right answer must not count it again: a replayed unit keeps
+     * one star, a redrawn axis is a repeat rather than a find, a rejoined pair
+     * is already joined, and a replaced point or edge is skipped where matches
+     * are made. Each layer guards repeats where repeats arrive.
+     */
+    const geo = source('src/geometry/symmetryParts.ts')
+    expect(geo.includes('!placed.includes(i)') ? 'ok' : 'a placed point can place again').toBe('ok')
+    expect(geo.includes('!drawn.includes(k)') ? 'ok' : 'a joined edge can join again').toBe('ok')
+    const symm = source('src/modes/useSymmetry.ts')
+    expect(symm.includes('!foundIdx.includes(idx)') ? 'ok' : 'a found axis counts again').toBe('ok')
+    for (const hook of ['src/modes/useSymmetryFacts.ts', 'src/modes/usePointSymmetryFacts.ts']) {
+      expect(source(hook).includes('joinedList.some') ? 'ok' : hook + ' rejoins').toBe('ok')
+    }
+    const progress = source('src/modes/useUnitProgress.ts')
+    expect(progress.includes('prev.includes(unit) ? prev') ? 'ok' : 'a replayed unit stars again').toBe('ok')
+  })
+
   it('the finding rows wait less than the five seconds', () => {
     /*
      * A find is one gesture and one sentence, read in about three seconds, and

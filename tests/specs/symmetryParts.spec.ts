@@ -420,6 +420,14 @@ describe('the four rows on the home screen', () => {
     expect(hook.includes('complete')).toBeTruthy()
   })
 
+  it('takes no more drawing while the finished figure stands', () => {
+    // The outline is complete and the words are being read: a finger down now
+    // can only leave stray lines on a finished drawing. Both drawing boards
+    // share the one hook, so the one gate covers them.
+    const hook = source('src/modes/useDrawBoard.ts')
+    expect(hook.includes('|| complete) return') ? 'ok' : 'the showcase still draws').toBe('ok')
+  })
+
   it('keeps the finishing words up, and does not let the last join clear them', () => {
     /*
      * The figure being finished has to be announced: "선대칭도형을 완성했어요!"

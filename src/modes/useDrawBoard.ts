@@ -139,10 +139,11 @@ export function useDrawBoard(input: DrawBoardInput, onSettled: () => void): Draw
   }, [complete, resolved, onSettled, last])
 
   const beginDraw = useCallback((p: Point) => {
-    if (walking || flying || resolved) return
+    // The finished figure is for looking: a finger now only strays lines on it.
+    if (walking || flying || resolved || complete) return
     setMiss(null)
     setDraft({ p, q: p })
-  }, [walking, flying, resolved])
+  }, [walking, flying, resolved, complete])
 
   const moveDraw = useCallback((p: Point) => {
     setDraft((d) => (d ? { p: d.p, q: p } : d))

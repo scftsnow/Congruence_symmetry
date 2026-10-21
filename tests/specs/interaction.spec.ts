@@ -111,6 +111,37 @@ describe('the verdict waits for the let-go', () => {
   })
 })
 
+// ── nothing answers while a demonstration runs ─────────
+describe('the board is deaf while it shows', () => {
+  function source(path: string): string {
+    return readFileSync(join(process.cwd(), path), 'utf8')
+  }
+
+  it('no answer is judged while a part travels', () => {
+    // A tap landing mid-flight must not become an answer to a question that is
+    // not being asked. The pass holds its misses and sits out the whole
+    // demonstration; both boards that ask run on it.
+    const pass = source('src/modes/useCorrPass.ts')
+    expect(pass.includes("if (wrong || phase === 'compare') return")).toBeTruthy()
+  })
+
+  it('no line is drawn while the fold travels', () => {
+    const hook = source('src/modes/useSymmetry.ts')
+    expect(hook.includes('if (folding || resolved) return')).toBeTruthy()
+  })
+
+  it('no join is drawn while the facts arrive', () => {
+    for (const hook of ['src/modes/useSymmetryFacts.ts', 'src/modes/usePointSymmetryFacts.ts']) {
+      expect(source(hook).includes("if (stage !== 'join') return") ? 'ok' : hook + ' draws mid-show').toBe('ok')
+    }
+  })
+
+  it('no point is placed while the walk, the flight, or the finished figure stands', () => {
+    const hook = source('src/modes/useDrawBoard.ts')
+    expect(hook.includes('if (walking || flying || resolved || complete) return')).toBeTruthy()
+  })
+})
+
 // ── the board must not give the answer away ──────────────
 describe('the layout does not spell out the pairs', () => {
   it('no genuine pair sits side by side', () => {
